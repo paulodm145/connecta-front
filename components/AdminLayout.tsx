@@ -5,6 +5,10 @@ import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, ChevronLeft, Menu, Home, Target, Shield, UserPlus, FileText, AlertTriangle, HardHat, Clipboard, Book, User, Bell, Calendar, Briefcase, Thermometer, Users, Settings, Sun, Moon } from 'lucide-react';
 import Image from 'next/image';
+import { useAccessHook } from '@/app/hooks/useAccessHook';
+import AlertDialog from './AlertDialog'; 
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 type LogoPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -57,105 +61,64 @@ interface ThemeConfig {
     icon: React.ElementType;
     link?: string;
     children?: MenuItem[];
+    onClick?: () => void;
   }
 
-  const menuData: MenuItem[] = [
-    {
-      name: "Dashboard",
-      icon: Home,
-      children: [
-        {
-          name: "Visão Geral",
-          icon: Home,
-          children: [
-            { name: "Resumo Diário", icon: FileText, link: "/admin/dashboard/resumo-diario" },
-            { name: "Estatísticas Semanais", icon: FileText, link: "/admin/dashboard/estatisticas-semanais" },
-            { name: "Relatórios Mensais", icon: FileText, link: "/admin/dashboard/relatorios-mensais" }
-          ]
-        },
-        { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
-        { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
-      ]
-    },
-    {
-      name: "EPI",
-      icon: Shield,
-      children: [
-        { name: "Cadastro de EPIs", icon: UserPlus, link: "/admin/epi/cadastro" },
-        { name: "Estoque", icon: Clipboard, link: "/admin/epi/estoque" },
-        { name: "Distribuição", icon: Users, link: "/admin/epi/distribuicao" }
-      ]
-    },
-    {
-      name: "Incidentes",
-      icon: AlertTriangle,
-      children: [
-        { name: "Novo Registro", icon: FileText, link: "/admin/incidentes/novo" },
-        { name: "Análise de Causas", icon: Clipboard, link: "/admin/incidentes/analise" },
-        { name: "Relatórios", icon: FileText, link: "/admin/incidentes/relatorios" }
-      ]
-    },
-    { name: "Treinamentos SST", icon: Calendar, link: "/admin/treinamentos" },
-    { name: "Documentos SST", icon: FileText, link: "/admin/documentos" },
-    { name: "Inspeções", icon: Clipboard, link: "/admin/inspecoes" },
-    {
-      name: "Riscos Ocupacionais",
-      icon: AlertTriangle,
-      children: [
-        { name: "Avaliação", icon: Clipboard, link: "/admin/riscos/avaliacao" },
-        { name: "Controle", icon: Shield, link: "/admin/riscos/controle" },
-        { name: "Monitoramento", icon: Bell, link: "/admin/riscos/monitoramento" }
-      ]
-    },
-    { name: "Exames Médicos", icon: Thermometer, link: "/admin/exames-medicos" },
-    { name: "Indicadores SST", icon: Home, link: "/admin/indicadores" },
-    { name: "Acessos", icon: Shield, link: "/admin/permissoes" },
-    { name: "Comunicação de Acidentes", icon: Bell, link: "/admin/cat" },
-    { name: "Configurações", icon: Settings, link: "/admin/configuracoes" }
-];
+  
 
 const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: boolean; theme: ThemeConfig }> = ({ item, depth, sidebarMinimized, theme }) => {
-    const [isOpen, setIsOpen] = useState(false);
-    const Icon = item.icon;
-  
-    const paddingLeft = depth * 16;
-  
-    const renderMenuItem = () => (
-      <Button
-        variant="ghost"
-        className={`w-full text-left py-3 px-4 ${sidebarMinimized ? 'justify-center' : 'justify-between'} ${theme.hover} transition-colors duration-200`}
-        style={{ paddingLeft: sidebarMinimized ? undefined : `${paddingLeft + 16}px` }}
-        onClick={() => item.children && setIsOpen(!isOpen)}
-      >
-        <div className="flex items-center">
-          <Icon className={`h-5 w-5 ${sidebarMinimized ? 'mx-auto' : 'mr-3'} ${theme.text}`} />
-          {!sidebarMinimized && <span className={`text-sm font-medium ${theme.text} whitespace-nowrap`}>{item.name}</span>}
-        </div>
-        {!sidebarMinimized && item.children && (
-          isOpen ? <ChevronDown className={`h-4 w-4 flex-shrink-0 ${theme.text}`} /> : <ChevronRight className={`h-4 w-4 flex-shrink-0 ${theme.text}`} />
-        )}
-      </Button>
-    );
-  
-    return (
-      <div>
-        {item.link ? (
-          <Link href={item.link} className="block">
-            {renderMenuItem()}
-          </Link>
-        ) : (
-          renderMenuItem()
-        )}
-        {isOpen && !sidebarMinimized && item.children && (
-          <div className="mt-1">
-            {item.children.map((child, index) => (
-              <TreeMenuItem key={index} item={child} depth={depth + 1} sidebarMinimized={sidebarMinimized} theme={theme} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
+  const [isOpen, setIsOpen] = useState(false);
+
+  const Icon = item.icon;
+
+  const paddingLeft = depth * 16;
+
+  const handleClick = () => {
+    if (item.onClick) {
+      item.onClick(); // Executa a função associada ao item do menu
+    }
+    if (item.children) {
+      setIsOpen(!isOpen); // Expande/colapsa submenus
+    }
   };
+
+  const renderMenuItem = () => (
+    <Button
+      variant="ghost"
+      className={`w-full text-left py-3 px-4 ${sidebarMinimized ? 'justify-center' : 'justify-between'} ${theme.hover} transition-colors duration-200`}
+      style={{ paddingLeft: sidebarMinimized ? undefined : `${paddingLeft + 16}px` }}
+      onClick={handleClick}
+    >
+      <div className="flex items-center">
+        <Icon className={`h-5 w-5 ${sidebarMinimized ? 'mx-auto' : 'mr-3'} ${theme.text}`} />
+        {!sidebarMinimized && <span className={`text-sm font-medium ${theme.text} whitespace-nowrap`}>{item.name}</span>}
+      </div>
+      {!sidebarMinimized && item.children && (
+        isOpen ? <ChevronDown className={`h-4 w-4 flex-shrink-0 ${theme.text}`} /> : <ChevronRight className={`h-4 w-4 flex-shrink-0 ${theme.text}`} />
+      )}
+    </Button>
+  );
+
+  return (
+    <div>
+      {item.link ? (
+        <Link href={item.link} className="block">
+          {renderMenuItem()}
+        </Link>
+      ) : (
+        renderMenuItem()
+      )}
+      {isOpen && !sidebarMinimized && item.children && (
+        <div className="mt-1">
+          {item.children.map((child, index) => (
+            <TreeMenuItem key={index} item={child} depth={depth + 1} sidebarMinimized={sidebarMinimized} theme={theme} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
   
   interface AdminLayoutProps {
     children: React.ReactNode;
@@ -166,15 +129,99 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
     const [sidebarMinimized, setSidebarMinimized] = useState(false);
     const [currentTheme, setCurrentTheme] = useState('3');
     const [darkMode, setDarkMode] = useState(false);
+
+    const [isOpenAlert, setIsOpenAlert] = useState(false);
   
     const toggleSidebar = () => setSidebarOpen(!sidebarOpen);
     const toggleMinimize = () => setSidebarMinimized(!sidebarMinimized);
     const toggleDarkMode = () => setDarkMode(!darkMode);
   
     const theme = themes[currentTheme];
+
+    const { logout } = useAccessHook(); // Obtendo o método logout do hook
+
+    const sair = async () => {
+      setIsOpenAlert(true);
+    };
+
+    const handleConfirm = async () => {
+      try {
+        const response = await logout(); // Chama o logout do hook
+        if (response?.status === 204) {
+          localStorage.removeItem("token");
+          toast.success("Logout realizado com sucesso.");
+          window.location.href = "/"; // Redireciona para a página de login
+        } else {
+          toast.error("Falha ao fazer logout. Tente novamente.");
+        }
+      } catch (error) {
+        console.error("Erro durante o logout:", error);
+      }
+    };
+  
+    const handleCancel = () => {
+      setIsOpenAlert(false);
+    };
+
+    const menuData: MenuItem[] = [
+      {
+        name: "Dashboard",
+        icon: Home,
+        children: [
+          {
+            name: "Visão Geral",
+            icon: Home,
+            children: [
+              { name: "Resumo Diário", icon: FileText, link: "/admin/dashboard/resumo-diario" },
+              { name: "Estatísticas Semanais", icon: FileText, link: "/admin/dashboard/estatisticas-semanais" },
+              { name: "Relatórios Mensais", icon: FileText, link: "/admin/dashboard/relatorios-mensais" }
+            ]
+          },
+          { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
+          { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
+        ]
+      },
+      {
+        name: "EPI",
+        icon: Shield,
+        children: [
+          { name: "Cadastro de EPIs", icon: UserPlus, link: "/admin/epi/cadastro" },
+          { name: "Estoque", icon: Clipboard, link: "/admin/epi/estoque" },
+          { name: "Distribuição", icon: Users, link: "/admin/epi/distribuicao" }
+        ]
+      },
+      {
+        name: "Incidentes",
+        icon: AlertTriangle,
+        children: [
+          { name: "Novo Registro", icon: FileText, link: "/admin/incidentes/novo" },
+          { name: "Análise de Causas", icon: Clipboard, link: "/admin/incidentes/analise" },
+          { name: "Relatórios", icon: FileText, link: "/admin/incidentes/relatorios" }
+        ]
+      },
+      { name: "Treinamentos SST", icon: Calendar, link: "/admin/treinamentos" },
+      { name: "Documentos SST", icon: FileText, link: "/admin/documentos" },
+      { name: "Inspeções", icon: Clipboard, link: "/admin/inspecoes" },
+      {
+        name: "Riscos Ocupacionais",
+        icon: AlertTriangle,
+        children: [
+          { name: "Avaliação", icon: Clipboard, link: "/admin/riscos/avaliacao" },
+          { name: "Controle", icon: Shield, link: "/admin/riscos/controle" },
+          { name: "Monitoramento", icon: Bell, link: "/admin/riscos/monitoramento" }
+        ]
+      },
+      { name: "Exames Médicos", icon: Thermometer, link: "/admin/exames-medicos" },
+      { name: "Indicadores SST", icon: Home, link: "/admin/indicadores" },
+      { name: "Acessos", icon: Shield, link: "/admin/permissoes" },
+      { name: "Comunicação de Acidentes", icon: Bell, link: "/admin/cat" },
+      { name: "Configurações", icon: Settings, link: "/admin/configuracoes" },
+      { name: "SAIR", icon: HardHat, link: "#", onClick: () => sair() }
+  ];
   
     return (
       <div className={`flex h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
+        <ToastContainer />
         {/* Barra lateral do sistema SST */}
         <div className={`fixed top-0 left-0 h-full ${theme.primary} shadow-lg transition-all duration-300 z-20 ${
           sidebarOpen ? (sidebarMinimized ? 'w-16' : 'w-72') : 'w-0'
@@ -233,7 +280,19 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
             {children}
           </main>
         </div>
+      
+        <AlertDialog
+        title="Deseja Sair ?"
+        description="Confirma a ação de sair do Sistema?"
+        confirmText="Sim"
+        cancelText="Não"
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+        isOpen={isOpenAlert}
+        setIsOpen={setIsOpenAlert}
+      />  
       </div>
+      
     );
   };
   
