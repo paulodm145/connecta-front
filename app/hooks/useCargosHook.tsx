@@ -1,6 +1,7 @@
 import axios from "axios";
+import { toast } from "react-toastify";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
 
 interface ICargo {
     id: number;
@@ -75,17 +76,33 @@ export const useCargosHook = () => {
             });
             return response.data;
         } catch (error) {
+            toast.error("Erro ao excluir cargo.:" + error.response.data?.error);
             console.error("Erro ao excluir cargo:", error);
             return null;
         }
-    }  
+    }
+    
+    const changeStatus = async (id: number) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/cargos/change-status/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao mudar status do setor:", error);
+            return null;
+        }
+    }
 
 return { 
     index,
     show,
     store,
     update,
-    destroy
+    destroy,
+    changeStatus
     };     
 };
 

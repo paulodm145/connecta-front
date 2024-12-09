@@ -10,6 +10,8 @@ import AlertDialog from './AlertDialog';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
+import { useUserStore } from '@/app/store/userStore';
+
 type LogoPosition = 'left' | 'right' | 'top' | 'bottom';
 
 interface ThemeConfig {
@@ -53,6 +55,16 @@ interface ThemeConfig {
       input: 'bg-white text-gray-800 border border-gray-300 focus:border-blue-500',
       logo: 'text-blue-600',
       logoPath: '/images/logo.png' // Caminho para a logo ALL IN DOT clara
+    },
+    '4': { // Tema baseado na cor Tea
+      primary: 'bg-gradient-to-r from-teal-500 to-teal-400',
+      secondary: 'bg-teal-500',
+      text: 'text-teal-900',
+      hover: 'hover:bg-teal-600',
+      button: 'bg-teal-500 hover:bg-teal-600 text-white',
+      input: 'bg-white text-teal-900 border border-teal-300 focus:border-teal-500',
+      logo: 'text-teal-500',
+      logoPath: '/images/tea-logo.png' // Caminho para a logo do tema Tea
     }
   };
   
@@ -218,6 +230,10 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       { name: "Configurações", icon: Settings, link: "/admin/configuracoes" },
       { name: "SAIR", icon: HardHat, link: "#", onClick: () => sair() }
   ];
+
+
+  const user = useUserStore((state) => state.user);
+  if (!user) return null;
   
     return (
       <div className={`flex h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
@@ -259,7 +275,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
               <Button variant="ghost" size="icon" onClick={toggleSidebar} className={`mr-2 ${darkMode ? 'text-white' : 'text-black'}`}>
                 <Menu className="h-5 w-5" />
               </Button>
-              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>Sistema de SST - DotSe</h1>
+              <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{user.informacoes_usuario.empresa.nome}</h1>
             </div>
             <div className="flex items-center space-x-2">
               <select

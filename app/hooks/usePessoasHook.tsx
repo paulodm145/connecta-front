@@ -80,12 +80,29 @@ export const usePessoasHook = () => {
         }
     }  
 
+   const getResponsaveis = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/pessoas-responsaveis`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar responsáveis:", error);
+            return null;
+        }
+    }
+
+
+
 return { 
     index,
     show,
     store,
     update,
-    destroy
+    destroy,
+    getResponsaveis
     };     
 };
 

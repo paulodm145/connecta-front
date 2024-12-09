@@ -28,6 +28,7 @@
     "chart.js": "^4.4.4",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
+    "cmdk": "^1.0.0",
     "date-fns": "^3.6.0",
     "lucide-react": "^0.436.0",
     "next": "14.2.7",
@@ -38,15 +39,18 @@
     "react-dom": "^18",
     "react-heatmap-grid": "^0.9.1",
     "react-hook-form": "^7.53.2",
+    "react-input-mask": "^2.0.4",
     "react-toastify": "^10.0.6",
     "tailwind-merge": "^2.5.2",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "@types/react-input-mask": "^3.0.6",
     "eslint": "^8",
     "eslint-config-next": "14.2.7",
     "postcss": "^8",

@@ -87,13 +87,28 @@ export const useSetoresHook = () => {
         }
     }
 
+    const setoresAtivos = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/setores-ativos`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar setores ativos:", error);
+            return null;
+        }
+    }
+
 return { 
     index,
     show,
     store,
     update,
     destroy,
-    changeStatus
+    changeStatus,
+    setoresAtivos
     };     
 };
 

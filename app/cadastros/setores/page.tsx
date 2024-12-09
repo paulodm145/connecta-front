@@ -14,10 +14,12 @@ import { usePessoasHook } from '@/app/hooks/usePessoasHook';
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { render } from 'react-dom';
+import { Stint_Ultra_Expanded } from 'next/font/google';
 
 export default function Setores() {
-  const { index: listarSetores, changeStatus, store, update } = useSetoresHook();
-  const { index: listarPessoas } = usePessoasHook();
+  const { index: listarSetores, changeStatus, store, update, destroy } = useSetoresHook();
+  const { getResponsaveis } = usePessoasHook();
 
   const [data, setData] = useState([]);
   const [pessoasOptions, setPessoasOptions] = useState([]);
@@ -37,16 +39,14 @@ export default function Setores() {
   // Função para carregar a lista de pessoas
   const carregarPessoas = async () => {
     try {
-      const response = await listarPessoas();
+      const response = await getResponsaveis();
       console.log('Pessoas carregadas:', response); // Verificar o retorno
       if (response) {
         const options = response.map((pessoa: { id: number; nome: string }) => ({
-          value: pessoa.id,
+          value: (pessoa.id).toString(),
           label: pessoa.nome,
         }));
-        if (Array.isArray(options) && options.length) {
-          options.unshift({ value: '00', label: 'Selecione...' });
-        }
+       
         setPessoasOptions(options);
       }
     } catch (error) {
@@ -69,7 +69,12 @@ export default function Setores() {
       lookup: true,
       fetchOptions: async () => pessoasOptions,
     },
-    { name: 'responsavel.nome', label: 'Nome do Responsável', type: 'text' },
+    {
+      name: 'active',
+      label: 'Status',
+      type: 'toggle',
+      value: true,
+    }
   ];
 
 
@@ -107,9 +112,29 @@ export default function Setores() {
   };
 
   const deleteData = async (id: number) => {
-    setData((prevData) => prevData.filter((item) => item.id !== id));
-    console.log('Excluindo registro com id:', id);
-    return { success: true };
+    try {
+      console.log(`Tentando excluir o setor com ID: ${id}`);
+      
+      // Chama a função destroy do hook
+      await destroy(id);
+      
+      // Recarrega os setores após exclusão
+      await carregarSetores();
+      
+      toast.success("Setor excluído com sucesso.");
+      console.log(`Setor com ID ${id} excluído com sucesso.`);
+      
+      return { success: true };
+    } catch (error: any) {
+      // Diagnóstico de erro detalhado
+      const status = error?.response?.status || 'Indefinido';
+      const errorMessage = error?.response?.data?.error || error.message || "Erro desconhecido";
+      
+      console.error(`Erro ao excluir o setor (ID: ${id}). Status: ${status}. Erro: ${errorMessage}`);
+      toast.error(`Erro ao excluir setor: ${errorMessage}`);
+      
+      return { success: false };
+    }
   };
 
   const toggleStatus = async (id: number) => {
@@ -119,7 +144,7 @@ export default function Setores() {
       toast.success("Status do setor alterado com sucesso.");
       setData((prevData) =>
         prevData.map((item) =>
-          item.id === id ? { ...item, active: !item.active } : item
+          item.id === id ? { ...item, status: !item.status } : item
         )
       );
       console.log(
@@ -133,6 +158,16 @@ export default function Setores() {
       return { success: false };
     }
   };
+
+  const columns = [
+    { dataField: 'id', label: 'ID', render: (value) => value.toString().padStart(5, '0') },
+    { dataField: 'descricao', label: 'Descrição' },
+    { dataField: 'responsavel.nome', 
+      label: 'Responsável',
+      render: (_, item) => item.responsavel?.nome || 'Não informado'
+    },
+    
+  ];
 
   return (
     <Card>
@@ -150,6 +185,7 @@ export default function Setores() {
           saveData={saveData}
           deleteData={deleteData}
           toggleStatus={toggleStatus}
+          columns={columns}
         />
       </CardContent>
     </Card>

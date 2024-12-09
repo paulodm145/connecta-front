@@ -15,6 +15,7 @@ import "react-toastify/dist/ReactToastify.css";
 
 import { Eye, EyeOff } from "lucide-react"; // Biblioteca para os ícones
 
+
 interface LoginFormInputs {
   email: string;
   password: string;

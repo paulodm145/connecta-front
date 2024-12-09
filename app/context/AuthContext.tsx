@@ -8,6 +8,9 @@ import Loader from "@/components/Loader";
 
 import { getUserData, setUserData } from "../utils/UserData"; 
 
+import { useUserStore } from "@/app/store/userStore";
+
+
 interface AuthContextProps {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
@@ -27,6 +30,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  
 
   useEffect(() => {
     fetchUser();
@@ -45,6 +49,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const { data } = await api.get("/me");
       setUser(data.data);
       setUserData(data.data); // Atualiza o usuário no gerenciador centralizado
+      useUserStore.getState().setUser(data.data);
     } catch (error) {
       console.error("Erro ao buscar usuário:", error);
       localStorage.removeItem("token");
