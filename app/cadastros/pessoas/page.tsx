@@ -1,65 +1,127 @@
 "use client";
-
-import { useState } from 'react';
+import { useCallback, useEffect, useState, useMemo } from 'react';
 import DynamicCrudComponent from '@/components/DynamicCrudComponent';
-
 import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useCrud } from '@/app/hooks/useCRUD';
+import { usePessoasHook } from '@/app/hooks/usePessoasHook';
+
+import { toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 export default function Pessoas() {
-  const [data, setData] = useState([
-    { id: 1, name: 'João Silva', description: 'Usuário regular', gender: 'M', newsletter: true, notification: false, role: 'user', active: true },
-    { id: 2, name: 'Maria Oliveira', description: 'Administradora', gender: 'F', newsletter: false, notification: true, role: 'admin', active: true },
-    { id: 3, name: 'Carlos Souza', description: 'Convidado', gender: 'M', newsletter: true, notification: false, role: 'guest', active: false },
-  ]);
+  const { get, post, put, del } = useCrud("", {});
+  const [data, setData] = useState<any[]>([]);
 
-  const fields = [
-    { name: 'name', label: 'Nome', type: 'text', required: true },
-    { name: 'description', label: 'Descrição', type: 'textarea', required: true, minLength: 10, maxLength: 200 },
-    { name: 'gender', label: 'Gênero', type: 'radio', options: [{ label: 'Masculino', value: 'M' }, { label: 'Feminino', value: 'F' }], required: true },
-    { name: 'newsletter', label: 'Assinar Newsletter', type: 'checkbox' },
-    { name: 'notification', label: 'Notificações', type: 'toggle' },
-    { name: 'role', label: 'Função', type: 'select', lookup: true, fetchOptions: async () => [
-      { value: 'admin', label: 'Administrador' },
-      { value: 'user', label: 'Usuário' },
-      { value: 'guest', label: 'Convidado' }
-    ]}
+  const { changeStatus } = usePessoasHook();
+
+ // Função para carregar a lista de pessoas
+ const carregarPessoas = async () => {
+  try {
+    const response = await get('pessoas');
+    console.log('Pessoas carregadas:', response); // Verificar o retorno
+    if (response) {
+      setData(response); // Atualizar o estado do componente
+    }
+  } catch (error) {
+    console.error('Erro ao carregar a lista de pessoas:', error);
+  }
+};
+
+useEffect(() => {
+  carregarPessoas();
+}, []);
+
+  const fields = useMemo(() => [
+    { name: 'nome', label: 'Nome', type: 'text', required: true },
+    { name: 'cpf', label: 'CPF', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'text', required: true },
+    { name: 'telefone', label: 'Telefone', type: 'text' },
+    { name: 'registro_funcional', label: 'Registro Funcional', type: 'text' },
+    {
+      name: 'cargo_id',
+      label: 'Cargo',
+      type: 'select',
+      lookup: true,
+      fetchOptions: async () => [
+        { value: '5', label: 'Gerente' },
+        { value: '5', label: 'Analista' },
+        { value: '5', label: 'Assistente' }
+      ]
+    },
+    { name: 'responsavel', label: 'Responsável', type: 'checkbox' }
+  ], []);
+
+  const columns = [
+    { dataField: 'id', label: 'ID', render: (value) => value.toString().padStart(5, '0') },
+    { label: "Nome", dataField: "nome" },
+    { label: "CPF", dataField: "cpf" },
+    { label: "Email", dataField: "email" },
+    { label: "Telefone", dataField: "telefone" },
+    { label: "Registro Funcional", dataField: "registro_funcional" },
+    { dataField: 'cargos.descricao', 
+      label: 'Cargo',
+      render: (_, item) => item.cargos?.descricao || 'Não informado'
+    },
+    { label: "Responsável", dataField: "responsavel", render: (val: boolean) => val ? 'Sim' : 'Não' },
   ];
 
-  const fetchData = async () => data;
+  // Agora fetchData apenas retorna o estado local, não chama a API
+  const fetchData = useCallback(async () => {
+    return data;
+  }, [data]);
 
-  const saveData = async (id, formData) => {
+  const saveData = useCallback(async (id: number | null, formData: any) => {
     if (id) {
-      // Atualizar registro existente
-      setData(prevData => prevData.map(item => item.id === id ? { id, ...formData } : item));
-      console.log('Atualizando registro:', id, formData);
+      // Atualiza registro existente
+      const response = await put(`pessoas/${id}`, formData);
+      if (response) {
+        await carregarPessoas(); // Recarrega a lista após salvar
+        return { success: true, id: response.id };
+      }
     } else {
-      // Adicionar novo registro com um novo ID
-      const newId = data.length ? Math.max(...data.map(item => item.id)) + 1 : 1;
-      setData(prevData => [...prevData, { id: newId, ...formData, active: true }]);
-      console.log('Criando novo registro:', formData);
+      // Cria novo registro
+      const response = await post("pessoas", formData);
+      if (response) {
+        await carregarPessoas(); // Recarrega a lista após criar
+        return { success: true, id: response.id };
+      }
     }
-    return { success: true };
-  };
+    return { success: false };
+  }, [post, put, carregarPessoas]);
 
-  const deleteData = async (id) => {
-    setData(prevData => prevData.filter(item => item.id !== id));
-    console.log('Excluindo registro com id:', id);
+  const deleteData = useCallback(async (id: number) => {
+    await del(`pessoas/${id}`);
+    await carregarPessoas(); // Recarrega a lista após deletar
     return { success: true };
-  };
+  }, [del, carregarPessoas]);
 
-  const toggleStatus = async (id, isActive) => {
-    setData(prevData =>
-      prevData.map(item => item.id === id ? { ...item, active: !isActive } : item)
-    );
-    console.log(`Alterando status do registro com id ${id} para ${isActive ? 'Inativo' : 'Ativo'}`);
-    return { success: true };
+  //muda o status
+  const toggleStatus = async (id: number) => {
+    const statusSetor = await changeStatus(id);
+
+    if (statusSetor) {
+      toast.success("Status do setor alterado com sucesso.");
+      setData((prevData) =>
+        prevData.map((item) =>
+          item.id === id ? { ...item, status: !item.status } : item
+        )
+      );
+      console.log(
+        `Alterando status do registro com id ${id} para ${
+          statusSetor ? 'Ativo' : 'Inativo'
+        }`
+      );
+      return { success: true };
+    } else {
+      console.error('Erro ao alterar status do setor:', id);
+      return { success: false };
+    }
   };
 
   return (
@@ -72,6 +134,7 @@ export default function Pessoas() {
       <CardContent>
         <DynamicCrudComponent
           fields={fields}
+          columns={columns}
           fetchData={fetchData}
           saveData={saveData}
           deleteData={deleteData}
