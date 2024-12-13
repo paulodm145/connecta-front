@@ -1,333 +1,105 @@
-'use client'
+"use client"
 
 import { useState } from 'react'
+import { DadosFormulario, DadosPergunta } from '@/components/form-builder/types'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion"
-import { FormBuilderQuestion } from "./FormBuilderQuestion"
-import { DndContext, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
-import { SortableContext, verticalListSortingStrategy, arrayMove } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSSProperties } from 'react'
-import InputMask from 'react-input-mask'
+import ConstrutorPergunta from '@/components/form-builder/ConstrutorPergunta'
+import FormBuilder from '@/components/form-builder/FormBuilder'
+import FormPreview from '@/components/form-builder/FormPreview'
 
-type QuestionType = 
-  | 'text'
-  | 'text_masked'
-  | 'textarea'
-  | 'toggle'
-  | 'single_choice'
-  | 'multiple_choice'
-  | 'select'
+export default function PaginaConstrutor() {
+  const [perguntas, setPerguntas] = useState<DadosPergunta[]>([])
+  const [mostrarModalAdd, setMostrarModalAdd] = useState(false)
+  const [mostrarFormPreview, setMostrarFormPreview] = useState(false)
 
-interface QuestionOption {
-  option_text: string
-  option_score: number
-  order?: number
-}
+  const [formulario, setFormulario] = useState<DadosFormulario>({
+    titulo: 'Meu Formulário',
+    descricao: 'Descrição do meu formulário',
+    slug: 'meu-formulario-' + Math.random().toString(36).substring(7),
+    status: 'rascunho',
+    ajuda: '',
+    embed_youtube: '',
+    mostrar_ajuda: false,
+    mostrar_embed_youtube: false,
+    perguntas: []
+  })
 
-interface QuestionData {
-  id: string
-  question_text: string
-  question_type: QuestionType
-  is_required: boolean
-  base_score: number
-  mask?: string
-  options: QuestionOption[]
-  order?: number
-}
+  const [perguntaAtual, setPerguntaAtual] = useState<Partial<DadosPergunta>>({})
+  const [respostas, setRespostas] = useState<{ [perguntaId: string]: any }>({})
+  const [mostrarModalVideo, setMostrarModalVideo] = useState(false)
+  const [videoEmbedAtual, setVideoEmbedAtual] = useState<string>('')
 
-function SortableQuestionItem({ question, index, updateQuestionAtIndex, removeQuestion }: {
-  question: QuestionData,
-  index: number,
-  updateQuestionAtIndex: (index: number, updated: QuestionData) => void,
-  removeQuestion: (index: number) => void
-}) {
-  const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: question.id})
-  const style: CSSProperties = {
-    transform: CSS.Transform.toString(transform),
-    transition
-  }
-
-  return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <Accordion type="single" collapsible className="border rounded mb-2">
-        <AccordionItem value={`item-${question.id}`}>
-          <AccordionTrigger className="p-2 flex justify-between w-full">
-            <span>{question.question_text || `Pergunta ${index+1}`}</span>
-            <span className="text-sm text-gray-500">Ordem: {question.order}</span>
-          </AccordionTrigger>
-          <AccordionContent className="p-4 border-t">
-            <FormBuilderQuestion
-              question={question}
-              onChange={(updated) => updateQuestionAtIndex(index, updated)}
-              onRemove={() => removeQuestion(index)}
-            />
-          </AccordionContent>
-        </AccordionItem>
-      </Accordion>
-    </div>
-  )
-}
-
-export default function BuilderPage() {
-  const [questions, setQuestions] = useState<QuestionData[]>([])
-  const [showAddModal, setShowAddModal] = useState(false)
-  const [showFormPreview, setShowFormPreview] = useState(false)
-
-  const [currentQuestion, setCurrentQuestion] = useState<Partial<QuestionData>>({})
-
-  const openAddModal = () => {
-    setCurrentQuestion({
-      question_text: '',
-      question_type: 'text',
-      is_required: false,
-      base_score: 0,
-      options: [],
-      order: questions.length + 1
+  const abrirModalAdd = () => {
+    setPerguntaAtual({
+      pergunta_texto: '',
+      tipo_pergunta: 'TEXT',
+      obrigatoria: false,
+      pontuacao_base: 0,
+      opcoes: [],
+      ordem: perguntas.length + 1,
+      ajuda: '',
+      embed_youtube: '',
+      mostrar_ajuda: false,
+      mostrar_embed_youtube: false
     })
-    setShowAddModal(true)
+    setMostrarModalAdd(true)
   }
 
-  const handleAddQuestion = () => {
-    if (currentQuestion && currentQuestion.question_text) {
-      const completedQuestion: QuestionData = {
+  const handleAdicionarPergunta = () => {
+    if (perguntaAtual && perguntaAtual.pergunta_texto) {
+      const perguntaCompleta: DadosPergunta = {
         id: crypto.randomUUID(),
-        question_text: currentQuestion.question_text || '',
-        question_type: currentQuestion.question_type || 'text',
-        is_required: currentQuestion.is_required || false,
-        base_score: currentQuestion.base_score || 0,
-        mask: currentQuestion.mask,
-        options: currentQuestion.options || [],
-        order: currentQuestion.order ?? (questions.length + 1)
+        pergunta_texto: perguntaAtual.pergunta_texto || '',
+        tipo_pergunta: perguntaAtual.tipo_pergunta || 'TEXT',
+        obrigatoria: perguntaAtual.obrigatoria || false,
+        pontuacao_base: perguntaAtual.pontuacao_base || 0,
+        mascara: perguntaAtual.mascara,
+        opcoes: perguntaAtual.opcoes || [],
+        ordem: perguntaAtual.ordem ?? (perguntas.length + 1),
+        ajuda: perguntaAtual.ajuda || '',
+        embed_youtube: perguntaAtual.embed_youtube || '',
+        mostrar_ajuda: perguntaAtual.mostrar_ajuda || false,
+        mostrar_embed_youtube: perguntaAtual.mostrar_embed_youtube || false
       }
-      setQuestions((prev) => [...prev, completedQuestion])
-      setShowAddModal(false)
+      setPerguntas((prev) => [...prev, perguntaCompleta])
+      setMostrarModalAdd(false)
     }
   }
 
-  const removeQuestion = (index: number) => {
-    const updated = questions.filter((_, i) => i !== index)
-    const reOrdered = updated.map((q, idx) => ({ ...q, order: idx + 1 }))
-    setQuestions(reOrdered)
-  }
-
-  const updateQuestionAtIndex = (index: number, updated: QuestionData) => {
-    const newQuestions = [...questions]
-    newQuestions[index] = updated
-    setQuestions(newQuestions)
-  }
-
-  const submitForm = () => {
-    const finalQuestions = questions.map((q, i) => ({ ...q, order: i+1 }))
-    const form = {
-      title: 'Meu Formulário',
-      description: 'Descrição do meu formulário',
-      questions: finalQuestions
+  const enviarFormulario = () => {
+    const perguntasFinais = perguntas.map((p, i) => ({ ...p, ordem: i+1 }))
+    const formFinal = {
+      ...formulario,
+      perguntas: perguntasFinais
     }
-    console.log('Enviando o formulário:', form)
+    console.log('Enviando o formulário:', formFinal)
     alert('Formulário enviado! Confira o console.')
   }
 
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: {distance: 5} })
-  )
-
-  const onDragEnd = (event: DragEndEvent) => {
-    const {active, over} = event
-    if (!over) return
-    if (active.id !== over.id) {
-      const oldIndex = questions.findIndex((q) => q.id === active.id)
-      const newIndex = questions.findIndex((q) => q.id === over.id)
-      const newQuestions = arrayMove(questions, oldIndex, newIndex)
-      const reOrdered = newQuestions.map((q, idx) => ({ ...q, order: idx + 1 }))
-      setQuestions(reOrdered)
-    }
+  const handlePreviewAnswerChange = (perguntaId: string, value: any) => {
+    setRespostas(prev => ({ ...prev, [perguntaId]: value }))
   }
 
-  // Estado para as respostas no preview completo do formulario
-  const [answers, setAnswers] = useState<{ [questionId: string]: any }>({})
-
-  const handlePreviewAnswerChange = (questionId: string, value: any) => {
-    setAnswers(prev => ({ ...prev, [questionId]: value }))
-  }
-
-  const renderFullFormPreview = () => {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h2 className="text-xl font-bold">Visualização do Formulário</h2>
-          <p className="text-gray-700">
-            Abaixo você vê como o usuário final enxergará e poderá interagir com o formulário.
-          </p>
-        </div>
-
-        <div className="space-y-4">
-          {questions.map((q) => (
-            <div key={q.id} className="border p-4 rounded">
-              <label className="block font-semibold mb-2">
-                {q.question_text} {q.is_required && <span className="text-red-500">*</span>}
-              </label>
-              {renderQuestionPreview(q)}
-            </div>
-          ))}
-        </div>
-      </div>
-    )
-  }
-
-  const renderQuestionPreview = (question: QuestionData) => {
-    const answer = answers[question.id]
-    const setAnswer = (val: any) => handlePreviewAnswerChange(question.id, val)
-
-    if (question.question_type === 'text') {
-      return (
-        <input 
-          type="text" 
-          className="border rounded p-2 w-full" 
-          placeholder="Digite sua resposta..." 
-          value={answer || ''} 
-          onChange={e => setAnswer(e.target.value)}
-        />
-      )
-    }
-
-    if (question.question_type === 'text_masked') {
-      return (
-        <InputMask
-          mask={question.mask || '(99) 99999-9999'}
-          value={answer || ''}
-          onChange={e => setAnswer(e.target.value)}
-        >
-          {(inputProps: any) => <input {...inputProps} className="border rounded p-2 w-full" placeholder={question.mask || '(99) 99999-9999'} />}
-        </InputMask>
-      )
-    }
-
-    if (question.question_type === 'textarea') {
-      return (
-        <textarea 
-          className="border rounded p-2 w-full" 
-          placeholder="Digite seu texto..."
-          value={answer || ''} 
-          onChange={e => setAnswer(e.target.value)}
-        />
-      )
-    }
-
-    if (question.question_type === 'toggle') {
-      const boolValue = !!answer
-      return (
-        <div className="flex items-center space-x-2">
-          <input 
-            type="checkbox" 
-            checked={boolValue} 
-            onChange={e => setAnswer(e.target.checked ? true : false)} 
-          />
-          <span>Toggle (ligado/desligado)</span>
-        </div>
-      )
-    }
-
-    if (question.question_type === 'single_choice') {
-      return (
-        <div className="space-y-1">
-          {question.options.map((opt, idx) => (
-            <div key={idx} className="flex items-center space-x-2">
-              <input
-                type="radio"
-                name={`question_${question.id}`}
-                checked={answer === opt.option_text}
-                onChange={() => setAnswer(opt.option_text)}
-              />
-              <label>{opt.option_text}</label>
-            </div>
-          ))}
-        </div>
-      )
-    }
-
-    if (question.question_type === 'multiple_choice') {
-      const selectedValues = Array.isArray(answer) ? answer : []
-      return (
-        <div className="space-y-1">
-          {question.options.map((opt, idx) => {
-            const checked = selectedValues.includes(opt.option_text)
-            return (
-              <div key={idx} className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={checked}
-                  onChange={e => {
-                    if (e.target.checked) {
-                      setAnswer([...selectedValues, opt.option_text])
-                    } else {
-                      setAnswer(selectedValues.filter((v: string) => v !== opt.option_text))
-                    }
-                  }}
-                />
-                <label>{opt.option_text}</label>
-              </div>
-            )
-          })}
-        </div>
-      )
-    }
-
-    if (question.question_type === 'select') {
-      return (
-        <select
-          className="border rounded p-2 w-full"
-          value={answer || ''}
-          onChange={e => setAnswer(e.target.value)}
-        >
-          <option value="">Selecione uma opção</option>
-          {question.options.map((opt, idx) => (
-            <option key={idx} value={opt.option_text}>{opt.option_text}</option>
-          ))}
-        </select>
-      )
-    }
-
-    return null
+  const abrirModalVideoEmbed = (embedCode: string) => {
+    setVideoEmbedAtual(embedCode)
+    setMostrarModalVideo(true)
   }
 
   return (
-    <div className="p-4 space-y-6">
-      <div className="flex flex-wrap items-center justify-between">
-        <h1 className="text-2xl font-bold">Builder do Formulário</h1>
-        <div className="space-x-2">
-          <Button onClick={openAddModal}>Adicionar Pergunta</Button>
-          {questions.length > 0 && (
-            <>
-              <Button variant="outline" onClick={() => setShowFormPreview(true)}>Preview do Formulário</Button>
-              <Button variant="secondary" onClick={submitForm}>Salvar Formulário</Button>
-            </>
-          )}
-        </div>
-      </div>
-      
-      <p className="text-gray-700">
-        Adicione quantas perguntas desejar. Você pode reordenar as perguntas arrastando-as. Cada pergunta pode ser expandida para edição.
-      </p>
-
-      <DndContext sensors={sensors} onDragEnd={onDragEnd}>
-        <SortableContext items={questions.map(q => q.id)} strategy={verticalListSortingStrategy}>
-          {questions.map((question, index) => (
-            <SortableQuestionItem
-              key={question.id}
-              question={question}
-              index={index}
-              updateQuestionAtIndex={updateQuestionAtIndex}
-              removeQuestion={removeQuestion}
-            />
-          ))}
-        </SortableContext>
-      </DndContext>
+    <div className="space-y-6 p-4 bg-gray-100 min-h-screen">
+      <FormBuilder
+        formulario={formulario}
+        setFormulario={setFormulario}
+        perguntas={perguntas}
+        setPerguntas={setPerguntas}
+        onOpenPreview={() => setMostrarFormPreview(true)}
+        onSaveForm={enviarFormulario}
+        onAddPergunta={abrirModalAdd}
+      />
 
       {/* Modal para Adicionar Nova Pergunta */}
-      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+      <Dialog open={mostrarModalAdd} onOpenChange={setMostrarModalAdd}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Adicionar Nova Pergunta</DialogTitle>
@@ -336,21 +108,21 @@ export default function BuilderPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            <FormBuilderQuestion
-              question={currentQuestion}
-              onChange={(updated) => setCurrentQuestion(updated)}
+            <ConstrutorPergunta
+              pergunta={perguntaAtual}
+              onChange={(atualizada) => setPerguntaAtual(atualizada)}
             />
           </div>
           <DialogFooter className="mt-4">
-            <Button onClick={handleAddQuestion}>Adicionar</Button>
-            <Button variant="secondary" onClick={() => setShowAddModal(false)}>Cancelar</Button>
+            <Button onClick={handleAdicionarPergunta}>Adicionar</Button>
+            <Button variant="secondary" onClick={() => setMostrarModalAdd(false)}>Cancelar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Modal para Preview do Formulário Completo */}
-      <Dialog open={showFormPreview} onOpenChange={setShowFormPreview}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={mostrarFormPreview} onOpenChange={setMostrarFormPreview}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Pré-visualização do Formulário</DialogTitle>
             <DialogDescription>
@@ -358,14 +130,44 @@ export default function BuilderPage() {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4 space-y-4">
-            {questions.length === 0 ? (
+            {perguntas.length === 0 ? (
               <p>Nenhuma pergunta adicionada ainda.</p>
             ) : (
-              renderFullFormPreview()
+              <div className="border rounded p-4 bg-white">
+                <FormPreview
+                  formulario={formulario}
+                  perguntas={perguntas}
+                  respostas={respostas}
+                  onChangeResposta={handlePreviewAnswerChange}
+                  onOpenVideo={abrirModalVideoEmbed}
+                />
+              </div>
             )}
           </div>
           <DialogFooter className="mt-4">
-            <Button onClick={() => setShowFormPreview(false)}>Fechar</Button>
+            <Button onClick={() => setMostrarFormPreview(false)}>Fechar</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Exibir Vídeo do Formulário ou da Pergunta */}
+      <Dialog open={mostrarModalVideo} onOpenChange={setMostrarModalVideo}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Ajuda em Vídeo</DialogTitle>
+            <DialogDescription>
+              Veja o vídeo de ajuda abaixo:
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4 space-y-4">
+            {videoEmbedAtual ? (
+              <div dangerouslySetInnerHTML={{__html: videoEmbedAtual}}></div>
+            ) : (
+              <p>Nenhum vídeo disponível.</p>
+            )}
+          </div>
+          <DialogFooter className="mt-4">
+            <Button onClick={() => setMostrarModalVideo(false)}>Fechar</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -8,13 +8,13 @@ import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogD
 
 // Tipos de pergunta suportados
 type QuestionType = 
-  | 'text'
-  | 'text_masked'
-  | 'textarea'
-  | 'toggle'
-  | 'single_choice'
-  | 'multiple_choice'
-  | 'select'
+  | 'TEXT'
+  | 'TEXT_MASKED'
+  | 'TEXTAREA'
+  | 'TOGGLE'
+  | 'SIGNLE_CHOICE'
+  | 'MULTIPLE_CHOICE'
+  | 'SELECT'
 
 interface QuestionOption {
   option_text: string
@@ -37,19 +37,19 @@ interface FormBuilderQuestionProps {
 }
 
 const QUESTION_TYPES: { value: QuestionType; label: string }[] = [
-  { value: 'text', label: 'Texto' },
-  { value: 'text_masked', label: 'Texto com Máscara' },
-  { value: 'textarea', label: 'Texto Longo (Textarea)' },
-  { value: 'toggle', label: 'Toggle (Switch)' },
-  { value: 'single_choice', label: 'Escolha Única (Radio)' },
-  { value: 'multiple_choice', label: 'Múltipla Escolha (Checkbox)' },
-  { value: 'select', label: 'Seleção (Select)' }
+  { value: 'TEXT', label: 'Texto' },
+  { value: 'TEXT_MASKED', label: 'Texto com Máscara' },
+  { value: 'TESTAREA', label: 'Texto Longo (Textarea)' },
+  { value: 'TOGGLE', label: 'Toggle (Switch)' },
+  { value: 'SINGLE_CHOICE', label: 'Escolha Única (Radio)' },
+  { value: 'MULTIPLE_CHOICE', label: 'Múltipla Escolha (Checkbox)' },
+  { value: 'SELECT', label: 'Seleção (Select)' }
 ]
 
 export const FormBuilderQuestion: FC<FormBuilderQuestionProps> = ({ question = {}, onChange, onRemove }) => {
   const [questionData, setQuestionData] = useState<QuestionData>({
     question_text: question.question_text || '',
-    question_type: question.question_type || 'text',
+    question_type: question.question_type || 'TEXT',
     is_required: question.is_required || false,
     base_score: question.base_score || 0,
     mask: question.mask || '',
