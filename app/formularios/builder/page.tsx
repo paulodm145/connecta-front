@@ -16,7 +16,7 @@ export default function PaginaConstrutor() {
   const [formulario, setFormulario] = useState<DadosFormulario>({
     titulo: 'Meu Formulário',
     descricao: 'Descrição do meu formulário',
-    slug: 'meu-formulario-' + Math.random().toString(36).substring(7),
+    slug: 'meu-formulario',
     status: 'rascunho',
     ajuda: '',
     embed_youtube: '',
@@ -68,12 +68,16 @@ export default function PaginaConstrutor() {
   }
 
   const enviarFormulario = () => {
+
     const perguntasFinais = perguntas.map((p, i) => ({ ...p, ordem: i+1 }))
+    
     const formFinal = {
       ...formulario,
       perguntas: perguntasFinais
     }
+
     console.log('Enviando o formulário:', formFinal)
+
     alert('Formulário enviado! Confira o console.')
   }
 
@@ -88,6 +92,7 @@ export default function PaginaConstrutor() {
 
   return (
     <div className="space-y-6 p-4 bg-gray-100 min-h-screen">
+      
       <FormBuilder
         formulario={formulario}
         setFormulario={setFormulario}
@@ -158,6 +163,7 @@ export default function PaginaConstrutor() {
             <DialogDescription>
               Veja o vídeo de ajuda abaixo:
             </DialogDescription>
+            
           </DialogHeader>
           <div className="mt-4 space-y-4">
             {videoEmbedAtual ? (

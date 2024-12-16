@@ -4,6 +4,7 @@ import { FC } from 'react'
 import { DadosFormulario, DadosPergunta } from './types'
 import InputMask from 'react-input-mask'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@radix-ui/react-switch'
 
 interface FormPreviewProps {
   formulario: DadosFormulario,
@@ -52,18 +53,27 @@ const FormPreview: FC<FormPreviewProps> = ({ formulario, perguntas, respostas, o
             onChange={e => setAnswer(e.target.value)}
           />
         )
-      case 'TOGGLE':
-        const boolValue = !!valorResposta
-        return (
-          <div className="flex items-center space-x-2">
-            <input 
-              type="checkbox" 
-              checked={boolValue} 
-              onChange={e => setAnswer(e.target.checked ? true : false)} 
-            />
-            <span>Alternador (ligado/desligado)</span>
-          </div>
-        )
+        case 'TOGGLE':
+          const boolValue = !!valorResposta
+          return (
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={boolValue}
+                onCheckedChange={(val) => setAnswer(val)}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  boolValue ? 'bg-teal-500' : 'bg-gray-200'
+                }`}
+              >
+                <span className="sr-only">Toggle</span>
+                <span
+                  className={`inline-block h-5 w-5 rounded-full bg-white transition-transform ${
+                    boolValue ? 'translate-x-5' : 'translate-x-1'
+                  }`}
+                />
+              </Switch>
+              <span>Alternador (ligado/desligado)</span>
+            </div>
+          )
       case 'SINGLE_CHOICE':
         return (
           <div className="space-y-1">
