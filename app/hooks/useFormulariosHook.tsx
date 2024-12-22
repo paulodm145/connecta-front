@@ -62,12 +62,26 @@ export const useFormulariosHook = () => {
 
     }
 
+    const getBySlug = async (slug: string) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/formularios/slug/${slug}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar formulário:", error);
+            return null;
+        }
+    };
+
 return { 
     novoFormulario,
     editarFormulario,
     changeStatus,
-    listagemFormularios
-    
+    listagemFormularios,
+    getBySlug
     };     
 };
 

@@ -35,14 +35,18 @@ const ConstrutorPergunta: FC<PropsConstrutorPergunta> = ({ pergunta = {}, onChan
     onChange?.(atualizado)
   }
 
-  const handleOpcaoChange = (index: number, campo: keyof OpcaoPergunta, valor: any) => {
-    const opcoesAtualizadas = [...dadosPergunta.opcoes]
-    opcoesAtualizadas[index] = { ...opcoesAtualizadas[index], [campo]: valor }
-    handlePerguntaChange('opcoes', opcoesAtualizadas)
-  }
+  const handleOpcaoChange = (
+    index: number,
+    campo: keyof OpcaoPergunta,
+    valor: any
+  ) => {
+    const opcoesAtualizadas = [...dadosPergunta.opcoes];
+    opcoesAtualizadas[index] = { ...opcoesAtualizadas[index], [campo]: valor };
+    handlePerguntaChange('opcoes', opcoesAtualizadas);
+  };
 
   const adicionarOpcao = () => {
-    handlePerguntaChange('opcoes', [...dadosPergunta.opcoes, { option_text: '', option_score: 0 }])
+    handlePerguntaChange('opcoes', [...dadosPergunta.opcoes, { texto_opcao: '', pontuacao_opcao: 0 }])
   }
 
   const removerOpcao = (index: number) => {
@@ -51,6 +55,7 @@ const ConstrutorPergunta: FC<PropsConstrutorPergunta> = ({ pergunta = {}, onChan
   }
 
   const deveMostrarOpcoes = ['SINGLE_CHOICE', 'MULTIPLE_CHOICE', 'SELECT'].includes(dadosPergunta.tipo_pergunta)
+
 
   return (
     <div className="space-y-4">
@@ -157,21 +162,29 @@ const ConstrutorPergunta: FC<PropsConstrutorPergunta> = ({ pergunta = {}, onChan
           </div>
           {dadosPergunta.opcoes.map((opt, index) => (
             <div key={index} className="flex space-x-2 items-center">
-              <Input 
-                value={opt.option_text}
-                onChange={e => handleOpcaoChange(index, 'option_text', e.target.value)}
+              <Input
+                value={opt.texto_opcao}
+                onChange={(e) => handleOpcaoChange(index, 'texto_opcao', e.target.value)}
                 placeholder={`Opção ${index + 1}`}
               />
-              <Input 
+              <Input
                 type="number"
-                value={opt.option_score}
-                onChange={e => handleOpcaoChange(index, 'option_score', parseInt(e.target.value, 10) || 0)}
+                value={opt.pontuacao_opcao}
+                onChange={(e) =>
+                  handleOpcaoChange(index, 'pontuacao_opcao', parseFloat(e.target.value) || 0)
+                }
                 placeholder="Pontuação"
                 className="w-20"
               />
-              <Button variant="destructive" size="sm" onClick={() => removerOpcao(index)}>Remover</Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => removerOpcao(index)}
+              >
+                Remover
+              </Button>
             </div>
-          ))}
+))}
         </div>
       )}
 
