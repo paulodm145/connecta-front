@@ -97,14 +97,14 @@ const FormBuilder: FC<FormBuilderProps> = ({
           <label className="block font-semibold mb-1">Status do Formulário</label>
           <Select
             value={formulario.status}
-            onValueChange={(val) => setFormulario({...formulario, status: val as 'rascunho'|'publicado'})}
+            onValueChange={(val) => setFormulario({...formulario, status: val as 'RASCUNHO'|'PUBLICADO'})}
           >
             <SelectTrigger>
               <SelectValue placeholder="Selecione o status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="rascunho">Rascunho</SelectItem>
-              <SelectItem value="publicado">Publicado</SelectItem>
+              <SelectItem value="RASCUNHO">Rascunho</SelectItem>
+              <SelectItem value="PUBLICADO">Publicado</SelectItem>
             </SelectContent>
           </Select>
         </div>

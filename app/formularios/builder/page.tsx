@@ -7,17 +7,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, Di
 import ConstrutorPergunta from '@/components/form-builder/ConstrutorPergunta'
 import FormBuilder from '@/components/form-builder/FormBuilder'
 import FormPreview from '@/components/form-builder/FormPreview'
+import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
+import { toast } from 'react-toastify'
+import { useRouter } from 'next/navigation'; // Use o roteamento moderno do Next.js
+ 
 
 export default function PaginaConstrutor() {
+  const router = useRouter()
   const [perguntas, setPerguntas] = useState<DadosPergunta[]>([])
   const [mostrarModalAdd, setMostrarModalAdd] = useState(false)
   const [mostrarFormPreview, setMostrarFormPreview] = useState(false)
+
+  const { novoFormulario } = useFormulariosHook()
 
   const [formulario, setFormulario] = useState<DadosFormulario>({
     titulo: 'Meu Formulário',
     descricao: 'Descrição do meu formulário',
     slug: 'meu-formulario',
-    status: 'rascunho',
+    status: 'RASCUNHO',
+    
     ajuda: '',
     embed_youtube: '',
     mostrar_ajuda: false,
@@ -67,19 +75,27 @@ export default function PaginaConstrutor() {
     }
   }
 
-  const enviarFormulario = () => {
 
-    const perguntasFinais = perguntas.map((p, i) => ({ ...p, ordem: i+1 }))
-    
+
+  const enviarFormulario = async () => {
+    const perguntasFinais = perguntas.map((p, i) => ({ ...p, ordem: i + 1 }));
+
     const formFinal = {
       ...formulario,
-      perguntas: perguntasFinais
+      perguntas: perguntasFinais,
+    };
+
+    console.log('Formulário final:', formFinal);
+
+    try {
+      const sendForm = await novoFormulario(formFinal);
+      toast.success('Formulário enviado com sucesso!');
+      router.push(`/formularios/editar/${sendForm.data.formulario.slug}`); // Redireciona após sucesso
+    } catch (error) {
+      console.error('Erro ao enviar o formulário:', error);
+      toast.error('Erro ao enviar o formulário. Tente novamente.');
     }
-
-    console.log('Enviando o formulário:', formFinal)
-
-    alert('Formulário enviado! Confira o console.')
-  }
+  };
 
   const handlePreviewAnswerChange = (perguntaId: string, value: any) => {
     setRespostas(prev => ({ ...prev, [perguntaId]: value }))

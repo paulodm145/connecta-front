@@ -33,7 +33,7 @@ export interface DadosFormulario {
   titulo: string
   descricao: string
   slug: string
-  status: 'rascunho' | 'publicado'
+  status: 'RASCUNHO' | 'PUBLICADO'
   ajuda?: string
   embed_youtube?: string
   mostrar_ajuda?: boolean
