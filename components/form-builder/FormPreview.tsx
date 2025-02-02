@@ -82,10 +82,10 @@ const FormPreview: FC<FormPreviewProps> = ({ formulario, perguntas, respostas, o
                 <input
                   type="radio"
                   name={`pergunta_${pergunta.id}`}
-                  checked={valorResposta === opt.option_text}
-                  onChange={() => setAnswer(opt.option_text)}
+                  checked={valorResposta === opt.texto_opcao}
+                  onChange={() => setAnswer(opt.texto_opcao)}
                 />
-                <label>{opt.option_text}</label>
+                <label>{opt.texto_opcao}</label>
               </div>
             ))}
           </div>
@@ -95,7 +95,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formulario, perguntas, respostas, o
         return (
           <div className="space-y-1">
             {pergunta.opcoes.map((opt, idx) => {
-              const checked = selectedValues.includes(opt.option_text)
+              const checked = selectedValues.includes(opt.texto_opcao)
               return (
                 <div key={idx} className="flex items-center space-x-2">
                   <input
@@ -103,13 +103,13 @@ const FormPreview: FC<FormPreviewProps> = ({ formulario, perguntas, respostas, o
                     checked={checked}
                     onChange={e => {
                       if (e.target.checked) {
-                        setAnswer([...selectedValues, opt.option_text])
+                        setAnswer([...selectedValues, opt.texto_opcao])
                       } else {
-                        setAnswer(selectedValues.filter((v: string) => v !== opt.option_text))
+                        setAnswer(selectedValues.filter((v: string) => v !== opt.texto_opcao))
                       }
                     }}
                   />
-                  <label>{opt.option_text}</label>
+                  <label>{opt.texto_opcao}</label>
                 </div>
               )
             })}
@@ -124,7 +124,7 @@ const FormPreview: FC<FormPreviewProps> = ({ formulario, perguntas, respostas, o
           >
             <option value="">Selecione uma opção</option>
             {pergunta.opcoes.map((opt, idx) => (
-              <option key={idx} value={opt.option_text}>{opt.option_text}</option>
+              <option key={idx} value={opt.texto_opcao}>{opt.texto_opcao}</option>
             ))}
           </select>
         )

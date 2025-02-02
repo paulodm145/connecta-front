@@ -9,8 +9,8 @@ export type TipoPergunta =
   | 'SELECT'
 
 export interface OpcaoPergunta {
-  option_text: string
-  option_score: number
+  texto_opcao: string
+  pontuacao_opcao: number
   order?: number
 }
 

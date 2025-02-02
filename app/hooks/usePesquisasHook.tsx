@@ -3,11 +3,11 @@ import { useCrud } from "./useCRUD";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
 
-export const useFormulariosHook = () => { 
+export const usePesquisasHook = () => { 
 
-    const listagemFormularios = async () => {
+    const listagemPesquisa = async () => {
         try {
-            const response = await axios.get(`${BASE_URL}/formularios`, {
+            const response = await axios.get(`${BASE_URL}/pesquisas`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -19,9 +19,9 @@ export const useFormulariosHook = () => {
         }
     }
 
-    const novoFormulario = async (data: any) => {
+    const novaPesquisa = async (data: any) => {
         try {
-            const response = await axios.post(`${BASE_URL}/formularios`, data, {
+            const response = await axios.post(`${BASE_URL}/pesquisas`, data, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -33,9 +33,9 @@ export const useFormulariosHook = () => {
         }
     }
 
-    const editarFormulario = async (id: number, data: any) => {
+    const editarPesquisa = async (id: number, data: any) => {
         try {
-            const response = await axios.put(`${BASE_URL}/formularios/${id}`, data, {
+            const response = await axios.put(`${BASE_URL}/pesquisas/${id}`, data, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -49,7 +49,7 @@ export const useFormulariosHook = () => {
 
     const changeStatus = async (id: number) => {
             try {
-                const response = await axios.get(`${BASE_URL}/formularios/change-status/${id}`, {
+                const response = await axios.get(`${BASE_URL}/pesquisas/change-status/${id}`, {
                     headers: {
                         Authorization: `Bearer ${localStorage.getItem("token")}`,
                     },
@@ -64,7 +64,7 @@ export const useFormulariosHook = () => {
 
     const getBySlug = async (slug: string) => {
         try {
-            const response = await axios.get(`${BASE_URL}/formularios/slug/${slug}`, {
+            const response = await axios.get(`${BASE_URL}/pesquisas/slug/${slug}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -76,28 +76,13 @@ export const useFormulariosHook = () => {
         }
     };
 
-    const formulariosAtivos = async () => {
-        try {
-            const response = await axios.get(`${BASE_URL}/formularios-ativos`, {
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`,
-                },
-            });
-            return response.data;
-        } catch (error) {
-            console.error('Erro ao carregar os setores:', error);
-            return null;
-        }
-    }
-
-    return { 
-            novoFormulario,
-            editarFormulario,
-            changeStatus,
-            listagemFormularios,
-            getBySlug,
-            formulariosAtivos
-        };     
+return { 
+        novaPesquisa,
+        editarPesquisa,
+        changeStatus,
+        listagemPesquisa,
+        getBySlug
+    };     
 };
 
 

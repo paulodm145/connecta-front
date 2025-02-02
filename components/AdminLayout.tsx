@@ -3,7 +3,34 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, ChevronLeft, Menu, Home, Target, Shield, UserPlus, FileText, AlertTriangle, HardHat, Clipboard, Book, User, Bell, Calendar, Briefcase, Thermometer, Users, Settings, Sun, Moon } from 'lucide-react';
+import { ChevronDown, 
+  ChevronRight, 
+  ChevronLeft, 
+  Menu, 
+  Home, 
+  Target, 
+  Shield, 
+  UserPlus, 
+  FileText, 
+  AlertTriangle, 
+  HardHat, 
+  Clipboard, 
+  Book, 
+  User, 
+  Bell, 
+  Calendar, 
+  Briefcase, 
+  Thermometer, 
+  Users, 
+  Settings, 
+  Sun, 
+  Moon, 
+  Folder,
+  ListCheck,
+  Landmark,
+  FileSliders
+} from 'lucide-react';
+  
 import Image from 'next/image';
 import { useAccessHook } from '@/app/hooks/useAccessHook';
 import AlertDialog from './AlertDialog'; 
@@ -131,7 +158,6 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
   );
 };
 
-  
   interface AdminLayoutProps {
     children: React.ReactNode;
   }
@@ -194,40 +220,39 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
         ]
       },
       {
-        name: "EPI",
-        icon: Shield,
+        name: "SuperAdmin",
+        icon: Home,
         children: [
-          { name: "Cadastro de EPIs", icon: UserPlus, link: "/admin/epi/cadastro" },
-          { name: "Estoque", icon: Clipboard, link: "/admin/epi/estoque" },
-          { name: "Distribuição", icon: Users, link: "/admin/epi/distribuicao" }
+          {
+            name: "Clientes",
+            icon: Home,
+            children: [
+              { name: "Resumo Diário", icon: FileText, link: "/admin/dashboard/resumo-diario" },
+              { name: "Estatísticas Semanais", icon: FileText, link: "/admin/dashboard/estatisticas-semanais" },
+              { name: "Relatórios Mensais", icon: FileText, link: "/admin/dashboard/relatorios-mensais" }
+            ]
+          },
+          { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
+          { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
         ]
       },
       {
-        name: "Incidentes",
-        icon: AlertTriangle,
+        name: "Cadastros",
+        icon: Folder,
         children: [
-          { name: "Novo Registro", icon: FileText, link: "/admin/incidentes/novo" },
-          { name: "Análise de Causas", icon: Clipboard, link: "/admin/incidentes/analise" },
-          { name: "Relatórios", icon: FileText, link: "/admin/incidentes/relatorios" }
+          { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos" },
+          { name: "Setores", icon: Clipboard, link: "/cadastros/setores" },
+          { name: "Pessoas", icon: Users, link: "/cadastros/pessoas" }
         ]
       },
-      { name: "Treinamentos SST", icon: Calendar, link: "/admin/treinamentos" },
-      { name: "Documentos SST", icon: FileText, link: "/admin/documentos" },
-      { name: "Inspeções", icon: Clipboard, link: "/admin/inspecoes" },
-      {
-        name: "Riscos Ocupacionais",
-        icon: AlertTriangle,
+      { name: "Formulários", icon: ListCheck, link: "/formularios/listagem" },
+      { name: "Pesquisas", icon: FileText,
         children: [
-          { name: "Avaliação", icon: Clipboard, link: "/admin/riscos/avaliacao" },
-          { name: "Controle", icon: Shield, link: "/admin/riscos/controle" },
-          { name: "Monitoramento", icon: Bell, link: "/admin/riscos/monitoramento" }
+          { name: "Listagem", icon: FileText, link: "/pesquisas/listagem" },
+          { name: "Tipos de Pesquisa", icon: FileText, link: "/cadastros/tipos-pesquisa" },
         ]
-      },
-      { name: "Exames Médicos", icon: Thermometer, link: "/admin/exames-medicos" },
-      { name: "Indicadores SST", icon: Home, link: "/admin/indicadores" },
-      { name: "Acessos", icon: Shield, link: "/admin/permissoes" },
-      { name: "Comunicação de Acidentes", icon: Bell, link: "/admin/cat" },
-      { name: "Configurações", icon: Settings, link: "/admin/configuracoes" },
+       },
+      { name: "Minha Empresa", icon: Landmark, link: "/empresas/cliente" },
       { name: "SAIR", icon: HardHat, link: "#", onClick: () => sair() }
   ];
 
