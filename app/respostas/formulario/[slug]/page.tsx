@@ -58,7 +58,7 @@ export default function FormularioCompletoPage() {
   const params = useParams();
   const searchParams = useSearchParams();
   const slug = params.slug as string;
-  const respondente = searchParams.get("respondente");
+  const respondente = searchParams.get("t");
 
   const { getBySlug } = useFormulariosHook();
 
@@ -106,12 +106,13 @@ export default function FormularioCompletoPage() {
             resposta_texto = valor ? String(valor) : null;
             break;
           case "TOGGLE":
-            resposta_texto = String(!!valor);
+            resposta_texto = valor ? "Sim" : "Não";
             break;
           case "SINGLE_CHOICE":
           case "SELECT":
             const opcao = pergunta.opcoes.find((op) => op.texto_opcao === valor);
             if (opcao) opcoesSelecionadas = [opcao.id];
+            resposta_texto = opcao ? opcao.texto_opcao : null;
             break;
           case "MULTIPLE_CHOICE":
             if (Array.isArray(valor)) {
@@ -121,6 +122,10 @@ export default function FormularioCompletoPage() {
                   return op ? op.id : null;
                 })
                 .filter((x) => x !== null) as number[];
+              resposta_texto = opcoesSelecionadas.map((opId) => {
+                const op = pergunta.opcoes.find((o) => o.id === opId);
+                return op ? op.texto_opcao : null;
+              }).join(", ");
             }
             break;
         }
@@ -180,7 +185,7 @@ export default function FormularioCompletoPage() {
         </DialogContent>
       </Dialog>
 
-      <div className="min-h-screen w-full flex items-center justify-center bg-gray-200">
+      <div className=" w-full flex items-center justify-center">
         <div className="bg-white p-8 rounded shadow w-[30%]">
           <h1 className="text-xl font-bold mb-2">{formulario.titulo}</h1>
           <p className="text-gray-700 mb-4">{formulario.descricao}</p>

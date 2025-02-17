@@ -3,7 +3,7 @@
  * @param value - A string a ser processada.
  * @returns A string contendo apenas números.
  */
-const cleanInput = (value: string): string => {
+export const cleanInput = (value: string): string => {
     return value.replace(/\D/g, '');
   };
   
@@ -69,3 +69,95 @@ export const isValidEmail = (email: string): boolean => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
 };
+
+/**
+ * Máscara para CPF.
+ * Exemplo de entrada:  "12345678901"
+ * Exemplo de saída:    "123.456.789-01"
+ */
+export function maskCPF(value = '') {
+  // Remove tudo que não for dígito
+  const digits = value.replace(/\D/g, '');
+
+  // Aplica a formatação de acordo com a quantidade de dígitos
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 6) {
+    return digits.replace(/(\d{3})(\d+)/, '$1.$2');
+  } else if (digits.length <= 9) {
+    return digits.replace(/(\d{3})(\d{3})(\d+)/, '$1.$2.$3');
+  } else {
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4');
+  }
+}
+
+/**
+ * Máscara para CNPJ.
+ * Exemplo de entrada:  "12345678000199"
+ * Exemplo de saída:    "12.345.678/0001-99"
+ */
+export function maskCNPJ(value = '') {
+  const digits = value.replace(/\D/g, '');
+
+  if (digits.length <= 2) {
+    return digits;
+  } else if (digits.length <= 5) {
+    return digits.replace(/(\d{2})(\d+)/, '$1.$2');
+  } else if (digits.length <= 8) {
+    return digits.replace(/(\d{2})(\d{3})(\d+)/, '$1.$2.$3');
+  } else if (digits.length <= 12) {
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d+)/, '$1.$2.$3/$4');
+  } else {
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{1,2})/, '$1.$2.$3/$4-$5');
+  }
+}
+
+
+/**
+ * Máscara para CPF ou CNPJ (determina automaticamente pelo tamanho).
+ */
+export function maskCPFOrCNPJ(value = '') {
+  const digits = value.replace(/\D/g, '');
+  // Se tiver 11 dígitos ou menos, formata como CPF; senão, como CNPJ
+  return digits.length <= 11 ? maskCPF(digits) : maskCNPJ(digits);
+}
+
+/**
+ * Máscara para telefone brasileiro.
+ * Considera variações de 10 ou 11 dígitos.
+ * Ex: "999999999" => "(99) 9999-9999"
+ * Ex: "99999999999" => "(99) 9 9999-9999"
+ */
+export function maskBRPhone(value = '') {
+  const digits = value.replace(/\D/g, '');
+
+  // Telefone fixo ou sem nono dígito (10 dígitos)
+  if (digits.length <= 10) {
+    return digits.replace(/(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+  }
+
+  // Telefone celular com 9 dígitos (11 dígitos)
+  return digits.replace(/(\d{2})(\d{1})(\d{4})(\d{0,4})/, '($1) $2 $3-$4');
+}
+
+/**
+ * Formata número para o padrão monetário brasileiro (R$).
+ * Exemplo: 1000.5 => "R$ 1.000,50"
+ */
+export function formatToBRL(value) {
+  // Converte para número
+  const num = parseFloat(value);
+
+  // Se não for um número válido, retorna R$ 0,00
+  if (isNaN(num)) {
+    return 'R$ 0,00';
+  }
+
+  // Formata para moeda brasileira
+  return num.toLocaleString('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  });
+}
+
+

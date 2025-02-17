@@ -12,6 +12,34 @@ interface ICargo {
 
 export const usePessoasHook = () => { 
 
+    const pessoasIndex = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/pessoas`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar responsáveis:", error);
+            return null;
+        }
+    }
+
+    const getPessoasAtivas = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/pessoas-ativas`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar responsáveis:", error);
+            return null;
+        }
+    }
+
    const getResponsaveis = async () => {
         try {
             const response = await axios.get(`${BASE_URL}/pessoas-responsaveis`, {
@@ -39,13 +67,12 @@ export const usePessoasHook = () => {
             return null;
         }
     }
-    
-
-
 
 return { 
     getResponsaveis,
-    changeStatus
+    changeStatus,
+    pessoasIndex,
+    getPessoasAtivas
     };     
 };
 
