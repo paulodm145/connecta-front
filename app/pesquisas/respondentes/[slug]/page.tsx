@@ -107,7 +107,7 @@ export default function PesquisasRespondentes() {
    * Filtragem e Paginação
    */
   const filteredRespondentes = respondentes.filter((respondente) =>
-    respondente.pessoa_nome.toLowerCase().includes(searchTerm.toLowerCase())
+    respondente.pessoa_nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
   const totalPages = Math.ceil(filteredRespondentes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -164,8 +164,8 @@ export default function PesquisasRespondentes() {
       reset();
 
       // Recarregar dados para refletir alterações
-      const respondentes = await getRespondentesByPesquisaSlug(slug);
-      setRespondentes(respondentes || []);
+      const updatedRespondentes = await getRespondentesByPesquisaSlug(slug);
+      setRespondentes(updatedRespondentes || []);
     } catch (error) {
       console.error("Erro ao salvar respondente:", error);
       toast.error("Erro ao salvar respondente");
@@ -321,7 +321,7 @@ export default function PesquisasRespondentes() {
                     className="ml-2"
                     onClick={() => {
                       
-                      navigator.clipboard.writeText(`${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}`);
+                      navigator.clipboard.writeText(`${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}`);
                       toast.success("Linha copiada com sucesso");
                     }}
 

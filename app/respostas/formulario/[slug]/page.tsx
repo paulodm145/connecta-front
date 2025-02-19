@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@radix-ui/react-switch";
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook";
+import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
+import { useRespostasHook } from "@/app/hooks/useRespostasHook";
+import { toast } from "react-toastify";
 
 // Tipos para o formulário e perguntas
 type Formulario = {
@@ -41,6 +44,26 @@ type Pergunta = {
   mostrar_ajuda?: boolean;
 };
 
+type Pesquisa = {
+  id: number;
+  formulario_id: number;
+  status: string;
+  titulo:  string;
+  slug:  string;
+  observacao:  string;
+  data_inicio:  string;
+  data_fim:  string;
+  autenticacao: boolean,
+  usuario_id: number,
+  tipo_pesquisa_id: number;
+  created_at:  string;
+  updated_at:  string;
+  deleted_at:  string;
+  formulario_slug: string;
+  data_fim_formatada: string;
+  data_inicio_formatada: string;
+}
+
 type Opcao = {
   id: number;
   texto_opcao: string;
@@ -53,14 +76,18 @@ export default function FormularioCompletoPage() {
   const [openDialogVideo, setOpenDialogVideo] = useState(false);
   const [openDialogAjuda, setOpenDialogAjuda] = useState(false);
   const [formulario, setFormulario] = useState<Formulario | null>(null);
+  const [pesquisa, setPesquisa] = useState<Pesquisa | null>(null);
   const [loading, setLoading] = useState(true);
 
   const params = useParams();
   const searchParams = useSearchParams();
   const slug = params.slug as string;
   const respondente = searchParams.get("t");
+  const pesquisaSlug = searchParams.get("p");
 
   const { getBySlug } = useFormulariosHook();
+  const { getBySlug: getPesquisaBySlug } = usePesquisasHook();
+  const { responder } = useRespostasHook();
 
   const {
     register,
@@ -76,6 +103,8 @@ export default function FormularioCompletoPage() {
       try {
         setLoading(true);
         const data = await getBySlug(slug);
+        const pesquisaData = await getPesquisaBySlug(pesquisaSlug!);
+        setPesquisa(pesquisaData);
         setFormulario(data);
       } catch (error) {
         console.error("Erro ao carregar o formulário:", error);
@@ -88,11 +117,12 @@ export default function FormularioCompletoPage() {
     fetchFormulario();
   }, [slug]);
 
-  const onSubmit = (data: any) => {
+  const onSubmit = async (data: any) => {
     console.log("Respostas brutas:", data);
 
     const payload = {
       formulario_id: formulario?.id,
+      respondente : respondente,
       envio_id: Date.now(),
       respostas: formulario?.perguntas.map((pergunta) => {
         const valor = data[pergunta.id.toString()];
@@ -140,7 +170,15 @@ export default function FormularioCompletoPage() {
     };
 
     console.log("Payload final:", payload);
-    setEnviado(true);
+    const response = await responder(payload);
+   
+    if (response) {
+      toast.success("Respostas enviadas com sucesso!");
+      setEnviado(true);
+    }
+
+
+    
   };
 
   const handleOpenVideo = (html: string) => {
@@ -187,8 +225,17 @@ export default function FormularioCompletoPage() {
 
       <div className=" w-full flex items-center justify-center">
         <div className="bg-white p-8 rounded shadow w-[30%]">
-          <h1 className="text-xl font-bold mb-2">{formulario.titulo}</h1>
-          <p className="text-gray-700 mb-4">{formulario.descricao}</p>
+
+        {enviado ? (
+          <div className="text-center">
+            <h2 className="text-2xl font-bold text-green-600">Obrigado por sua resposta!</h2>
+            <p className="text-gray-700 mt-2">Seus dados foram enviados com sucesso.</p>
+          </div>
+        ) : (
+          <>
+
+          <h1 className="text-xl font-bold mb-2">{pesquisa.titulo}</h1>
+          {/*<p className="text-gray-700 mb-4">{formulario.descricao}</p>*/}
 
           {/* Botões de ajuda e vídeo do formulário */}
           <div className="flex gap-2 mb-4">
@@ -211,6 +258,8 @@ export default function FormularioCompletoPage() {
               </Button>
             )}
           </div>
+
+
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
             {formulario.perguntas.map((pergunta) => (
@@ -249,6 +298,8 @@ export default function FormularioCompletoPage() {
               Enviar
             </Button>
           </form>
+          </>
+        )}
         </div>
       </div>
     </>

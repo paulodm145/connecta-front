@@ -143,7 +143,7 @@ export default function PaginaListagem() {
           getEstados(),
         ]);
 
-        //tratar dados para listagem
+        // @ts-ignore
         respEmpresas?.forEach((empresa) => {
           empresa.cnpj = maskCPFOrCNPJ(empresa.cnpj);
           empresa.telefone = maskBRPhone(empresa.telefone);
@@ -675,7 +675,7 @@ export default function PaginaListagem() {
                 <TableCell>
                   <Switch
                     checked={empresa.status == true}
-                    onCheckedChange={() => handleToggleStatus(empresa.id)}
+                    onCheckedChange={() => empresa.id !== undefined && handleToggleStatus(empresa.id)}
                   />
                 </TableCell>
                 <TableCell className="space-x-2">
