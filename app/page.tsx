@@ -23,7 +23,8 @@ interface LoginFormInputs {
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false); // Estado para alternar exibição da senha
-  const [numberBackground] = useState(Math.floor(Math.random() * 6) + 1); // Calcula apenas uma vez
+  const [numberBackground, setNumberBackground] = useState<number | null>(null);
+
   const router = useRouter();
   const { login } = useAuth();
   const {
@@ -45,6 +46,12 @@ const LoginPage = () => {
     e.preventDefault();
     router.push("/acesso/esqueceu");
   };
+
+  useEffect(() => {
+    // Esse código roda só no client, após a montagem do componente
+    setNumberBackground(Math.floor(Math.random() * 6) + 1);
+  }, []);
+
 
   return (
     <div className="flex h-screen relative overflow-hidden">

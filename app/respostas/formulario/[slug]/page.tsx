@@ -18,6 +18,7 @@ import { useFormulariosHook } from "@/app/hooks/useFormulariosHook";
 import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useRespostasHook } from "@/app/hooks/useRespostasHook";
 import { toast } from "react-toastify";
+import { randomBytes, randomInt } from "crypto";
 
 // Tipos para o formulário e perguntas
 type Formulario = {
@@ -123,7 +124,7 @@ export default function FormularioCompletoPage() {
     const payload = {
       formulario_id: formulario?.id,
       respondente : respondente,
-      envio_id: Date.now(),
+      envio_id: randomInt(1, 1000000),
       respostas: formulario?.perguntas.map((pergunta) => {
         const valor = data[pergunta.id.toString()];
         let resposta_texto: string | null = null;
