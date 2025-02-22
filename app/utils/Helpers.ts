@@ -144,7 +144,7 @@ export function maskBRPhone(value = '') {
  * Formata número para o padrão monetário brasileiro (R$).
  * Exemplo: 1000.5 => "R$ 1.000,50"
  */
-export function formatToBRL(value) {
+export function formatToBRL(value: string) {
   // Converte para número
   const num = parseFloat(value);
 
@@ -159,5 +159,38 @@ export function formatToBRL(value) {
     currency: 'BRL',
   });
 }
+
+/**
+ * Verifica se a senha atende aos requisitos mínimos de segurança.
+ * @param senha String representando a senha a ser validada.
+ * @returns Retorna true se a senha for considerada “difícil”, senão retorna false.
+ */
+export function ehSenhaDificil(senha: string): boolean {
+  // Validação de tamanho (mínimo de 8 caracteres)
+  const minimoOitoCaracteres = /^.{8,}$/;
+  
+  // Deve conter ao menos uma letra maiúscula [A-Z]
+  const contemMaiuscula = /[A-Z]/;
+  
+  // Deve conter ao menos uma letra minúscula [a-z]
+  const contemMinuscula = /[a-z]/;
+  
+  // Deve conter ao menos um dígito [0-9]
+  const contemDigito = /[0-9]/;
+  
+  // Deve conter ao menos um caractere especial
+  // (exemplo de caracteres especiais: !@#$%^&*() etc.)
+  const contemCaractereEspecial = /[!@#$%^&*(),.?":{}|<>]/;
+
+  return (
+    minimoOitoCaracteres.test(senha) &&
+    contemMaiuscula.test(senha) &&
+    contemMinuscula.test(senha) &&
+    contemDigito.test(senha) &&
+    contemCaractereEspecial.test(senha)
+  );
+}
+
+
 
 

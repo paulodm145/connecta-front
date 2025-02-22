@@ -69,7 +69,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toast.success("Login realizado com sucesso.");
       setUserData(data.user);
 
-      router.push(`/cadastros/pessoas`);
+      router.push(`/admin/home/cliente`);
     } catch (error) {
       console.error("Login falhou:", error);
       toast.error("Erro ao fazer login. Verifique suas credenciais.");

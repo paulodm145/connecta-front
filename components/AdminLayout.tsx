@@ -28,7 +28,8 @@ import { ChevronDown,
   Folder,
   ListCheck,
   Landmark,
-  FileSliders
+  FileSliders,
+  LogOut
 } from 'lucide-react';
   
 import Image from 'next/image';
@@ -36,8 +37,10 @@ import { useAccessHook } from '@/app/hooks/useAccessHook';
 import AlertDialog from './AlertDialog'; 
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import UserMenuSimple from './user-menu-simple';
 
 import { useUserStore } from '@/app/store/userStore';
+
 
 type LogoPosition = 'left' | 'right' | 'top' | 'bottom';
 
@@ -53,7 +56,7 @@ interface ThemeConfig {
   }
   
   const themes: Record<string, ThemeConfig> = {
-    '1': { // Tema baseado na imagem Seara/SGE
+    '1': { 
       primary: 'bg-gradient-to-r from-red-700 to-red-600',
       secondary: 'bg-red-800',
       text: 'text-white',
@@ -202,22 +205,27 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
     };
 
     const menuData: MenuItem[] = [
+      // {
+      //   name: "Dashboard",
+      //   icon: Home,
+      //   children: [
+      //     {
+      //       name: "Visão Geral",
+      //       icon: Home,
+      //       children: [
+      //         { name: "Resumo Diário", icon: FileText, link: "/admin/dashboard/resumo-diario" },
+      //         { name: "Estatísticas Semanais", icon: FileText, link: "/admin/dashboard/estatisticas-semanais" },
+      //         { name: "Relatórios Mensais", icon: FileText, link: "/admin/dashboard/relatorios-mensais" }
+      //       ]
+      //     },
+      //     { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
+      //     { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
+      //   ]
+      // },
       {
-        name: "Dashboard",
-        icon: Home,
-        children: [
-          {
-            name: "Visão Geral",
-            icon: Home,
-            children: [
-              { name: "Resumo Diário", icon: FileText, link: "/admin/dashboard/resumo-diario" },
-              { name: "Estatísticas Semanais", icon: FileText, link: "/admin/dashboard/estatisticas-semanais" },
-              { name: "Relatórios Mensais", icon: FileText, link: "/admin/dashboard/relatorios-mensais" }
-            ]
-          },
-          { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
-          { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
-        ]
+        name : "Home", 
+        icon : Home,
+        link : "/admin/home/cliente"
       },
       {
         name: "SuperAdmin",
@@ -227,13 +235,12 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
             name: "Clientes",
             icon: Home,
             children: [
-              { name: "Resumo Diário", icon: FileText, link: "/admin/dashboard/resumo-diario" },
-              { name: "Estatísticas Semanais", icon: FileText, link: "/admin/dashboard/estatisticas-semanais" },
-              { name: "Relatórios Mensais", icon: FileText, link: "/admin/dashboard/relatorios-mensais" }
+              { name: "Empresas", icon: FileText, link: "/admin/empresas" },
+              { name: "Usuários", icon: User, link: "/admin/users" },
             ]
           },
-          { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
-          { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
+          // { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
+          // { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
         ]
       },
       {
@@ -253,7 +260,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
         ]
        },
       { name: "Minha Empresa", icon: Landmark, link: "/empresas/cliente" },
-      { name: "SAIR", icon: HardHat, link: "#", onClick: () => sair() }
+      { name: "SAIR", icon: LogOut, link: "#", onClick: () => sair() }
   ];
 
 
@@ -293,9 +300,9 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
           </nav>
         </div>
   
-        {/* Conteúdo principal do sistema SST */}
+        {/* Conteúdo principal*/}
         <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? (sidebarMinimized ? 'ml-16' : 'ml-72') : 'ml-0'}`}>
-          <header className={`${darkMode ? 'bg-gray-800' : 'bg-white'} shadow-md p-4 flex items-center justify-between`}>
+          <header  style={{ minHeight: '70px' }} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b-gray-300 border-b outline-4 border-solid  shadow-md p-4 flex items-center justify-between`}>
             <div className="flex items-center">
               <Button variant="ghost" size="icon" onClick={toggleSidebar} className={`mr-2 ${darkMode ? 'text-white' : 'text-black'}`}>
                 <Menu className="h-5 w-5" />
@@ -303,6 +310,11 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
               <h1 className={`text-xl font-bold ${darkMode ? 'text-white' : 'text-black'}`}>{user.informacoes_usuario.empresa.nome}</h1>
             </div>
             <div className="flex items-center space-x-2">
+
+              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className={darkMode ? 'text-white' : 'text-black'}>
+                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              </Button>
+
               <select
                 value={currentTheme}
                 onChange={(e) => setCurrentTheme(e.target.value)}
@@ -312,9 +324,8 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
                 <option value="2">Tema 2</option>
                 <option value="3">Tema 3</option>
               </select>
-              <Button variant="ghost" size="icon" onClick={toggleDarkMode} className={darkMode ? 'text-white' : 'text-black'}>
-                {darkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-              </Button>
+
+              <UserMenuSimple />
             </div>
           </header>
           <main className={`flex-1 overflow-x-hidden overflow-y-auto p-6 ${darkMode ? 'bg-gray-800' : 'bg-gray-100'}`}>

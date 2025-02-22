@@ -70,7 +70,11 @@ export const useEmpresaAdminHook = () => {
             });
             return response.data;
         } catch (error) {
-            toast.error("Erro ao excluir cargo.:" + error.response.data?.error);
+            if (axios.isAxiosError(error) && error.response) {
+                toast.error("Erro ao excluir cargo.:" + error.response.data?.error);
+            } else {
+                toast.error("Erro ao excluir cargo.");
+            }
             console.error("Erro ao excluir cargo:", error);
             return null;
         }
@@ -90,12 +94,27 @@ export const useEmpresaAdminHook = () => {
         }
     }
 
+    const getEmpresasAtivas = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/empresas-ativas`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar empresas ativas:", error);
+            return null;
+        }
+    }
+
 return { 
     indexEmpresas,
     showEmpresa,
     storeEmpresa,
     updateEmpresa,
     destroyEmpresa,
-    changeStatus
+    changeStatus,
+    getEmpresasAtivas
     };     
 }

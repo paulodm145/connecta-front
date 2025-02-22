@@ -1,19 +1,13 @@
 import axios from "axios";
 import { toast } from "react-toastify";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
+const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
 
-interface ICargo {
-    id: number;
-    nome: string;
-    descricao: string;
-    setor_id: number;
-}
 
-export const useCargosHook = () => { 
-     const index = async () => {
+export const useUsuariosHook = () => { 
+     const indexUsuario = async () => {
         try {
-            const response = await axios.get(`${BASE_URL}/cargos`, {
+            const response = await axios.get(`${BASE_URL}/usuarios-admin`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -25,9 +19,9 @@ export const useCargosHook = () => {
         }
      }
 
-     const show = async (id: number) => {
+     const showUsuario = async (id: number) => {
         try {
-            const response = await axios.get(`${BASE_URL}/cargos/${id}`, {
+            const response = await axios.get(`${BASE_URL}/usuarios-admin/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -39,9 +33,9 @@ export const useCargosHook = () => {
         }
      }
 
-     const store = async (data: any) => {
+     const storeUsuario = async (data: any) => {
         try {
-            const response = await axios.post(`${BASE_URL}/cargos`, data, {
+            const response = await axios.post(`${BASE_URL}/usuarios-admin`, data, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -53,9 +47,9 @@ export const useCargosHook = () => {
         }
      }
 
-     const update = async (id: number, data: any) => {
+     const updateUsuario = async (id: number, data: any) => {
         try {
-            const response = await axios.put(`${BASE_URL}/cargos/${id}`, data, {
+            const response = await axios.put(`${BASE_URL}/usuarios-admin/${id}`, data, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -67,25 +61,29 @@ export const useCargosHook = () => {
         }
      }
 
-    const destroy = async (id: number) => {
+    const destroyUsuario = async (id: number) => {
         try {
-            const response = await axios.delete(`${BASE_URL}/cargos/${id}`, {
+            const response = await axios.delete(`${BASE_URL}/usuarios-admin/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
             });
             return response.data;
         } catch (error) {
-            const errorMessage = (error as any).response?.data?.error || "Erro desconhecido";
-            toast.error("Erro ao excluir cargo: " + errorMessage);
+            if (axios.isAxiosError(error)) {
+                const errorMessage = error.response?.data?.error || "Erro ao excluir cargo.";
+                toast.error("Erro ao excluir cargo.:" + errorMessage);
+            } else {
+                toast.error("Erro ao excluir cargo.");
+            }
             console.error("Erro ao excluir cargo:", error);
             return null;
         }
     }
     
-    const changeStatus = async (id: number) => {
+    const changeStatusUsuario = async (id: number) => {
         try {
-            const response = await axios.get(`${BASE_URL}/cargos/change-status/${id}`, {
+            const response = await axios.get(`${BASE_URL}/usuarios-admin/change-status/${id}`, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },
@@ -98,12 +96,12 @@ export const useCargosHook = () => {
     }
 
 return { 
-    index,
-    show,
-    store,
-    update,
-    destroy,
-    changeStatus
+    indexUsuario,
+    showUsuario,
+    storeUsuario,
+    updateUsuario,
+    destroyUsuario,
+    changeStatusUsuario
     };     
 };
 
