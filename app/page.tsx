@@ -59,8 +59,10 @@ const LoginPage = () => {
       <div
         className="absolute inset-0 bg-cover bg-left"
         style={{
-          backgroundImage: `url('/images/bg-${numberBackground}.jpg')`,
-          filter: "brightness(1.1) contrast(1.05) opacity(0.5)",
+          backgroundImage:
+            numberBackground !== null
+              ? `url('/images/bg-${numberBackground}.jpg')`
+              : undefined,
         }}
       />
       <div className="w-full flex justify-start items-center z-10">
