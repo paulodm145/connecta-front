@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
+import { ehSenhaDificil } from "@/app/utils/Helpers";
 
 // UI Components
 import Link from "next/link";
@@ -129,6 +130,21 @@ export default function PaginaListagem() {
         toast.success("Usuário atualizado com sucesso!");
       } else {
         // Cria
+
+        // Verifica se a senha é forte
+        if (data.password && !ehSenhaDificil(data.password)) {
+          toast.error(
+            "A senha deve ter no mínimo 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos"
+          );
+          return;
+        }
+
+        // As senhas devem ser iguais
+        if (data.password !== data.confirm_password) {
+          toast.error("As senhas não conferem");
+          return;
+        }
+
         await storeUsuario(data);
         toast.success("Usuário criado com sucesso!");
       }
@@ -325,6 +341,9 @@ export default function PaginaListagem() {
                             value: 6,
                             message: "A senha deve ter no mínimo 6 caracteres",
                           },
+                          validate: (value) =>
+                            ehSenhaDificil(value || "") ||
+                            "A senha deve ter no mínimo 8 caracteres, com letras maiúsculas, minúsculas, números e símbolos",
                         })}
                         className={errors.password ? "border-red-500" : ""}
                       />
