@@ -124,7 +124,7 @@ export default function FormularioCompletoPage() {
     const payload = {
       formulario_id: formulario?.id,
       respondente : respondente,
-      envio_id: randomInt(1, 1000000),
+      envio_id: crypto.randomUUID(),
       respostas: formulario?.perguntas.map((pergunta) => {
         const valor = data[pergunta.id.toString()];
         let resposta_texto: string | null = null;
