@@ -14,6 +14,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { Eye, EyeOff } from "lucide-react"; // Biblioteca para os ícones
+import { url } from "inspector";
 
 
 interface LoginFormInputs {
@@ -59,10 +60,7 @@ const LoginPage = () => {
       <div
         className="absolute inset-0 bg-cover bg-left"
         style={{
-          backgroundImage:
-            numberBackground !== null
-              ? `url('/images/bg-${numberBackground}.jpg')`
-              : undefined,
+          backgroundImage: `url('/images/backgrounds/bg-1.jpg')`,
         }}
       />
       <div className="w-full flex justify-start items-center z-10">
