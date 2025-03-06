@@ -247,8 +247,8 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
         name: "Cadastros",
         icon: Folder,
         children: [
-          { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos" },
           { name: "Setores", icon: Clipboard, link: "/cadastros/setores" },
+          { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos" },
           { name: "Pessoas", icon: Users, link: "/cadastros/pessoas" }
         ]
       },

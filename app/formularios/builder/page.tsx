@@ -57,7 +57,7 @@ export default function PaginaConstrutor() {
   const handleAdicionarPergunta = () => {
     if (perguntaAtual && perguntaAtual.pergunta_texto) {
       const perguntaCompleta: DadosPergunta = {
-        id: crypto.randomUUID(),
+        id: Math.random().toString(36).substr(2, 9),
         pergunta_texto: perguntaAtual.pergunta_texto || '',
         tipo_pergunta: perguntaAtual.tipo_pergunta || 'TEXT',
         obrigatoria: perguntaAtual.obrigatoria || false,

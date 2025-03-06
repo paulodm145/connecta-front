@@ -50,7 +50,7 @@ const LoginPage = () => {
 
   useEffect(() => {
     // Esse código roda só no client, após a montagem do componente
-    setNumberBackground(Math.floor(Math.random() * 6) + 1);
+    setNumberBackground(1);
   }, []);
 
 
@@ -59,9 +59,6 @@ const LoginPage = () => {
       <ToastContainer />
       <div
         className="absolute inset-0 bg-cover bg-left"
-        style={{
-          backgroundImage: `url('/images/backgrounds/bg-1.jpg')`,
-        }}
       />
       <div className="w-full flex justify-start items-center z-10">
         <div className="w-full max-w-md ml-16 p-8 backdrop-blur-xl bg-white/30 rounded-xl shadow-2xl border border-white/50">
