@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import axios, { AxiosRequestConfig, AxiosError } from "axios";
+import { toast } from "react-toastify";
 
 interface UseCrudReturn<T> {
   loading: boolean;
@@ -49,7 +50,7 @@ export function useCrud<T = any>(
         const message = axiosErr.response?.data && typeof axiosErr.response.data === 'object'
           ? (axiosErr.response.data as any).message || axiosErr.message
           : axiosErr.message;
-        
+        toast.error(message);
         setError(message);
         throw new Error(message);
       } finally {

@@ -13,7 +13,9 @@ import {
   DialogFooter,
   DialogTrigger,
 } from "@/components/ui/dialog";
+
 import { Search } from 'lucide-react';
+
 import {
   Select,
   SelectContent,
@@ -21,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+
 import {
   Pagination,
   PaginationContent,
@@ -29,19 +32,17 @@ import {
   PaginationPrevious,
   PaginationNext,
 } from "@/components/ui/pagination";
-import InputMask from 'react-input-mask';
+
 
 interface FieldOption {
   value: string;
   label: string;
 }
 
-type FieldType = 'text' | 'email' | 'mask' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'toggle';
-
 interface Field {
   name: string;
   label: string;
-  type: FieldType;
+  type: 'text' | 'textarea' | 'select' | 'radio' | 'checkbox' | 'toggle';
   required?: boolean;
   options?: FieldOption[];
   lookup?: boolean;
@@ -49,7 +50,6 @@ interface Field {
   minLength?: number;
   maxLength?: number;
   toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
-  maskPattern?: string;
 }
 
 interface DataItem {
@@ -58,15 +58,23 @@ interface DataItem {
   active: boolean;
 }
 
+interface DynamicCrudComponentProps {
+  fields: Field[];
+  fetchData: () => Promise<DataItem[]>;
+  saveData: (id: number | null, data: FieldValues) => Promise<{ success: boolean, id?: number }>;
+  deleteData: (id: number) => Promise<{ success: boolean }>;
+  toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
+}
+
 interface DataField {
-  label: string;
-  dataField: string;
-  render?: (value: any, item: DataItem) => React.ReactNode;
+  label: string; // Rótulo exibido no cabeçalho
+  dataField: string; // Nome do campo no objeto de dados
+  render?: (value: any, item: DataItem) => React.ReactNode; // Função para renderização customizada
 }
 
 interface DynamicCrudComponentProps {
-  fields: Field[];
-  columns: DataField[];
+  fields: Field[]; // Campos do formulário
+  columns: DataField[]; // Colunas da tabela
   fetchData: () => Promise<DataItem[]>;
   saveData: (id: number | null, data: FieldValues) => Promise<{ success: boolean; id?: number }>;
   deleteData: (id: number) => Promise<{ success: boolean }>;
@@ -86,10 +94,12 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState<number | null>(null);
   const [lookupData, setLookupData] = useState<Record<string, FieldOption[]>>({});
+
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
 
+  // Filtra os dados com base no texto de busca
   const filteredData = data.filter((item) =>
     columns.some((column) =>
       String(item[column.dataField] || "")
@@ -98,6 +108,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
     )
   );
 
+  // Calcula os índices para a paginação
   const startIndex = (currentPage - 1) * itemsPerPage;
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
@@ -126,7 +137,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
       setIsEditing(true);
       setCurrentId(item.id);
     } else {
-      reset({});
+      reset();
       setIsEditing(false);
       setCurrentId(null);
     }
@@ -137,7 +148,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
     const response = await saveData(currentId, formData);
     if (response.success) {
       const updatedData = await fetchData();
-      setData(updatedData);
+      setData(updatedData); // Atualizar os dados no grid
       handleCloseModal();
     } else {
       alert("Erro ao salvar os dados");
@@ -157,62 +168,36 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
     }
   };
 
+
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    reset({});
+    reset();
     setIsEditing(false);
     setCurrentId(null);
   };
 
   return (
     <div className="space-y-4">
+      {/* Modal de cadastro/edição */}
       <div className="flex justify-between items-center mb-4">
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenModal()} variant="outline">
-              Novo Cadastro
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogTrigger asChild>
+          <Button onClick={() => handleOpenModal()} variant="outline">
+            Novo Cadastro
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
             <DialogHeader>
               <DialogTitle>{isEditing ? "Editar Registro" : "Novo Registro"}</DialogTitle>
             </DialogHeader>
+
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {fields.map((field) => (
                 <div key={field.name}>
                   <label className="block text-sm font-medium">{field.label}</label>
-                  {field.type === "text" ? (
-                    <Input {...register(field.name, {
-                      required: field.required ? 'Este campo é obrigatório' : false,
-                    })} />
-                  ) : field.type === "email" ? (
-                    <Input type="email" {...register(field.name, {
-                      required: field.required ? 'Este campo é obrigatório' : false,
-                    })} />
-                  ) : field.type === "mask" ? (
-                    <Controller
-                      name={field.name}
-                      control={control}
-                      render={({ field: innerField }) => (
-                        <InputMask
-                          mask={field.maskPattern || ""}
-                          value={innerField.value || ""}
-                          onChange={(e) => innerField.onChange(e.target.value)}
-                          onBlur={innerField.onBlur}
-                        >
-                          {(inputProps: any) => (
-                            <Input
-                              {...inputProps}
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            />
-                          )}
-                        </InputMask>
-                      )}
-                    />
-                  ) : field.type === "textarea" ? (
-                    <Textarea {...register(field.name, {
-                      required: field.required ? 'Este campo é obrigatório' : false,
-                    })} />
+                  {/* Renderização dinâmica de campos */}
+                  {field.type === "textarea" ? (
+                    <Textarea {...register(field.name)} />
                   ) : field.type === "select" ? (
                     <Controller
                       name={field.name}
@@ -237,16 +222,22 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
                     />
                   ) : field.type === "toggle" ? (
                     <Controller
-                      name={field.name}
-                      control={control}
-                      render={({ field }) => (
-                        <Switch
-                          checked={field.value || false}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      )}
-                    />
-                  ) : null}
+                    name={field.name}
+                    control={control}
+                    render={({ field }) => (
+                      <Switch
+                        checked={field.value || false}
+                        onCheckedChange={(checked) => field.onChange(checked)}
+                      />
+                    )}
+                  />
+                  ) : (
+                    <Input
+                    {...register(field.name, {
+                      required: field.required ? 'Este campo é obrigatório' : false,
+                    })}
+                  />
+                  )}
                   {errors[field.name] && (
                     <p className="text-red-500 text-xs">{errors[field.name]?.message}</p>
                   )}
@@ -257,21 +248,23 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
               </DialogFooter>
             </form>
           </DialogContent>
-        </Dialog>
+      </Dialog>
 
-        <div className="relative w-1/6">
-          <Input
-            placeholder="Buscar..."
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm"
-          />
-          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-            <Search className="w-5 h-5 text-gray-500" />
-          </span>
-        </div>
+      {/* Campo de Busca */}
+      <div className="relative w-1/6">
+        <Input
+          placeholder="Buscar..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          className="pl-10 pr-4 py-2 border border-gray-300 rounded-md shadow-sm"
+        />
+        <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+          <Search className="w-5 h-5 text-gray-500" />
+        </span>
       </div>
+    </div>
 
+      {/* Tabela de listagem */}
       <Table>
         <TableHeader>
           <TableRow>
@@ -294,7 +287,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
               ))}
               <TableCell>
                 <Switch
-                  checked={item.status}
+                  checked={item.status} // Usa `status` retornado do backend
                   onCheckedChange={() => handleToggleStatus(item.id, item.status)}
                 />
               </TableCell>
@@ -309,6 +302,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
         </TableBody>
       </Table>
 
+      {/* Paginação */}
       <Pagination>
         <PaginationContent>
           <PaginationItem>
