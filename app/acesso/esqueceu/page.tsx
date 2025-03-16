@@ -14,14 +14,24 @@ interface RecoveryFormInputs {
 }
 
 const Esqueceu = () => {
+
   const { register, handleSubmit, formState: { errors } } = useForm<RecoveryFormInputs>();
 
-  const { verifyToken } = useAccessHook(); // Obtendo o método logout do hook
+  const { verificarEmail } = useAccessHook(); // Obtendo o método logout do hook
 
   const onSubmit = async (data: RecoveryFormInputs) => {
+    
     // Simulação de envio ao backend
     console.log("Email enviado para recuperação:", data.email);
-    toast.success("Instruções de recuperação enviadas para o email!");
+    
+    const response = await verificarEmail(data.email); // Replace "secondArgument" with the actual second argument
+    
+    if (response){
+      toast.success("Instruções de recuperação enviadas para o email!");
+    } else {
+      toast.error("Email não cadastrado!");
+    }
+    
   };
 
   return (

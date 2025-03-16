@@ -79,11 +79,23 @@ export const useAccessHook = () => {
     }
   }
 
+  const verificarEmail = async (email: string) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/password/email`, {
+        email,
+      });
+      return response;
+    } catch (error: any) {
+      return error.response.data;
+    }
+  }
+
   return { 
     logout,
     getUser,
     verifyToken,
-    redefinirSenha
+    redefinirSenha,
+    verificarEmail
   };
 
 }
