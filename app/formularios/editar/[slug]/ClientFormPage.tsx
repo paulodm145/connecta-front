@@ -10,6 +10,7 @@ import FormPreview from '@/components/form-builder/FormPreview'
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'; // Use o roteamento moderno do Next.js
+import { randomUUID } from 'crypto';
 
  
 
@@ -30,7 +31,18 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
         setPerguntas(data.perguntas || []);
       } catch (error) {
         console.error('Erro ao carregar o formulário:', error);
-        setFormulario(null);
+        setFormulario({
+          id: '',
+          titulo: 'Meu Formulário',
+          descricao: 'Descrição do meu formulário',
+          slug: 'meu-formulario',
+          status: 'RASCUNHO',
+          ajuda: '',
+          embed_youtube: '',
+          mostrar_ajuda: false,
+          mostrar_embed_youtube: false,
+          perguntas: []
+        });
       } finally {
         setLoading(false);
       }
@@ -40,6 +52,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
   }, [slug]);
 
   const [formulario, setFormulario] = useState<DadosFormulario>({
+    id: '',
     titulo: 'Meu Formulário',
     descricao: 'Descrição do meu formulário',
     slug: 'meu-formulario',
@@ -76,7 +89,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
   const handleAdicionarPergunta = () => {
     if (perguntaAtual && perguntaAtual.pergunta_texto) {
       const perguntaCompleta: DadosPergunta = {
-        id: crypto.randomUUID(),
+        id: randomUUID(),
         pergunta_texto: perguntaAtual.pergunta_texto || '',
         tipo_pergunta: perguntaAtual.tipo_pergunta || 'TEXT',
         obrigatoria: perguntaAtual.obrigatoria || false,

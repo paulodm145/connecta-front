@@ -30,6 +30,7 @@ export interface DadosPergunta {
 }
 
 export interface DadosFormulario {
+  id: any
   titulo: string
   descricao: string
   slug: string
