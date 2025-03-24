@@ -76,12 +76,27 @@ export const usePesquisasHook = () => {
         }
     };
 
+    const relatorioRespostas = async (slugPesquisa: string) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/respostas/pesquisa/${slugPesquisa}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar relatório de respostas:", error);
+            return null;
+        }
+    };
+
 return { 
         novaPesquisa,
         editarPesquisa,
         changeStatus,
         listagemPesquisa,
-        getBySlug
+        getBySlug,
+        relatorioRespostas
     };     
 };
 

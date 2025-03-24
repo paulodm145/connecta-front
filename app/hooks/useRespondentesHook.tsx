@@ -69,7 +69,7 @@ export const useRespondentesHook = () => {
             });
             return response.data;
         } catch (error) {
-            toast.error("Erro ao excluir cargo.:" + error.response.data?.error);
+            toast.error("Erro ao excluir cargo.:" + (error as any).response?.data?.error);
             console.error("Erro ao excluir cargo:", error);
             return null;
         }
@@ -103,6 +103,34 @@ export const useRespondentesHook = () => {
         }
     }
 
+    const listarRespondentesCombo = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/respondentes/respondentes-combo`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar respondentes:", error);
+            return null;
+        }
+    }
+
+    const enviarRespondentesMultiplos = async (data: any) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/respondentes/adicionar-multiplos`, data, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao enviar respondentes:", error);
+            return null;
+        }
+    }
+
 return { 
     index,
     show,
@@ -110,7 +138,9 @@ return {
     update,
     destroy,
     changeStatus,
-    getRespondentesByPesquisaSlug
+    getRespondentesByPesquisaSlug,
+    listarRespondentesCombo,
+    enviarRespondentesMultiplos
     };     
 };
 

@@ -9,9 +9,11 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useRespondentesHook } from "@/app/hooks/useRespondentesHook";
 import { usePessoasHook } from "@/app/hooks/usePessoasHook";
 
+
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
+import MultiSelectDropdown from "@/components/MultiSelectDropdown"
 import {
   Card,
   CardContent,
@@ -43,6 +45,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { set } from "date-fns";
+import { PlusCircle } from "lucide-react";
 
 interface Respondente {
   id: number;
@@ -65,8 +68,7 @@ export default function PesquisasRespondentes() {
   const BASE_URL = process.env.NEXT_PUBLIC_URL_INICIAL;
 
   const { getBySlug } = usePesquisasHook();
-  const { getRespondentesByPesquisaSlug, store, update, destroy } =
-    useRespondentesHook();
+  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
 
   const [pesquisa, setPesquisa] = useState<{ id: number; titulo: string } | null>(
@@ -81,6 +83,7 @@ export default function PesquisasRespondentes() {
   const [editingRespondente, setEditingRespondente] = useState<Respondente | null>(
     null
   );
+  const [respondentesCombo, setRespondentesCombo] = useState<any[]>([]);
 
   const itemsPerPage = 10;
 
@@ -89,15 +92,17 @@ export default function PesquisasRespondentes() {
   //Carregando listas iniciais
   useEffect(() => {
     const loadData = async () => {
-    const [respPessoas, respPesquisa, respRespondentes] = await Promise.all([
+    const [respPessoas, respPesquisa, respRespondentes, respCombo] = await Promise.all([
       getPessoasAtivas(),
       getBySlug(slug),
       getRespondentesByPesquisaSlug(slug),
+      listarRespondentesCombo(),
     ]);
 
     setPesquisa(respPesquisa || []);
     setRespondentes(respRespondentes || []);
     setPessoas(respPessoas || []);
+    setRespondentesCombo(respCombo || []);
     };
 
     loadData();
@@ -188,6 +193,37 @@ export default function PesquisasRespondentes() {
     }
   };
 
+  const handleSelectionChange = (selectedIds: number[]) => {
+    console.log("Itens selecionados:", selectedIds)
+  }
+
+  const addRespondentesMultiplos = async (selectedIds: number[]) => {
+    try {
+
+      if (!selectedIds || selectedIds.length === 0) {
+        toast.error("Selecione ao menos um respondente");
+        return;
+      }
+
+      const sendData = {
+        idsRespondentes : selectedIds, 
+        pesquisaId : pesquisa?.id
+      }
+
+      await enviarRespondentesMultiplos(sendData);
+
+      // Recarregar dados para refletir alterações
+      const updatedRespondentes = await getRespondentesByPesquisaSlug(slug);
+      setRespondentes(updatedRespondentes || []);
+
+      toast.success("Respondentes enviados com sucesso");
+    } catch (error) {
+      console.error("Erro ao enviar respondentes:", error);
+      toast.error("Erro ao enviar respondentes");
+    }
+  }
+
+
   return (
     <Card>
       <CardHeader>
@@ -202,14 +238,16 @@ export default function PesquisasRespondentes() {
       <CardContent>
         <div className="flex justify-between mb-4">
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+
             <DialogTrigger asChild>
               <Button
+                title="Adicionar Respondente"
                 onClick={() => {
                   setEditingRespondente(null);
                   reset();
                 }}
               >
-                Adicionar Respondente
+                <PlusCircle size={16} />
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -260,6 +298,18 @@ export default function PesquisasRespondentes() {
               </form>
             </DialogContent>
           </Dialog>
+
+          <MultiSelectDropdown
+            data={respondentesCombo}
+            title="Selecionar Respondentes"
+            onSelectionChange={handleSelectionChange}
+            buttonText="Adicionar Respondentes"
+            onSend={addRespondentesMultiplos}
+          />
+
+
+      
+
           <Input
             placeholder="Pesquisar respondentes..."
             value={searchTerm}

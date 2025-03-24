@@ -15,6 +15,7 @@ import { useTiposPesquisaHook } from "@/app/hooks/useTiposPesquisaHook";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { parse, format } from "date-fns";
 import { MaskedInput } from "@/components/InputDate";
+import { SquarePlus, Pencil, UserPlus, FileText, Edit2Icon    } from "lucide-react";
 
 type Status = "ABERTA" | "FECHADA";
 
@@ -208,7 +209,10 @@ export default function PaginaListagem() {
         <div className="flex items-center justify-between">
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" onClick={handleNovaPesquisa}>Nova Pesquisa</Button>
+              <Button variant="outline" onClick={handleNovaPesquisa}>
+                <SquarePlus size={16} className="mr-2" />
+                Nova Pesquisa
+              </Button>
             </DialogTrigger>
 
             <DialogContent>
@@ -352,19 +356,27 @@ export default function PaginaListagem() {
                 {/* Ações: Apenas edição via modal */}
                 <TableCell>
                   <Button
+                    title="Editar"
                     variant="outline"
                     size="sm"
                     onClick={() => {
                       setEditingPesquisa(pesquisa);
                       setModalOpen(true);
                     }}
+                    
                   >
-                    Editar
+                    <Pencil size={16}/>
                   </Button>
 
                    <Link className="ml-2" href={`/pesquisas/respondentes/${pesquisa.slug}`}>
-                      <Button variant="outline" size="sm">
-                         Add Respondentes
+                      <Button title="Adicionar Respondentes" variant="outline" size="sm">
+                         <UserPlus size={16} /> 
+                      </Button>
+                    </Link>    
+
+                    <Link className="ml-2" href={`/pesquisas/relatorios/${pesquisa.slug}`}>
+                      <Button title="Relatório" variant="outline" size="sm">
+                         <FileText size={16} />
                       </Button>
                     </Link>    
 

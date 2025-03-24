@@ -122,9 +122,10 @@ export default function FormularioCompletoPage() {
     console.log("Respostas brutas:", data);
 
     const payload = {
+      pesquisa_id: pesquisa?.id,
       formulario_id: formulario?.id,
       respondente : respondente,
-      envio_id: crypto.randomUUID(),
+      envio_id: Math.random().toString(36).substr(2, 9),
       respostas: formulario?.perguntas.map((pergunta) => {
         const valor = data[pergunta.id.toString()];
         let resposta_texto: string | null = null;
