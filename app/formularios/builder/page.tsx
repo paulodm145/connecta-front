@@ -121,11 +121,11 @@ export default function PaginaConstrutor() {
 
       {/* Modal para Adicionar Nova Pergunta */}
       <Dialog open={mostrarModalAdd} onOpenChange={setMostrarModalAdd}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Nova Pergunta</DialogTitle>
             <DialogDescription>
-              Configure a pergunta e depois clique em "Adicionar".
+              Configure a pergunta e depois clique em "Adicionar..".
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">

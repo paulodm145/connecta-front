@@ -153,7 +153,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
 
       {/* Modal para Adicionar Nova Pergunta */}
       <Dialog open={mostrarModalAdd} onOpenChange={setMostrarModalAdd}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Adicionar Nova Pergunta</DialogTitle>
             <DialogDescription>
