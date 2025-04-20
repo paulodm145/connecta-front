@@ -2,6 +2,7 @@ import axios from "axios";
 import { useCrud } from "./useCRUD";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
+const URL_EXTERNA = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const useFormulariosHook = () => { 
 
@@ -90,13 +91,29 @@ export const useFormulariosHook = () => {
         }
     }
 
+    const formularioExternoBySlug = async (slug : string, tokenRespondente : string, identificadorEmpresa : string) => {
+        try {
+            const response = await axios.get(`${URL_EXTERNA}/externo-formularios/${slug}?t=${tokenRespondente}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    Empresa: identificadorEmpresa,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar formulário:", error);
+            return null;
+        }
+    };
+
     return { 
             novoFormulario,
             editarFormulario,
             changeStatus,
             listagemFormularios,
             getBySlug,
-            formulariosAtivos
+            formulariosAtivos,
+            formularioExternoBySlug
         };     
 };
 

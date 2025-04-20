@@ -2,6 +2,7 @@ import axios from "axios";
 import { useCrud } from "./useCRUD";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
+const URL_EXTERNA = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const usePesquisasHook = () => { 
 
@@ -90,13 +91,44 @@ export const usePesquisasHook = () => {
         }
     };
 
+    const pesquisaBySlug = async (slug : string) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/pesquisas/slug/${slug}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar formulário:", error);
+            return null;
+        }
+    };
+
+    const pesquisaexternaBySlug = async (slug : string, tokenRespondente : string, identificadorEmpresa : string) => {
+        try {
+            const response = await axios.get(`${URL_EXTERNA}/externo-pesquisas/${slug}?t=${tokenRespondente}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    Empresa: identificadorEmpresa,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar formulário:", error);
+            return null;
+        }
+    };
+
 return { 
         novaPesquisa,
         editarPesquisa,
         changeStatus,
         listagemPesquisa,
         getBySlug,
-        relatorioRespostas
+        relatorioRespostas,
+        pesquisaBySlug,
+        pesquisaexternaBySlug,
     };     
 };
 

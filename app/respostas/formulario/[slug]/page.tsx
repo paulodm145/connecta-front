@@ -85,10 +85,11 @@ export default function FormularioCompletoPage() {
   const slug = params.slug as string;
   const respondente = searchParams.get("t");
   const pesquisaSlug = searchParams.get("p");
+  const identificador_empresa = searchParams.get("e");
 
-  const { getBySlug } = useFormulariosHook();
-  const { getBySlug: getPesquisaBySlug } = usePesquisasHook();
-  const { responder } = useRespostasHook();
+  const { getBySlug, formularioExternoBySlug  } = useFormulariosHook();
+  const { getBySlug: getPesquisaBySlug, pesquisaexternaBySlug } = usePesquisasHook();
+  const { responder, responderExterno } = useRespostasHook();
 
   const {
     register,
@@ -103,8 +104,8 @@ export default function FormularioCompletoPage() {
     const fetchFormulario = async () => {
       try {
         setLoading(true);
-        const data = await getBySlug(slug);
-        const pesquisaData = await getPesquisaBySlug(pesquisaSlug!);
+        const data = await formularioExternoBySlug(slug, respondente!, identificador_empresa!);
+        const pesquisaData = await pesquisaexternaBySlug(pesquisaSlug!, respondente!, identificador_empresa!);
         setPesquisa(pesquisaData);
         setFormulario(data);
       } catch (error) {
@@ -172,7 +173,7 @@ export default function FormularioCompletoPage() {
     };
 
     console.log("Payload final:", payload);
-    const response = await responder(payload);
+    const response = await responderExterno(payload, respondente!, identificador_empresa!);
    
     if (response) {
       toast.success("Respostas enviadas com sucesso!");

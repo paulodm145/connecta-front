@@ -47,6 +47,9 @@ import {
 import { set } from "date-fns";
 import { PlusCircle } from "lucide-react";
 
+//importar o store
+import { useUserStore } from '@/app/store/userStore'
+
 interface Respondente {
   id: number;
   pessoa_id: number;
@@ -88,6 +91,10 @@ export default function PesquisasRespondentes() {
   const itemsPerPage = 10;
 
   const { register, handleSubmit, reset, setValue } = useForm<Respondente>();
+
+  //dados usuario
+  const user = useUserStore((state) => state.user)
+
 
   //Carregando listas iniciais
   useEffect(() => {
@@ -370,8 +377,8 @@ export default function PesquisasRespondentes() {
                     size="sm"
                     className="ml-2"
                     onClick={() => {
-                      
-                      navigator.clipboard.writeText(`${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}`);
+                      navigator.clipboard.writeText(`${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}
+                        &p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}`);
                       toast.success("Linha copiada com sucesso");
                     }}
 

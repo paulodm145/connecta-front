@@ -17,6 +17,7 @@ import { parse, format } from "date-fns";
 import { MaskedInput } from "@/components/InputDate";
 import { SquarePlus, Pencil, UserPlus, FileText, Edit2Icon    } from "lucide-react";
 
+
 type Status = "ABERTA" | "FECHADA";
 
 interface Pesquisa {
@@ -57,6 +58,7 @@ export default function PaginaListagem() {
   const [tiposPesquisa, setTiposPesquisa] = useState<TipoPesquisa[]>([]);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPesquisa, setEditingPesquisa] = useState<Pesquisa | null>(null);
+
 
   const {
     register,
@@ -197,6 +199,8 @@ export default function PaginaListagem() {
     })
     setModalOpen(true)         // <- Abre o modal
   }
+
+  
 
   return (
     <Card>
