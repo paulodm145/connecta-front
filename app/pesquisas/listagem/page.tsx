@@ -239,7 +239,7 @@ export default function PaginaListagem() {
                       placeholder="DD/MM/AAAA"
                       className="w-full p-2 border rounded"
                       value={watch("data_inicio")}
-                      onChange={(e) => setValue("data_inicio", e.target.value)}
+                      onChange={(e: { target: { value: string; }; }) => setValue("data_inicio", e.target.value)}
                     />
                     {errors.data_inicio && (
                       <span className="text-red-500">Campo obrigatório</span>
@@ -253,7 +253,7 @@ export default function PaginaListagem() {
                       placeholder="DD/MM/AAAA"
                       className="w-full p-2 border rounded"
                       value={watch("data_fim")}
-                      onChange={(e) => setValue("data_fim", e.target.value)}
+                      onChange={(e: { target: { value: string; }; }) => setValue("data_fim", e.target.value)}
                     />
                   </div>
                 </div>

@@ -76,7 +76,11 @@ export const useTiposPesquisaHook = () => {
             });
             return response.data;
         } catch (error) {
-            toast.error("Erro ao excluir Tipo pesquisa.:" + error.response.data?.error);
+            if (axios.isAxiosError(error) && error.response) {
+                toast.error("Erro ao excluir Tipo pesquisa.:" + error.response.data?.error);
+            } else {
+                toast.error("Erro ao excluir Tipo pesquisa.");
+            }
             console.error("Erro ao excluir Tipo Pesquisa:", error);
             return null;
         }

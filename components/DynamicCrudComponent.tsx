@@ -88,7 +88,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const [lookupData, setLookupData] = useState<Record<string, FieldOption[]>>({});
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(5);
+  const [itemsPerPage] = useState(10);
 
   const filteredData = data.filter((item) =>
     columns.some((column) =>

@@ -237,7 +237,7 @@ export default function FormularioCompletoPage() {
         ) : (
           <>
 
-          <h1 className="text-xl font-bold mb-2">{pesquisa.titulo}</h1>
+          <h1 className="text-xl font-bold mb-2">{pesquisa?.titulo || "Título não disponível"}</h1>
           {/*<p className="text-gray-700 mb-4">{formulario.descricao}</p>*/}
 
           {/* Botões de ajuda e vídeo do formulário */}
@@ -276,7 +276,7 @@ export default function FormularioCompletoPage() {
                   {pergunta.mostrar_embed_youtube && pergunta.embed_youtube && (
                     <Button
                       variant="outline"
-                      size="xs"
+                      size="sm"
                       onClick={() => handleOpenVideo(pergunta.embed_youtube!)}
                     >
                       ▶ Ver Vídeo da Pergunta
@@ -285,7 +285,7 @@ export default function FormularioCompletoPage() {
                   {pergunta.mostrar_ajuda && pergunta.ajuda && (
                     <Button
                       variant="outline"
-                      size="xs"
+                      size="sm"
                       onClick={() => handleOpenAjuda(pergunta.ajuda!)}
                     >
                       ℹ️ Ajuda da Pergunta

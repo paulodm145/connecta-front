@@ -84,11 +84,29 @@ export const usePessoasHook = () => {
         }
     }
 
+    const importar = async (file: File) => {
+        const formData = new FormData();
+        formData.append("arquivo", file);
+        try {
+            const response = await axios.post(`${BASE_URL}/pessoas/importar`, formData, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao importar pessoas:", error);
+            return null;
+        }
+    }
+
 return { 
     getResponsaveis,
     changeStatus,
     pessoasIndex,
-    getPessoasAtivas
+    getPessoasAtivas,
+    importar
     };     
 };
 
