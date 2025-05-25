@@ -120,6 +120,20 @@ export const usePesquisasHook = () => {
         }
     };
 
+    const dadosDashBoard = async (idPesquisa: number) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/dados-dashboard/info-respondentes/${idPesquisa}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            })
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar dados do dashboard:", error);
+            return null;
+        }
+    }
+
 return { 
         novaPesquisa,
         editarPesquisa,
@@ -129,6 +143,7 @@ return {
         relatorioRespostas,
         pesquisaBySlug,
         pesquisaexternaBySlug,
+        dadosDashBoard
     };     
 };
 

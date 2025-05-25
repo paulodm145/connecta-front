@@ -20,46 +20,71 @@ import {
 import { exportChart } from "@/lib/export-utils";
 import { Badge } from "@/components/ui/badge"; // Caso queira badges
 
-// Exemplo de dados com cor vinda do "backend" (placeholder).
-// Certifique-se de que o backend retorne color em cada objeto.
-const topScorers = [
-  { name: "João", score: 50, color: "#ff0000" },
-  { name: "Pedrinho", score: 30, color: "#007bff" },
-  { name: "Maria", score: 25, color: "#00b894" },
-  { name: "Ana", score: 45, color: "#fdcb6e" },
-  { name: "Carlos", score: 38, color: "#6c5ce7" },
-  { name: "Beatriz", score: 42, color: "#d63031" },
-  { name: "Lucas", score: 35, color: "#e84393" },
-  { name: "Fernanda", score: 28, color: "#0984e3" },
-  { name: "Rafael", score: 33, color: "#636e72" },
-  { name: "Juliana", score: 40, color: "#fd79a8" },
-];
+
+
+interface ScoreItem {
+  name: string;
+  first_name: string;
+  score: number;
+  color: string;
+  [key: string]: string | number; // Add index signature for BarDatum compatibility
+}
+
+interface RespostaDados {
+  total_respondentes: number;
+  responderam: number;
+  nao_responderam: number;
+  taxa_resposta: number;
+  score: ScoreItem[];
+}
 
 export default function Page() {
   const params = useParams();
   const slugPesquisa = params.slug as string;
 
-  const { relatorioRespostas } = usePesquisasHook();
+  const { relatorioRespostas, dadosDashBoard } = usePesquisasHook();
 
   const [respostas, setRespostas] = useState<any[]>([]);
   const [colunas, setColunas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Exemplo de dados
-  const totalRespondents = 256;
-  const responseRate = 78; // percentual
-
+  const [numRespondidos, setNumRespondidos] = useState(0);
+  const [numNaoResponderam, setNumNaoResponderam] = useState(0);
+  const [totalRespondentes, setTotalRespondentes] = useState(0);
+  const [responseRate, setresponseRate] = useState(0);
+  const [topScorers, setTopScorers] = useState<ScoreItem[]>([]);
+  
   const chartRef = useRef(null);
 
-  const numRespondidos = 75;
-  const numNaoResponderam = 25;
-
-  useEffect(() => {
-    const fetchRelatorio = async () => {
+  const fetchRelatorio = async () => {
       try {
         const retornoRespostas = await relatorioRespostas(slugPesquisa);
+        const retornoDashboard: RespostaDados = await dadosDashBoard(5) ?? {
+          total_respondentes: 0,
+          responderam: 0,
+          nao_responderam: 0,
+          taxa_resposta: 0,
+          score: [],
+        };
+        
+        // Aqui você pode usar os dados retornados para atualizar o estado
         setRespostas(retornoRespostas.data);
         setColunas(retornoRespostas.columns);
+
+        setNumRespondidos(retornoDashboard.responderam);
+        setNumNaoResponderam(retornoDashboard.nao_responderam);
+        setTotalRespondentes(retornoDashboard.total_respondentes);
+        setresponseRate(retornoDashboard.taxa_resposta);
+        
+        const formattedScores = retornoDashboard.score.map((item: ScoreItem) => ({
+          name: item.name,
+          first_name: item.first_name,
+          score: item.score,
+          color: item.color || "#ccc", // Definindo uma cor padrão se não houver
+        }));
+        
+        setTopScorers(formattedScores);
+
       } catch (error) {
         console.error("Erro ao buscar relatório de respostas:", error);
       } finally {
@@ -67,8 +92,10 @@ export default function Page() {
       }
     };
 
+
+  useEffect(() => {
     fetchRelatorio();
-  }, [slugPesquisa, relatorioRespostas]);
+  }, []);
 
   return (
     <div className=" w-100 p-4 space-y-6">
@@ -95,7 +122,7 @@ export default function Page() {
           </CardHeader>
           <CardContent>
             {/* Número grande no topo */}
-            <div className="text-3xl font-bold mb-4">{totalRespondents}</div>
+            <div className="text-3xl font-bold mb-4">{totalRespondentes}</div>
 
             {/* Barra de progresso e taxa de resposta */}
             <Progress value={responseRate} className="h-2" />
@@ -156,7 +183,7 @@ export default function Page() {
     >
       <ResponsiveBar
         data={topScorers}
-        indexBy="name"
+        indexBy="first_name"
         keys={["score"]}
         colors={(bar) => bar.data.color || "#ccc"}
         margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
