@@ -134,6 +134,20 @@ export const usePesquisasHook = () => {
         }
     }
 
+    const exportarDados = async (slugPesquisa: string) => {
+         try {
+            const response = await axios.get(`${BASE_URL}/respostas/exportar/${slugPesquisa}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            })
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao Exportar:", error);
+            return null;
+        }
+    }
+
 return { 
         novaPesquisa,
         editarPesquisa,
@@ -143,7 +157,8 @@ return {
         relatorioRespostas,
         pesquisaBySlug,
         pesquisaexternaBySlug,
-        dadosDashBoard
+        dadosDashBoard, 
+        exportarDados
     };     
 };
 

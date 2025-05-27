@@ -191,6 +191,29 @@ export function ehSenhaDificil(senha: string): boolean {
   );
 }
 
+export function downloadFile(content: string, filename: string, mimeType: string) {
+  // Converte a base64 em um blob
+  const byteCharacters = atob(content);
+  const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) =>
+    byteCharacters.charCodeAt(i)
+  );
+  const byteArray = new Uint8Array(byteNumbers);
+  const blob = new Blob([byteArray], {
+    type: mimeType,
+  });
+
+  // Cria uma URL para download
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  // Libera a memória
+  URL.revokeObjectURL(url);
+}
+
+
 
 
 

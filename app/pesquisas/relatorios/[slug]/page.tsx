@@ -19,7 +19,7 @@ import {
 
 import { exportChart } from "@/lib/export-utils";
 import { Badge } from "@/components/ui/badge"; // Caso queira badges
-
+import { downloadFile } from "@/app/utils/Helpers";
 
 
 interface ScoreItem {
@@ -42,7 +42,7 @@ export default function Page() {
   const params = useParams();
   const slugPesquisa = params.slug as string;
 
-  const { relatorioRespostas, dadosDashBoard } = usePesquisasHook();
+  const { relatorioRespostas, dadosDashBoard, exportarDados } = usePesquisasHook();
 
   const [respostas, setRespostas] = useState<any[]>([]);
   const [colunas, setColunas] = useState<any[]>([]);
@@ -96,6 +96,33 @@ export default function Page() {
   useEffect(() => {
     fetchRelatorio();
   }, []);
+
+  const handleExport = async () => {
+  try {
+    const dadosExportar = await exportarDados(slugPesquisa);
+
+    if (!dadosExportar || !dadosExportar.base64 || !dadosExportar.filename) {
+      console.error("Dados inválidos ao exportar.");
+      return;
+    }
+
+    downloadFile(dadosExportar.base64, dadosExportar.filename, dadosExportar.mimeType);
+    
+  } catch (error) {
+    console.error("Erro ao exportar dados:", error);
+  }
+};
+
+  const actionsBar = [
+     {
+      label: "Exportar",
+      icon: Download,
+      variant: "outline" as const,
+      onClick: handleExport,
+    },
+  ];
+
+
 
   return (
     <div className=" w-100 p-4 space-y-6">
@@ -229,9 +256,8 @@ export default function Page() {
       <BasicDataTable
             columns={colunas}
             data={respostas}
-            // Caso queira usar a prop loading que criamos antes,
-            // basta descomentar e passar como prop.
-            // loading={loading}
+            loading={loading} 
+            actionsBar={actionsBar}
           />
     </div>
   );
