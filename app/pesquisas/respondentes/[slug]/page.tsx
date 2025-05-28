@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useRespondentesHook } from "@/app/hooks/useRespondentesHook";
 import { usePessoasHook } from "@/app/hooks/usePessoasHook";
+import { useClipboard } from '@/app/hooks/useClipBoard'; // ajuste o caminho se necessário
 
 
 import { Input } from "@/components/ui/input";
@@ -73,8 +74,9 @@ export default function PesquisasRespondentes() {
   const { getBySlug } = usePesquisasHook();
   const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
+  const { copyToClipboard } = useClipboard();
 
-  const [pesquisa, setPesquisa] = useState<{ id: number; titulo: string } | null>(
+  const [pesquisa, setPesquisa] = useState<{ id: number; titulo: string; formulario_slug: string } | null>(
     null
   );
   const [respondentes, setRespondentes] = useState<Respondente[]>([]);
@@ -230,7 +232,6 @@ export default function PesquisasRespondentes() {
     }
   }
 
-
   return (
     <Card>
       <CardHeader>
@@ -313,10 +314,6 @@ export default function PesquisasRespondentes() {
             buttonText="Adicionar Respondentes"
             onSend={addRespondentesMultiplos}
           />
-
-
-      
-
           <Input
             placeholder="Pesquisar respondentes..."
             value={searchTerm}
@@ -377,18 +374,17 @@ export default function PesquisasRespondentes() {
                     size="sm"
                     className="ml-2"
                     onClick={() => {
-                      navigator.clipboard.writeText(`${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}
-                        &p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}`);
-                      toast.success("Linha copiada com sucesso");
+                      const link = `${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}`;
+                      const success = copyToClipboard(link);
+                      if (success) {
+                        toast.success("Link copiado com sucesso");
+                      } else {
+                        toast.error("Não foi possível copiar o link");
+                      }
                     }}
-
                   >
                     Copiar Link
                   </Button>
-
-
-
-
                 </TableCell>
               </TableRow>
             ))}
