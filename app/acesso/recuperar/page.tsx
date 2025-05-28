@@ -87,7 +87,7 @@ const RecuperarSenha = () => {
 
   return (
     <div className="flex h-screen relative overflow-hidden">
-      <ToastContainer />
+      
       <div
         className="absolute inset-0 bg-cover bg-left"
         style={{

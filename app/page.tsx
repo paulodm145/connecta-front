@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { useForm } from "react-hook-form";
 
-import { ToastContainer, toast } from "react-toastify";
+import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { Eye, EyeOff } from "lucide-react"; // Biblioteca para os ícones
@@ -51,7 +51,6 @@ const LoginPage = () => {
 
   return (
     <div className="flex h-screen relative overflow-hidden">
-      <ToastContainer />
       <div
         className="absolute inset-0 bg-cover bg-left"
       />

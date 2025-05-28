@@ -4,6 +4,7 @@ import "./globals.css";
 
 import React from "react";
 import { AuthProvider } from "@/app/context/AuthContext";
+import { ToastContainer, toast } from "react-toastify";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,7 +20,12 @@ export default function RootLayout({
 }) {
   return (
       <html lang="en">
-        <AuthProvider><body>{children}</body></AuthProvider>
+        <AuthProvider>
+          <body>
+            {children}
+            <ToastContainer />
+            </body>
+          </AuthProvider>
       </html>
   );
 }

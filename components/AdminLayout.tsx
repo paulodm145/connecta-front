@@ -269,7 +269,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
   
     return (
       <div className={`flex h-screen ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-black'}`}>
-        <ToastContainer />
+    
         {/* Barra lateral do sistema SST */}
         <div className={`fixed top-0 left-0 h-full ${theme.primary} shadow-lg transition-all duration-300 z-20 ${
           sidebarOpen ? (sidebarMinimized ? 'w-16' : 'w-72') : 'w-0'
