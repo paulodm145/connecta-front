@@ -14,7 +14,6 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { Eye, EyeOff } from "lucide-react"; // Biblioteca para os ícones
-import { url } from "inspector";
 
 
 interface LoginFormInputs {
@@ -24,7 +23,6 @@ interface LoginFormInputs {
 
 const LoginPage = () => {
   const [showPassword, setShowPassword] = useState(false); // Estado para alternar exibição da senha
-  const [numberBackground, setNumberBackground] = useState<number | null>(null);
 
   const router = useRouter();
   const { login } = useAuth();
@@ -48,10 +46,7 @@ const LoginPage = () => {
     router.push("/acesso/esqueceu");
   };
 
-  useEffect(() => {
-    // Esse código roda só no client, após a montagem do componente
-    setNumberBackground(1);
-  }, []);
+
 
 
   return (
@@ -142,10 +137,10 @@ const LoginPage = () => {
   );
 };
 
-const LoginPageWithProvider: React.FC = () => (
-  <AuthProvider>
-    <LoginPage />
-  </AuthProvider>
-);
+// const LoginPageWithProvider: React.FC = () => (
+//   <AuthProvider>
+//     <LoginPage />
+//   </AuthProvider>
+// );
 
-export default LoginPageWithProvider;
+export default LoginPage;

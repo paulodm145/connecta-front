@@ -8,7 +8,7 @@ import { AuthProvider } from "@/app/context/AuthContext";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Create Next App",
+  title: "Connecta Skills - Sistema de Avaliação",
   description: "Connecta Skills - Sistema de Avaliação",
 };
 
@@ -18,10 +18,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <AuthProvider>
       <html lang="en">
-        <body>{children}</body>
+        <AuthProvider><body>{children}</body></AuthProvider>
       </html>
-    </AuthProvider>
   );
 }
