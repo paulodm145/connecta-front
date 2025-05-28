@@ -7,7 +7,7 @@ import { AuthProvider } from "@/app/context/AuthContext";
 import { ToastContainer, toast } from "react-toastify";
 
 const inter = Inter({ subsets: ["latin"] });
-
+// teste
 export const metadata: Metadata = {
   title: "Connecta Skills - Sistema de Avaliação",
   description: "Connecta Skills - Sistema de Avaliação",
