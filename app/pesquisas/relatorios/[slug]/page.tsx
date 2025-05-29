@@ -20,6 +20,8 @@ import {
 import { exportChart } from "@/lib/export-utils";
 import { Badge } from "@/components/ui/badge"; // Caso queira badges
 import { downloadFile } from "@/app/utils/Helpers";
+import { toast } from "react-toastify";
+import { routeModule } from "next/dist/build/templates/app-page";
 
 
 interface ScoreItem {
@@ -42,7 +44,8 @@ export default function Page() {
   const params = useParams();
   const slugPesquisa = params.slug as string;
 
-  const { relatorioRespostas, dadosDashBoard, exportarDados } = usePesquisasHook();
+  const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook();
+
 
   const [respostas, setRespostas] = useState<any[]>([]);
   const [colunas, setColunas] = useState<any[]>([]);
@@ -53,20 +56,33 @@ export default function Page() {
   const [totalRespondentes, setTotalRespondentes] = useState(0);
   const [responseRate, setresponseRate] = useState(0);
   const [topScorers, setTopScorers] = useState<ScoreItem[]>([]);
+  const [pesquisa, setPesquisa] = useState<any>(null);
   
   const chartRef = useRef(null);
 
   const fetchRelatorio = async () => {
       try {
+
+        const pesquisaData = await getBySlug(slugPesquisa);
+        setPesquisa(pesquisaData);
+
+        if (!pesquisaData || !pesquisaData.id) {
+          toast.error("Pesquisa não encontrada ou inválida.");
+          console.error("Pesquisa não encontrada ou inválida.");
+          setLoading(false);
+          
+          return;
+        }
+
         const retornoRespostas = await relatorioRespostas(slugPesquisa);
-        const retornoDashboard: RespostaDados = await dadosDashBoard(5) ?? {
+        const retornoDashboard: RespostaDados = await dadosDashBoard(pesquisaData.id) ?? {
           total_respondentes: 0,
           responderam: 0,
           nao_responderam: 0,
           taxa_resposta: 0,
           score: [],
         };
-        
+
         // Aqui você pode usar os dados retornados para atualizar o estado
         setRespostas(retornoRespostas.data);
         setColunas(retornoRespostas.columns);
@@ -127,7 +143,7 @@ export default function Page() {
   return (
     <div className=" w-100 p-4 space-y-6">
       {/* Título principal */}
-      <h1 className="text-2xl font-bold">DashBoard - Nome da Pesquisa</h1>
+      <h1 className="text-2xl font-bold">DashBoard - Pesquisa: {pesquisa ? pesquisa.titulo : "Carregando..."}</h1>
 
       {/* Grid para cards e gráfico */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">

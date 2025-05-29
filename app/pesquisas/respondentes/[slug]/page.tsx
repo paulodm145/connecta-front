@@ -374,7 +374,7 @@ export default function PesquisasRespondentes() {
                     size="sm"
                     className="ml-2"
                     onClick={() => {
-                      const link = `${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}`;
+                      const link = `${BASE_URL}:3000/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}`;
                       const success = copyToClipboard(link);
                       if (success) {
                         toast.success("Link copiado com sucesso");
