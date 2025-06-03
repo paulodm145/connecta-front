@@ -5,11 +5,14 @@ import { useMemo, useState } from "react"
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
-import { Loader2, Search, ChevronLeft, ChevronRight } from "lucide-react"
+import { Loader2, Search, ChevronLeft, ChevronRight, MoreHorizontal } from "lucide-react"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+
 
 interface Column {
   label: string
   datafield: string
+  visible?: boolean
 }
 
 interface ActionButton {
@@ -20,23 +23,51 @@ interface ActionButton {
   className?: string
 }
 
+interface RowAction {
+  label: string
+  icon?: React.ComponentType<{ className?: string }>
+  onClick: (row: Record<string, any>) => void
+  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
+  className?: string
+  actionsColumn?: RowAction[]
+}
+
 interface TableProps {
   columns: Column[]
   data: Record<string, any>[]
   rowsPerPage?: number
   loading?: boolean
   actionsBar?: ActionButton[]
+  actionsColumn?: RowAction[]
 }
 
-const BasicDataTable: React.FC<TableProps> = ({ columns, data, rowsPerPage = 5, loading = false, actionsBar = [] }) => {
+const BasicDataTable: React.FC<TableProps> = ({ 
+  columns, 
+  data, 
+  rowsPerPage = 5, 
+  loading = false, 
+  actionsBar = [],
+  actionsColumn = [], // Valor padrão para actionsColumn 
+}) => {
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+
+
+   // Filtrar apenas as colunas visíveis para renderização
+  const visibleColumns = useMemo(() => {
+    return columns.filter((col) => col.visible !== false) // Se visible não estiver definido ou for true, mostra a coluna
+  }, [columns])
 
   // Filtrando os dados dinamicamente
   const filteredData = useMemo(() => {
     return data.filter((row) =>
       columns.some((col) => String(row[col.datafield]).toLowerCase().includes(searchTerm.toLowerCase())),
-    )
+    ).filter((row) => {
+      // Verifica se pelo menos uma coluna visível contém o termo de busca
+      return visibleColumns.some((col) => 
+        String(row[col.datafield]).toLowerCase().includes(searchTerm.toLowerCase())
+      )
+    })
   }, [searchTerm, data, columns])
 
   // Paginação
@@ -53,7 +84,7 @@ const BasicDataTable: React.FC<TableProps> = ({ columns, data, rowsPerPage = 5, 
     )
   }
 
-  return (
+   return (
     <div className="w-full mx-auto p-4 bg-white rounded-lg shadow-md">
       {/* Barra superior com busca e botões de ação */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
@@ -104,17 +135,74 @@ const BasicDataTable: React.FC<TableProps> = ({ columns, data, rowsPerPage = 5, 
             <Table className="w-full">
               <TableHeader>
                 <TableRow>
-                  {columns.map((col) => (
+                  {/* Renderiza apenas as colunas visíveis */}
+                  {visibleColumns.map((col) => (
                     <TableHead key={col.datafield}>{col.label}</TableHead>
                   ))}
+                  {/* Adiciona cabeçalho para coluna de ações se houver ações */}
+                  {actionsColumn.length > 0 && <TableHead className="w-[80px]">Ações</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {paginatedData.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {columns.map((col) => (
+                    {visibleColumns.map((col) => (
                       <TableCell key={col.datafield}>{row[col.datafield]}</TableCell>
                     ))}
+
+                    {/* Coluna de ações */}
+                    {actionsColumn.length > 0 && (
+                      <TableCell className="text-right">
+                        {actionsColumn.length <= 2 ? (
+                          // Se houver apenas 1 ou 2 ações, mostra como botões
+                          <div className="flex justify-end gap-2">
+                            {actionsColumn.map((action, actionIndex) => {
+                              const IconComponent = action.icon
+                              return (
+                                <Button
+                                  key={actionIndex}
+                                  variant={action.variant || "ghost"}
+                                  size="sm"
+                                  onClick={() => action.onClick(row)}
+                                  className={action.className || "h-8 w-8 p-0"}
+                                >
+                                  {IconComponent ? (
+                                    <IconComponent className="h-4 w-4" />
+                                  ) : (
+                                    <span className="sr-only">{action.label}</span>
+                                  )}
+                                </Button>
+                              )
+                            })}
+                          </div>
+                        ) : (
+                          // Se houver mais de 2 ações, usa dropdown
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <MoreHorizontal className="h-4 w-4" />
+                                <span className="sr-only">Abrir menu</span>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              {actionsColumn.map((action, actionIndex) => {
+                                const IconComponent = action.icon
+                                return (
+                                  <DropdownMenuItem
+                                    key={actionIndex}
+                                    onClick={() => action.onClick(row)}
+                                    className={action.className}
+                                  >
+                                    {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
+                                    {action.label}
+                                  </DropdownMenuItem>
+                                )
+                              })}
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
