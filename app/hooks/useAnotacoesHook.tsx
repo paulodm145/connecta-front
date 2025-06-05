@@ -9,7 +9,7 @@ export const useAnotacoesHook = () => {
     
     const createAnotacao = async (dados : any) => {
         try {
-            const response = await axios.post(`${BASE_URL}/anotacoes-envio`, {
+            const response = await axios.post(`${BASE_URL}/anotacoes-envio`, dados, {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
                 },

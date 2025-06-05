@@ -24,7 +24,7 @@ interface ScoreItem {
   first_name: string
   score: number
   color: string
-  [key: string]: string | number // Add index signature for BarDatum compatibility
+  [key: string]: string | number
 }
 
 interface RespostaDados {
@@ -33,6 +33,13 @@ interface RespostaDados {
   nao_responderam: number
   taxa_resposta: number
   score: ScoreItem[]
+}
+
+// Enum para tipos de anotação
+enum TipoAnotacao {
+  AVALIADO = "AVALIADO",
+  AVALIADOR_LIDER = "AVALIADOR_LIDER",
+  PDI_AVALIADO = "PDI_AVALIADO",
 }
 
 export default function Page() {
@@ -55,6 +62,7 @@ export default function Page() {
   const [selectedRow, setSelectedRow] = useState<Record<string, any> | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [modalTitle, setModalTitle] = useState("")
+  const [currentAnnotationType, setCurrentAnnotationType] = useState<TipoAnotacao>(TipoAnotacao.AVALIADO)
 
   const { createAnotacao, getAnotacaoAvaliado, getAnotacaoAvaliadorLider, getAnotacaoPDI } = useAnotacoesHook()
 
@@ -69,12 +77,10 @@ export default function Page() {
         toast.error("Pesquisa não encontrada ou inválida.")
         console.error("Pesquisa não encontrada ou inválida.")
         setLoading(false)
-
         return
       }
 
       const retornoRespostas = await relatorioRespostas(slugPesquisa)
-
       const retornoDashboard: RespostaDados = (await dadosDashBoard(pesquisaData.id)) ?? {
         total_respondentes: 0,
         responderam: 0,
@@ -83,10 +89,8 @@ export default function Page() {
         score: [],
       }
 
-      // Aqui você pode usar os dados retornados para atualizar o estado
       setRespostas(retornoRespostas.data)
       setColunas(retornoRespostas.columns)
-
       setNumRespondidos(retornoDashboard.responderam)
       setNumNaoResponderam(retornoDashboard.nao_responderam)
       setTotalRespondentes(retornoDashboard.total_respondentes)
@@ -96,7 +100,7 @@ export default function Page() {
         name: item.name,
         first_name: item.first_name,
         score: item.score,
-        color: item.color || "#ccc", // Definindo uma cor padrão se não houver
+        color: item.color || "#ccc",
       }))
 
       setTopScorers(formattedScores)
@@ -126,6 +130,98 @@ export default function Page() {
     }
   }
 
+  // Função genérica para buscar anotações baseada no tipo
+  const buscarAnotacao = async (envioId: string, tipo: TipoAnotacao) => {
+    try {
+      let anotacao
+      switch (tipo) {
+        case TipoAnotacao.AVALIADO:
+          anotacao = await getAnotacaoAvaliado(envioId)
+          break
+        case TipoAnotacao.AVALIADOR_LIDER:
+          anotacao = await getAnotacaoAvaliadorLider(envioId)
+          break
+        case TipoAnotacao.PDI_AVALIADO:
+          anotacao = await getAnotacaoPDI(envioId)
+          break
+        default:
+          throw new Error(`Tipo de anotação inválido: ${tipo}`)
+      }
+
+      return anotacao && anotacao.length > 0 ? anotacao[0].anotacao : ""
+    } catch (error) {
+      console.error(`Erro ao buscar anotação do tipo ${tipo}:`, error)
+      toast.error(`Erro ao buscar anotação do tipo ${tipo}.`)
+      return ""
+    }
+  }
+
+  // Função genérica para abrir modal de anotações
+  const handleOpenAnnotationModal = async (row: any, tipo: TipoAnotacao) => {
+    setCurrentAnnotationType(tipo)
+
+    // Busca a anotação existente
+    const anotacaoExistente = await buscarAnotacao(row.envio_id, tipo)
+
+    // Atualiza a linha selecionada com a anotação
+    setSelectedRow({ ...row, anotacao: anotacaoExistente })
+
+    // Define o título do modal baseado no tipo
+    const tipoTexto = {
+      [TipoAnotacao.AVALIADO]: "Avaliado",
+      [TipoAnotacao.AVALIADOR_LIDER]: "Avaliador/Líder",
+      [TipoAnotacao.PDI_AVALIADO]: "PDI do Avaliado",
+    }
+
+    setModalTitle(`Anotações ${tipoTexto[tipo]}: ${row.respondente || "Usuário"}`)
+    setIsModalOpen(true)
+  }
+
+  // Funções específicas para cada tipo de anotação
+  const handleOpenNotesAvaliadoModal = (row: any) => {
+    handleOpenAnnotationModal(row, TipoAnotacao.AVALIADO)
+  }
+
+  const handleOpenNotesAvaliadorLiderModal = (row: any) => {
+    handleOpenAnnotationModal(row, TipoAnotacao.AVALIADOR_LIDER)
+  }
+
+  const handleOpenNotesPDIModal = (row: any) => {
+    handleOpenAnnotationModal(row, TipoAnotacao.PDI_AVALIADO)
+  }
+
+  // Função genérica para salvar anotações
+  const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
+    // Atualiza o estado local
+    setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
+    setIsModalOpen(false)
+
+    console.log("Dados salvos:", { anotacao, rowData, tipo: currentAnnotationType })
+
+    try {
+      const response = await createAnotacao({
+        envio_id: rowData.envio_id,
+        anotacao: anotacao,
+        tipo: currentAnnotationType,
+        respondente_id: rowData.respondente_id,
+      })
+
+      if (response) {
+        const tipoTexto = {
+          [TipoAnotacao.AVALIADO]: "do Avaliado",
+          [TipoAnotacao.AVALIADOR_LIDER]: "do Avaliador/Líder",
+          [TipoAnotacao.PDI_AVALIADO]: "do PDI",
+        }
+        toast.success(`Anotações ${tipoTexto[currentAnnotationType]} salvas com sucesso!`)
+      } else {
+        toast.error("Erro ao salvar anotações.")
+      }
+    } catch (error) {
+      console.error("Erro ao salvar anotações:", error)
+      toast.error("Erro ao salvar anotações.")
+    }
+  }
+
   const actionsBar = [
     {
       label: "Exportar",
@@ -135,109 +231,39 @@ export default function Page() {
     },
   ]
 
-  const handleSaveNotes = ({ notes, rowData }: { notes: string; rowData: Record<string, any> }) => {
-    // 1. Atualiza o estado dos dados usando setRespostas em vez de setData
-    setRespostas(respostas.map((item) => (item === rowData ? { ...item, notes } : item)))
-
-    // 2. Fecha o modal
-    setIsModalOpen(false)
-
-    // 3. Log para verificar se funcionou
-    console.log("Dados salvos:", { notes, rowData })
-  }
-
-  const anotacoesAvaliado = async ({ notes, rowData }: { notes: string; rowData: Record<string, any> }) => {
-    
-    setRespostas(respostas.map((item) => (item === rowData ? { ...item, notes } : item)))
-    setIsModalOpen(false)
-
-    // 4. Salva as anotações do Avaliado
-    try {
-      const response = await createAnotacao({
-        envio_id: rowData.envio_id,
-        anotacao: notes,
-        tipo: "AVALIADO", // Define o tipo de anotação como "avaliado"
-        respondente_id: rowData.respondente_id,
-      })
-      if (response) {
-        toast.success("Anotações salvas com sucesso!")
-      } else {
-        toast.error("Erro ao salvar anotações.")
-      }
-    } catch (error) {
-
-
-    console.log("Dados salvos:", { notes, rowData })
-  }
-
-  const handleOpenNotesModal = (row: any) => {
-    setSelectedRow(row)
-    setModalTitle(`Anotações: ${row.respondente || "Avaliado"}`)
-    setIsModalOpen(true)
-  }
-
-  // Função para abrir o modal de anotações do Avaliado
-  // Esta função é chamada quando o usuário clica no botão de anotações do Avaliado
-  const handleOpenNotesAvaliadoModal = async (row: any) => {
-    setSelectedRow(row)
-
-    console.log('linha', row)
-    
-    // Aqui você pode buscar as anotações do Avaliado, se necessário
-    const anotacao = await getAnotacaoAvaliado(row.envio_id)
-      .then((anotacao) => {
-        if (anotacao) {
-          setSelectedRow({ ...row, anotacao: anotacao.notes }) // Atualiza a linha selecionada com as anotações
-        } else {
-          setSelectedRow({ ...row, notes: "" }) // Se não houver anotações, inicializa como string vazia
-        }
-      })
-      .catch((error) => {
-        console.error("Erro ao buscar anotações do Avaliado:", error)
-        toast.error("Erro ao buscar anotações do Avaliado.")
-      })
-
-
-    setModalTitle(`Anotações: ${row.respondente || "Avaliado"}`)
-    setIsModalOpen(true)
-  }
-
   const actionsColumn = [
     {
       label: "Anotações do Avaliado",
       icon: MessageSquare,
-      onClick: handleOpenNotesAvaliadoModal, // Use esta função em vez de handleSaveNotes diretamente
+      onClick: handleOpenNotesAvaliadoModal,
       variant: "ghost" as const,
-      className: "text-teal-500 hover:text-teal-700",
+      className: "text-blue-500 hover:text-blue-700",
     },
     {
-      label: "Anotações do Avaliador/Lider",
+      label: "Anotações do Avaliador/Líder",
       icon: MessageSquare,
-      onClick: handleOpenNotesModal, // Use esta função em vez de handleSaveNotes diretamente
+      onClick: handleOpenNotesAvaliadorLiderModal,
       variant: "ghost" as const,
-      className: "text-teal-500 hover:text-teal-700",
+      className: "text-green-500 hover:text-green-700",
     },
     {
       label: "PDI do Avaliado",
       icon: MessageSquare,
-      onClick: handleOpenNotesModal, // Use esta função em vez de handleSaveNotes diretamente
+      onClick: handleOpenNotesPDIModal,
       variant: "ghost" as const,
-      className: "text-teal-500 hover:text-teal-700",
+      className: "text-purple-500 hover:text-purple-700",
     },
   ]
 
   return (
-    <div className=" w-100 p-4 space-y-6">
+    <div className="w-100 p-4 space-y-6">
       {/* Título principal */}
       <h1 className="text-2xl font-bold">DashBoard - Pesquisa: {pesquisa ? pesquisa.titulo : "Carregando..."}</h1>
 
       {/* Grid para cards e gráfico */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         {/* Card 1/4 - Total de Respondentes */}
-        <Card
-          className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm"
-          /* Você pode ajustar cores e bordas aqui */
-        >
+        <Card className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-sm font-medium">Total de Respondentes</CardTitle>
@@ -246,16 +272,11 @@ export default function Page() {
             <UserIcon className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            {/* Número grande no topo */}
             <div className="text-3xl font-bold mb-4">{totalRespondentes}</div>
-
-            {/* Barra de progresso e taxa de resposta */}
             <Progress value={responseRate} className="h-2" />
             <p className="mt-2 text-xs text-muted-foreground">
               Taxa de resposta: <span className="font-medium">{responseRate}%</span>
             </p>
-
-            {/* Indicadores adicionais: Respondidos / Não responderam */}
             <div className="mt-4 space-y-2">
               <div className="flex items-center gap-2">
                 <Badge variant="secondary">Respondidos</Badge>
@@ -294,16 +315,8 @@ export default function Page() {
             </DropdownMenu>
           </CardHeader>
           <CardContent className="pb-4">
-            {/* Para evitar que o layout quebre em telas pequenas caso o rótulo esteja muito grande, 
-      você pode envolver em um container que permita scroll horizontal  */}
             <div className="w-full overflow-x-auto">
-              {/* Contêiner que define claramente altura para o gráfico */}
-              <div
-                ref={chartRef}
-                id="chart-container"
-                className="relative h-[300px] min-w-[500px]"
-                // min-w opcional: evita que, em telas estreitas, as barras "apertem" e atrapalhem o layout
-              >
+              <div ref={chartRef} id="chart-container" className="relative h-[300px] min-w-[500px]">
                 <ResponsiveBar
                   data={topScorers}
                   indexBy="first_name"
@@ -347,7 +360,7 @@ export default function Page() {
         </Card>
       </div>
 
-      {/* Card para a Tabela - melhora o visual do layout */}
+      {/* Card para a Tabela */}
       <h1 className="text-2xl font-bold">Respostas</h1>
       <BasicDataTable
         columns={colunas}
@@ -362,7 +375,7 @@ export default function Page() {
         rowData={selectedRow}
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
-        onSave={anotacoesAvaliado}
+        onSave={salvarAnotacao}
       />
     </div>
   )
