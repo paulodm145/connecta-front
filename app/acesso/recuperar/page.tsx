@@ -1,113 +1,111 @@
-"use client"; // Adicione isso no início do arquivo
+"use client"
 
-import React, { useState, useEffect } from "react";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
-import { useForm } from "react-hook-form";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import { Eye, EyeOff } from "lucide-react";
+import React from "react"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Button } from "@/components/ui/button"
+import { useForm } from "react-hook-form"
+import { ToastContainer, toast } from "react-toastify"
+import "react-toastify/dist/ReactToastify.css"
+import { useAccessHook } from "@/app/hooks/useAccessHook"
+import { Eye, EyeOff, Loader2 } from "lucide-react"
+import { useRouter } from "next/navigation"
 
-import { useAccessHook } from '@/app/hooks/useAccessHook';
-
-import { useSearchParams } from 'next/navigation'
- 
-
-interface RecoveryFormInputs {
-  email: string;
-  password: string;
-  confirmPassword: string;
+interface PasswordResetFormInputs {
+  email: string
+  password: string
+  confirmPassword: string
 }
 
+const Esqueceu = () => {
+  const [showPassword, setShowPassword] = React.useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
+  const [isSubmitting, setIsSubmitting] = React.useState(false)
 
-const RecuperarSenha = () => {
-  const { register, handleSubmit, formState: { errors }, watch } = useForm<RecoveryFormInputs>();
-  const [showPassword, setShowPassword] = useState(false);
+  const router = useRouter()
 
-  const searchParams = useSearchParams()
+  const {
+    register,
+    handleSubmit,
+    watch,
+    formState: { errors },
+  } = useForm<PasswordResetFormInputs>()
 
-  const { verifyToken, redefinirSenha } = useAccessHook(); 
+  const { verificarEmail } = useAccessHook()
 
-  const token = searchParams.get("token") ?? null;
-  const email = searchParams.get("email") ?? null;
+  // Observa o valor da senha para comparar com a confirmação
+  const watchPassword = watch("password")
 
+  const onSubmit = async (data: PasswordResetFormInputs) => {
+    setIsSubmitting(true)
 
-  if (!token || !email) {
-    toast.error("Token inválido ou expirado258258");
-    window.location.href = "/acesso/esqueceu";
+    try {
+      console.log("Dados para redefinição de senha:", {
+        email: data.email,
+        password: data.password,
+      })
+
+      const response = await verificarEmail(data.email)
+
+      if (response) {
+        toast.success("Senha redefinida com sucesso!")
+
+        // Aguarda um pouco para o usuário ver a mensagem de sucesso
+        setTimeout(() => {
+          router.push("/") // Redireciona para a página inicial
+        }, 2000)
+      } else {
+        toast.error("Email não cadastrado!")
+      }
+    } catch (error) {
+      console.error("Erro ao redefinir senha:", error)
+      toast.error("Erro interno. Tente novamente.")
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
-  useEffect(() => {
-    if (token && email) {
-      
-      const tokenValido = verifyToken(token as string, email as string);
+  // Função para validar a força da senha
+  const validatePassword = (password: string) => {
+    const minLength = password.length >= 8
+    const hasLetter = /[a-zA-Z]/.test(password)
+    const hasNumber = /\d/.test(password)
+    const hasSpecialChar = /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(password)
 
-      console.log("Token válido:", tokenValido);
+    if (!minLength) return "A senha deve ter pelo menos 8 caracteres"
+    if (!hasLetter) return "A senha deve conter pelo menos uma letra"
+    if (!hasNumber) return "A senha deve conter pelo menos um número"
+    if (!hasSpecialChar) return "A senha deve conter pelo menos um caractere especial"
 
-      if (!tokenValido) {
-        toast.error("Token inválido ou expirado2525");
-        
-      }
-      
-    }
-  }, [token, email]);
-
-  const [success, setSuccess] = useState(false);
-
-  const onSubmit = async (data: RecoveryFormInputs) => {
-    try {
-      const retorno = await redefinirSenha(email as string, data.password, data.confirmPassword, token as string);
-  
-      if (retorno.errors) {
-        Object.keys(retorno.errors).forEach((key) => {
-          retorno.errors[key].forEach((message: string) => {
-            toast.error(message);
-          });
-        });
-        return;
-      }
-  
-      toast.success("Senha redefinida com sucesso!");
-      setSuccess(true); // Marca sucesso para navegação
-    } catch (error: any) {
-      
-      console.error("Erro ao redefinir senha:", error);
-      const mensagemErro = error.response?.data?.message || "Erro ao redefinir senha. Tente novamente.";
-      toast.error(mensagemErro);
-    }
-  };
-  
-  // Redireciona em caso de sucesso
-  useEffect(() => {
-    if (success) {
-      window.location.href = "/";
-    }
-  }, [success]);
+    return true
+  }
 
   return (
     <div className="flex h-screen relative overflow-hidden">
-      
       <div
         className="absolute inset-0 bg-cover bg-left"
         style={{
-          backgroundColor: "rgba(0, 0, 0, 0.5)",
+          backgroundColor: "rgba(0, 128, 128, 0.5)",
           filter: "brightness(1.1) contrast(1.05) opacity(0.5)",
         }}
       />
       <div className="w-full flex justify-center items-center z-10">
         <div className="w-full max-w-md p-8 backdrop-blur-xl bg-white/30 rounded-xl shadow-2xl border border-white/50">
           <img src={`/images/logo.png`} alt="Logo" className="w-40 h-20 mx-auto mb-4" />
-          <p className="text-gray-600 text-center mb-8">Recuperar Senha</p>
+          <p className="text-gray-600 text-center mb-8">Redefina sua senha</p>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Email */}
             <div>
-              <Label htmlFor="email" className="text-gray-700">Email</Label>
+              <Label htmlFor="email" className="text-gray-700">
+                Email
+              </Label>
               <Input
                 id="email"
                 placeholder="exemplo@email.com"
                 type="email"
-                className="mt-1 bg-white/50 border-gray-300 text-gray-800 placeholder-gray-500"
+                disabled={isSubmitting}
+                className="mt-1 bg-white/50 border-gray-300 text-gray-800 placeholder-gray-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 {...register("email", {
                   required: "Email é obrigatório",
                   pattern: {
@@ -121,65 +119,121 @@ const RecuperarSenha = () => {
 
             {/* Nova Senha */}
             <div>
-              <Label htmlFor="password" className="text-gray-700">Nova Senha</Label>
+              <Label htmlFor="password" className="text-gray-700">
+                Nova Senha
+              </Label>
               <div className="relative">
                 <Input
                   id="password"
-                  placeholder="••••••••"
+                  placeholder="Digite sua nova senha"
                   type={showPassword ? "text" : "password"}
-                  className="mt-1 bg-white/50 border-gray-300 text-gray-800 placeholder-gray-500"
-                  {...register("password", { required: "Senha é obrigatória" })}
+                  disabled={isSubmitting}
+                  className="mt-1 bg-white/50 border-gray-300 text-gray-800 placeholder-gray-500 pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
+                  {...register("password", {
+                    required: "Senha é obrigatória",
+                    validate: validatePassword,
+                  })}
                 />
-                <button
+                <Button
                   type="button"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isSubmitting}
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent disabled:opacity-50"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2"
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+                  {showPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  )}
+                </Button>
               </div>
               {errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
+
+              {/* Indicadores de força da senha */}
+              <div className="mt-2 space-y-1">
+                <div className="text-xs text-gray-600">A senha deve conter:</div>
+                <div className="grid grid-cols-2 gap-1 text-xs">
+                  <div className={`${watchPassword?.length >= 8 ? "text-green-600" : "text-gray-400"}`}>
+                    ✓ 8+ caracteres
+                  </div>
+                  <div className={`${/[a-zA-Z]/.test(watchPassword || "") ? "text-green-600" : "text-gray-400"}`}>
+                    ✓ Letras
+                  </div>
+                  <div className={`${/\d/.test(watchPassword || "") ? "text-green-600" : "text-gray-400"}`}>
+                    ✓ Números
+                  </div>
+                  <div
+                    className={`${/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(watchPassword || "") ? "text-green-600" : "text-gray-400"}`}
+                  >
+                    ✓ Especiais
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Confirmar Senha */}
             <div>
-              <Label htmlFor="confirmPassword" className="text-gray-700">Confirmar Senha</Label>
+              <Label htmlFor="confirmPassword" className="text-gray-700">
+                Confirmar Nova Senha
+              </Label>
               <div className="relative">
                 <Input
                   id="confirmPassword"
-                  placeholder="••••••••"
-                  type={showPassword ? "text" : "password"}
-                  className="mt-1 bg-white/50 border-gray-300 text-gray-800 placeholder-gray-500"
+                  placeholder="Confirme sua nova senha"
+                  type={showConfirmPassword ? "text" : "password"}
+                  disabled={isSubmitting}
+                  className="mt-1 bg-white/50 border-gray-300 text-gray-800 placeholder-gray-500 pr-10 disabled:opacity-50 disabled:cursor-not-allowed"
                   {...register("confirmPassword", {
                     required: "Confirmação de senha é obrigatória",
-                    validate: (value) => value === watch("password") || "As senhas não coincidem",
+                    validate: (value) => {
+                      if (value !== watchPassword) {
+                        return "As senhas não coincidem"
+                      }
+                      return true
+                    },
                   })}
                 />
-                <button
+                <Button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute top-1/2 right-3 transform -translate-y-1/2"
+                  variant="ghost"
+                  size="sm"
+                  disabled={isSubmitting}
+                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent disabled:opacity-50"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 >
-                  {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-                </button>
+                  {showConfirmPassword ? (
+                    <EyeOff className="h-4 w-4 text-gray-500" />
+                  ) : (
+                    <Eye className="h-4 w-4 text-gray-500" />
+                  )}
+                </Button>
               </div>
-              {errors.confirmPassword && (
-                <span className="text-red-500 text-sm">{errors.confirmPassword.message}</span>
-              )}
+              {errors.confirmPassword && <span className="text-red-500 text-sm">{errors.confirmPassword.message}</span>}
             </div>
 
-            {/* Botão de Enviar */}
+            {/* Botão de Redefinir */}
             <Button
-              className="w-full bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-300"
+              className="w-full bg-teal-600 hover:bg-teal-700 text-white transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               type="submit"
+              disabled={isSubmitting}
             >
-              Redefinir Senha
+              {isSubmitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Redefinindo...
+                </>
+              ) : (
+                "Redefinir Senha"
+              )}
             </Button>
           </form>
         </div>
       </div>
+      <ToastContainer />
     </div>
-  );
-};
+  )
+}
 
-export default RecuperarSenha;
+export default Esqueceu
