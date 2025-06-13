@@ -65,7 +65,7 @@ export const useAccessHook = () => {
     }
   };
 
-  const redefinirSenha = async (email: string, password: string, password_dois: string, token : string) => {
+  const redefinirSenha = async (email: string, password: string, password_dois: string, token: string) => {
     try {
       const response = await axios.post(`${BASE_URL}/password/reset`, {
         email,

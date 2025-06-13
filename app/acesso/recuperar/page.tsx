@@ -9,7 +9,7 @@ import { ToastContainer, toast } from "react-toastify"
 import "react-toastify/dist/ReactToastify.css"
 import { useAccessHook } from "@/app/hooks/useAccessHook"
 import { Eye, EyeOff, Loader2 } from "lucide-react"
-import { useRouter } from "next/navigation"
+import { useParams, useRouter, useSearchParams } from "next/navigation"
 
 interface PasswordResetFormInputs {
   email: string
@@ -22,6 +22,11 @@ const Esqueceu = () => {
   const [showConfirmPassword, setShowConfirmPassword] = React.useState(false)
   const [isSubmitting, setIsSubmitting] = React.useState(false)
 
+  // pegar a variavel token da URL
+  const params = useParams();
+  const searchParams = useSearchParams();
+  const token = searchParams.get("token");
+
   const router = useRouter()
 
   const {
@@ -31,7 +36,7 @@ const Esqueceu = () => {
     formState: { errors },
   } = useForm<PasswordResetFormInputs>()
 
-  const { verificarEmail } = useAccessHook()
+  const { verificarEmail, redefinirSenha } = useAccessHook()
 
   // Observa o valor da senha para comparar com a confirmação
   const watchPassword = watch("password")
@@ -45,7 +50,7 @@ const Esqueceu = () => {
         password: data.password,
       })
 
-      const response = await verificarEmail(data.email)
+      const response = await redefinirSenha(data.email, data.password, data.confirmPassword, token ?? "");
 
       if (response) {
         toast.success("Senha redefinida com sucesso!")
