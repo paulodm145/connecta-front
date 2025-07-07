@@ -66,11 +66,60 @@ export const useAnotacoesHook = () => {
         }
     }
 
+    const createAnotacaoLider = async (dados : any) => {
+        try {
+            const response = await axios.post(`${BASE_URL}/anotacao-avaliacao-lider`, dados, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao mudar status do setor:", error);
+            return null;
+        }
+    }
+
+    const getAnotacaoBySlug = async (slug: string) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/anotacoes-slug/${slug}`,
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar anotação:", error);
+            toast.error("Erro ao buscar anotação.");
+            return null;
+        }
+    }
+
+    const getAnotacaoLider  = async (slug: string) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/anotacoes-lider/${slug}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar anotação de avaliação:", error);
+            toast.error("Erro ao buscar anotação de avaliação.");
+            return null;
+        }
+    }
+
 return { 
     createAnotacao,
     getAnotacaoAvaliado,
     getAnotacaoAvaliadorLider,
-    getAnotacaoPDI
+    getAnotacaoPDI,
+    createAnotacaoLider,
+    getAnotacaoBySlug,
+    getAnotacaoLider
 };     
 
 };

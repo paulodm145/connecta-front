@@ -8,7 +8,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare } from "lucide-react"
+import { UserIcon, Download, MessageSquare, UserCheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -18,6 +18,7 @@ import { downloadFile } from "@/app/utils/Helpers"
 import { toast } from "react-toastify"
 import { EditModal } from "./edit-modal"
 import { useAnotacoesHook } from "@/app/hooks/useAnotacoesHook"
+import { LeaderEvaluationModal } from "./leader-evaluation-modal"
 
 interface ScoreItem {
   name: string
@@ -40,6 +41,7 @@ enum TipoAnotacao {
   AVALIADO = "AVALIADO",
   AVALIADOR_LIDER = "AVALIADOR_LIDER",
   PDI_AVALIADO = "PDI_AVALIADO",
+  AVALIACAO_EQUIPE_LIDER = "AVALIACAO_EQUIPE_LIDER",
 }
 
 export default function Page() {
@@ -64,7 +66,18 @@ export default function Page() {
   const [modalTitle, setModalTitle] = useState("")
   const [currentAnnotationType, setCurrentAnnotationType] = useState<TipoAnotacao>(TipoAnotacao.AVALIADO)
 
-  const { createAnotacao, getAnotacaoAvaliado, getAnotacaoAvaliadorLider, getAnotacaoPDI } = useAnotacoesHook()
+  const [modalOpenAvaliacaoLider, setModalOpenAvaliacaoLider] = useState(false)
+  const [avaliacaoAtual, setAvaliacaoAtual] = useState("")
+
+  const { 
+    createAnotacao, 
+    getAnotacaoAvaliado, 
+    getAnotacaoAvaliadorLider, 
+    getAnotacaoPDI,
+    getAnotacaoBySlug,
+    createAnotacaoLider ,
+    getAnotacaoLider
+  } = useAnotacoesHook()
 
   const chartRef = useRef(null)
 
@@ -222,6 +235,49 @@ export default function Page() {
     }
   }
 
+  // Função que será executada quando salvar - aqui você faria a chamada para o backend
+  const handleSaveAvaliacao = async (avaliacao: string) => {
+    try {
+    
+      // Verifica se já existe uma avaliação do líder
+      const avalLider = await getAnotacaoLider(slugPesquisa)
+      if (avalLider && avalLider.length > 0) {
+        // Atualiza a avaliação existente
+        await createAnotacaoLider({
+          slug: slugPesquisa,
+          anotacao: avaliacao,
+          id: avalLider[0].id,  // Usa o ID da anotação existente
+        })
+      } else {
+        // Cria uma nova avaliação do líder
+        await createAnotacaoLider({
+          slug: slugPesquisa,
+          anotacao: avaliacao,
+        })
+      }
+
+
+      setAvaliacaoAtual(avaliacao)
+      alert("Avaliação salva com sucesso!")
+    } catch (error) {
+      console.error("Erro ao salvar avaliação:", error)
+      alert("Erro ao salvar avaliação")
+    }
+  }
+
+  const handleAvaliacaoLider = async () => {
+    setModalOpenAvaliacaoLider(true)
+
+    // Busca a avaliação atual do líder
+    const avalLider  =  await getAnotacaoLider(slugPesquisa)
+    
+    if (avalLider && avalLider.anotacao.length > 0) {
+      setAvaliacaoAtual(avalLider.anotacao || "")
+    } else {
+      setAvaliacaoAtual("tes 222")
+    }
+  }
+
   const actionsBar = [
     {
       label: "Exportar",
@@ -229,6 +285,12 @@ export default function Page() {
       variant: "outline" as const,
       onClick: handleExport,
     },
+    {
+      label: "Avaliação do líder",
+      icon: UserCheckIcon,
+      variant: "outline" as const,
+      onClick: handleAvaliacaoLider,
+    }
   ]
 
   const actionsColumn = [
@@ -376,6 +438,14 @@ export default function Page() {
         open={isModalOpen}
         onOpenChange={setIsModalOpen}
         onSave={salvarAnotacao}
+      />
+
+      <LeaderEvaluationModal
+        pesquisaTitulo={pesquisa ? pesquisa.titulo : "Avaliação do Líder"}
+        open={modalOpenAvaliacaoLider}
+        onOpenChange={setModalOpenAvaliacaoLider}
+        onSave={handleSaveAvaliacao}
+        initialValue={avaliacaoAtual}
       />
     </div>
   )
