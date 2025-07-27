@@ -31,6 +31,8 @@ import {
 } from "@/components/ui/pagination";
 import InputMask from 'react-input-mask';
 
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+
 interface FieldOption {
   value: string;
   label: string;
@@ -64,6 +66,13 @@ interface DataField {
   render?: (value: any, item: DataItem) => React.ReactNode;
 }
 
+interface Permissoes {
+  podeCadastrar: boolean;
+  podeEditar: boolean;
+  podeExcluir: boolean;
+  podeVisualizar: boolean;
+}
+
 interface DynamicCrudComponentProps {
   fields: Field[];
   columns: DataField[];
@@ -71,6 +80,7 @@ interface DynamicCrudComponentProps {
   saveData: (id: number | null, data: FieldValues) => Promise<{ success: boolean; id?: number }>;
   deleteData: (id: number) => Promise<{ success: boolean }>;
   toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
+  permissoes: Permissoes;
 }
 
 const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
@@ -80,6 +90,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   saveData,
   deleteData,
   toggleStatus,
+  permissoes,
 }) => {
   const [data, setData] = useState<DataItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -89,6 +100,13 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+
+  const { isSuperAdmin } = useInformacoesUsuarioHook();
+
+  const podeCadastrar = isSuperAdmin || permissoes.podeCadastrar;
+  const podeEditar = isSuperAdmin || permissoes.podeEditar;
+  const podeExcluir = isSuperAdmin || permissoes.podeExcluir;
+  const podeVisualizar = isSuperAdmin || permissoes.podeVisualizar;
 
   const filteredData = data.filter((item) =>
     columns.some((column) =>
@@ -168,11 +186,16 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
     <div className="space-y-4">
       <div className="flex justify-between items-center mb-4">
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogTrigger asChild>
-            <Button onClick={() => handleOpenModal()} variant="outline">
-              Novo Cadastro
-            </Button>
-          </DialogTrigger>
+
+          {podeCadastrar && (
+            <DialogTrigger asChild>
+              <Button onClick={() => handleOpenModal()} variant="outline">
+                Novo Cadastro
+              </Button>
+            </DialogTrigger>
+          )}
+
+
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{isEditing ? "Editar Registro" : "Novo Registro"}</DialogTitle>

@@ -14,12 +14,15 @@ import { usePessoasHook } from '@/app/hooks/usePessoasHook';
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import { render } from 'react-dom';
-import { Stint_Ultra_Expanded } from 'next/font/google';
+
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 export default function Setores() {
   const { index: listarSetores, changeStatus, store, update, destroy } = useSetoresHook();
   const { getResponsaveis } = usePessoasHook();
+  const { isSuperAdmin, permissoes } = useInformacoesUsuarioHook();
+
+
 
   const [data, setData] = useState([]);
   const [pessoasOptions, setPessoasOptions] = useState([]);

@@ -237,10 +237,9 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
             children: [
               { name: "Empresas", icon: FileText, link: "/admin/empresas" },
               { name: "Usuários", icon: User, link: "/admin/users" },
+              { name: "Nìveis", icon: User, link: "/admin/niveis" },
             ]
           },
-          // { name: "Indicadores", icon: AlertTriangle, link: "/admin/dashboard/indicadores" },
-          // { name: "Metas", icon: Target, link: "/admin/dashboard/metas" }
         ]
       },
       {

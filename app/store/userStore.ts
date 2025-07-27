@@ -36,7 +36,10 @@ interface UserData {
     identificador_empresa: string;
     status: boolean;
     empresa: Empresa;
-  };
+    nivel_id: number;
+  },
+  permissoes : string[],
+  super_administrador: boolean;
 }
 
 interface UserStore {

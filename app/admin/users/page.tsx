@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { toast } from "react-toastify";
 import { ehSenhaDificil } from "@/app/utils/Helpers";
 
@@ -36,6 +36,7 @@ import {
 // Hooks
 import { useEmpresaAdminHook } from "@/app/hooks/useEmpresasAdminHook";
 import { useUsuariosHook } from "@/app/hooks/useUsuariosHook";
+import { useNiveisPermissoesHook } from "@/app/hooks/useNiveisPermissoesHook";
 
 // Utils
 import { isValidEmail } from "@/app/utils/Helpers";
@@ -50,6 +51,8 @@ interface Usuarios {
   confirm_password?: string;
   status?: boolean; // Para demonstrar toggle de status
   empresa?: string; // Para exibir o nome da empresa
+  super_administrador?: boolean; // Campo para super administrador
+  nivel_acesso?: number; // Nível de acesso do usuário
 }
 
 interface EmpresaAtiva {
@@ -59,9 +62,16 @@ interface EmpresaAtiva {
   status: boolean;
 }
 
+interface Nivel {
+  id: number;
+  descricao: string;
+  status: boolean;
+}
+
 export default function PaginaListagem() {
   // Hooks para as ações das empresas (para popular o select)
   const { getEmpresasAtivas } = useEmpresaAdminHook();
+  const { indexNiveis } = useNiveisPermissoesHook();
 
   // Hooks para as ações do usuário
   const {
@@ -79,6 +89,7 @@ export default function PaginaListagem() {
   // Listas
   const [usuarios, setUsuarios] = useState<Usuarios[]>([]);
   const [empresas, setEmpresas] = useState<EmpresaAtiva[]>([]);
+  const [niveisList, setNiveisList] = useState<Nivel[]>([]);
 
   // Campo de busca e paginação
   const [searchTerm, setSearchTerm] = useState("");
@@ -90,6 +101,7 @@ export default function PaginaListagem() {
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors },
   } = useForm<Usuarios>({
     defaultValues: {
@@ -99,6 +111,8 @@ export default function PaginaListagem() {
       password: "",
       confirm_password: "",
       status: true,
+      super_administrador: false, // Adiciona campo para super administrador
+      nivel_acesso: undefined,
     },
   });
 
@@ -106,13 +120,15 @@ export default function PaginaListagem() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const [respUsuarios, respEmpresas] = await Promise.all([
+        const [respUsuarios, respEmpresas, respNiveis] = await Promise.all([
           indexUsuario(),
           getEmpresasAtivas(),
+          indexNiveis()
         ]);
 
         setUsuarios(respUsuarios ?? []);
         setEmpresas(respEmpresas ?? []);
+        setNiveisList((respNiveis ?? []).filter((n: { status: any; }) => n.status));
       } catch (error) {
         toast.error("Erro ao carregar dados");
         console.error(error);
@@ -173,6 +189,8 @@ export default function PaginaListagem() {
       password: "",
       confirm_password: "",
       status: true,
+      super_administrador: false, // Reseta para não ser super administrador por padrão
+      nivel_acesso: undefined,
     });
     setModalOpen(true);
   }
@@ -181,46 +199,35 @@ export default function PaginaListagem() {
   function handleEditUsuario(usuario: Usuarios) {
     setEditingUsuario(usuario);
     // Ajusta valores do form
-    reset(usuario);
+    reset({
+      ...usuario,
+      super_administrador: !!usuario.super_administrador,
+    });
     setModalOpen(true);
   }
 
   // Excluir usuário
-  async function handleDeleteUsuario(usuarioId?: number) {
-    if (!usuarioId) return;
-    if (confirm("Tem certeza que deseja excluir este usuário?")) {
+  async function handleDeleteUsuario(id?: number) {
+    if (!id) return;
+    if (confirm("Excluir usuário?")) {
       try {
-        await destroyUsuario(usuarioId);
-        toast.success("Usuário excluído com sucesso!");
-
-        // Recarrega os usuários
-        const novosUsuarios = await indexUsuario();
-        setUsuarios(novosUsuarios ?? []);
-      } catch (error) {
-        toast.error("Erro ao excluir usuário");
-        console.error(error);
+        await destroyUsuario(id);
+        toast.success("Usuário excluído");
+        setUsuarios(await indexUsuario() ?? []);
+      } catch {
+        toast.error("Erro ao excluir");
       }
     }
   }
 
   // Alternar status do usuário
-  const handleToggleStatus = async (usuarioId: number) => {
+  const handleToggleStatus = async (id: number) => {
     try {
-      const usuarioAtual = usuarios.find((u) => u.id === usuarioId);
-      if (!usuarioAtual || usuarioAtual.status === undefined) return;
-
-      await changeStatusUsuario(usuarioId);
-      // Atualiza localmente
-      setUsuarios((prev) =>
-        prev.map((u) =>
-          u.id === usuarioId ? { ...u, status: !u.status } : u
-        )
-      );
-
-      toast.success("Status atualizado com sucesso!");
-    } catch (error) {
-      console.error("Erro ao atualizar status:", error);
-      toast.error("Erro ao atualizar status");
+      await changeStatusUsuario(id);
+      setUsuarios(prev => prev.map(u => u.id === id ? { ...u, status: !u.status } : u));
+      toast.success("Status alterado");
+    } catch {
+      toast.error("Erro ao alterar status");
     }
   };
 
@@ -229,10 +236,10 @@ export default function PaginaListagem() {
     u.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredUsuarios.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentUsuarios = filteredUsuarios.slice(startIndex, endIndex);
+// Filtro e paginação
+  const filtered = usuarios.filter(u => u.name.toLowerCase().includes(searchTerm.toLowerCase()));
+  const totalPages = Math.ceil(filtered.length / itemsPerPage);
+  const current = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
     <Card>
@@ -378,6 +385,38 @@ export default function PaginaListagem() {
                   </>
                 )}
 
+                {/* Super Administrador */}
+                <Controller
+                  control={control}
+                  name="super_administrador"
+                  render={({ field: { value, onChange } }) => (
+                    <div className="flex items-center space-x-2">
+                      <Switch id="super_administrador" checked={value} onCheckedChange={onChange} />
+                      <label htmlFor="super_administrador">Super Administrador</label>
+                    </div>
+                  )}
+                />
+
+                {/* Nível de Acesso */}
+                <div>
+                  <label className="block mb-1">Nível de Acesso</label>
+                  <select
+                    {...register("nivel_acesso", {
+                      required: "Nível de acesso é obrigatório",
+                      valueAsNumber: true,
+                    })}
+                    className={`w-full border p-2 rounded ${errors.nivel_acesso ? "border-red-500" : "border-gray-300"}`}
+                  >
+                    <option value="">Selecione um nível</option>
+                    {niveisList.map(n => (
+                      <option key={n.id} value={n.id}>{n.descricao}</option>
+                    ))}
+                  </select>
+                  {errors.nivel_acesso && <p className="text-red-500 text-sm">{errors.nivel_acesso.message}</p>}
+                </div>
+
+
+
                 <Button type="submit" className="w-full md:w-auto px-6 py-2">
                   Salvar
                 </Button>
@@ -402,13 +441,14 @@ export default function PaginaListagem() {
               <TableHead>Nome</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>Empresa</TableHead>
+              <TableHead>Super Administrador</TableHead>
               <TableHead>Status</TableHead>
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
 
           <TableBody>
-            {currentUsuarios.length === 0 && (
+            {current.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="text-center">
                   Nenhum usuário encontrado.
@@ -416,12 +456,13 @@ export default function PaginaListagem() {
               </TableRow>
             )}
 
-            {currentUsuarios.map((usuario) => (
+            {current.map((usuario) => (
               <TableRow key={usuario.id}>
                 <TableCell>{usuario.id}</TableCell>
                 <TableCell>{usuario.name}</TableCell>
                 <TableCell>{usuario.email}</TableCell>
                 <TableCell>{usuario.empresa}</TableCell>
+                <TableCell>{usuario.super_administrador ? "Sim" : "Não"}</TableCell>
                 <TableCell>
                   <Switch
                     checked={usuario.status === true}
