@@ -52,7 +52,7 @@ interface Usuarios {
   status?: boolean; // Para demonstrar toggle de status
   empresa?: string; // Para exibir o nome da empresa
   super_administrador?: boolean; // Campo para super administrador
-  nivel_acesso?: number; // Nível de acesso do usuário
+  nivel_id?: number; // Nível de acesso do usuário
 }
 
 interface EmpresaAtiva {
@@ -112,7 +112,7 @@ export default function PaginaListagem() {
       confirm_password: "",
       status: true,
       super_administrador: false, // Adiciona campo para super administrador
-      nivel_acesso: undefined,
+      nivel_id: undefined,
     },
   });
 
@@ -190,7 +190,7 @@ export default function PaginaListagem() {
       confirm_password: "",
       status: true,
       super_administrador: false, // Reseta para não ser super administrador por padrão
-      nivel_acesso: undefined,
+      nivel_id: undefined,
     });
     setModalOpen(true);
   }
@@ -401,18 +401,18 @@ export default function PaginaListagem() {
                 <div>
                   <label className="block mb-1">Nível de Acesso</label>
                   <select
-                    {...register("nivel_acesso", {
+                    {...register("nivel_id", {
                       required: "Nível de acesso é obrigatório",
                       valueAsNumber: true,
                     })}
-                    className={`w-full border p-2 rounded ${errors.nivel_acesso ? "border-red-500" : "border-gray-300"}`}
+                    className={`w-full border p-2 rounded ${errors.nivel_id ? "border-red-500" : "border-gray-300"}`}
                   >
                     <option value="">Selecione um nível</option>
                     {niveisList.map(n => (
                       <option key={n.id} value={n.id}>{n.descricao}</option>
                     ))}
                   </select>
-                  {errors.nivel_acesso && <p className="text-red-500 text-sm">{errors.nivel_acesso.message}</p>}
+                  {errors.nivel_id && <p className="text-red-500 text-sm">{errors.nivel_id.message}</p>}
                 </div>
 
 
