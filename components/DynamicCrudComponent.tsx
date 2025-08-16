@@ -108,6 +108,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const podeExcluir = isSuperAdmin || permissoes.podeExcluir;
   const podeVisualizar = isSuperAdmin || permissoes.podeVisualizar;
 
+
   const filteredData = data.filter((item) =>
     columns.some((column) =>
       String(item[column.dataField] || "")

@@ -47,6 +47,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
       const { data } = await api.get("/me");
+      
       setUser(data.data);
       setUserData(data.data); // Atualiza o usuário no gerenciador centralizado
       useUserStore.getState().setUser(data.data);

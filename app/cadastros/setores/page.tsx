@@ -20,12 +20,17 @@ import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook'
 export default function Setores() {
   const { index: listarSetores, changeStatus, store, update, destroy } = useSetoresHook();
   const { getResponsaveis } = usePessoasHook();
-  const { isSuperAdmin, permissoes } = useInformacoesUsuarioHook();
-
-
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
   const [data, setData] = useState([]);
   const [pessoasOptions, setPessoasOptions] = useState([]);
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('cadastros.setores.adicionar') || false,
+    podeEditar: temPermissao('cadastros.setores.editar') || false,
+    podeExcluir: temPermissao('cadastros.setores.excluir') || false,
+    podeVisualizar: true ,
+  }
 
   // Função para carregar a lista de setores
   const carregarSetores = async () => {
@@ -189,6 +194,8 @@ export default function Setores() {
           deleteData={deleteData}
           toggleStatus={toggleStatus}
           columns={columns}
+          isSuperAdmin={isSuperAdmin}
+          permissoes={permissoesUsuario}
         />
       </CardContent>
     </Card>

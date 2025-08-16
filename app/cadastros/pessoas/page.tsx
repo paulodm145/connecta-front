@@ -22,6 +22,8 @@ import { Badge } from "@/components/ui/badge"
 import { X, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+
 // Modelos de planilha de exemplo
 const exampleTemplates: SpreadsheetTemplate[] = [
   {
@@ -46,6 +48,17 @@ export default function Pessoas() {
 
   const { changeStatus, importar } = usePessoasHook();
   const { index } = useCargosHook();
+
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('cadastros.pessoas.adicionar') || false,
+    podeEditar: temPermissao('cadastros.pessoas.editar') || false,
+    podeExcluir: temPermissao('cadastros.pessoas.excluir') || false,
+    podeVisualizar: true ,
+  }
+
+  const permissaoImportarPessoas = temPermissao('cadastros.pessoas.importar') || false;
 
  // Função para carregar a lista de pessoas
 const carregarPessoas = async () => {
@@ -232,7 +245,9 @@ useEffect(() => {
       <CardContent>
 
         <div className="flex justify-between items-center mb-4">
-        <ExcelImportModal
+       
+
+        {permissaoImportarPessoas && (<ExcelImportModal
             buttonText="Importar"
             title="Importação de Pessoas"
             description="Selecione uma planilha Excel para importar dados para o sistema"
@@ -252,7 +267,9 @@ useEffect(() => {
               noTemplatesMessage: "Nenhum modelo de planilha disponível no momento",
             }}
             onImportConfirm={handleImport}
-          />
+          />)}
+
+
           </div>
 
 
@@ -314,6 +331,7 @@ useEffect(() => {
           saveData={saveData}
           deleteData={deleteData}
           toggleStatus={toggleStatus}
+          permissoes={permissoesUsuario}
         />
       </CardContent>
     </Card>

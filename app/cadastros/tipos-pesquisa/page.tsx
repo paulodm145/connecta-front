@@ -11,6 +11,7 @@ import {
 } from '@/components/ui/card';
 import { useSetoresHook } from '@/app/hooks/useSetoresHook';
 import { useTiposPesquisaHook } from '@/app/hooks/useTiposPesquisaHook';
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -18,6 +19,14 @@ import "react-toastify/dist/ReactToastify.css";
 export default function Setores() {
   const { setoresAtivos} = useSetoresHook();
   const { index : index, store, update, destroy, changeStatus } = useTiposPesquisaHook();
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('pesquisas.tipo.pesquisa.adicionar') || false,
+    podeEditar: temPermissao('pesquisas.tipo.pesquisa.editar') || false,
+    podeExcluir: temPermissao('pesquisas.tipo.pesquisa.esxcluir.respondentes') || false,
+    podeVisualizar: true ,
+  }
 
 
   const [data, setData] = useState([]);
@@ -152,6 +161,7 @@ export default function Setores() {
           deleteData={deleteData}
           toggleStatus={toggleStatus}
           columns={columns}
+          permissoes={permissoesUsuario}
         />
       </CardContent>
     </Card>

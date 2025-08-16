@@ -15,13 +15,23 @@ import { useCargosHook } from '@/app/hooks/useCargosHook';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+
 export default function Setores() {
   const { setoresAtivos} = useSetoresHook();
   const { index : cargosIndex, store, update, destroy, changeStatus } = useCargosHook();
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('cadastros.cargos.adicionar') || false,
+    podeEditar: temPermissao('cadastros.cargos.editar') || false,
+    podeExcluir: temPermissao('cadastros.cargos.excluir') || false,
+    podeVisualizar: true ,
+  }
 
   const [data, setData] = useState([]);
   const [setoresOptions, setSetoresOptions] = useState([]);
+
 
   // Função para carregar a lista de setores
   const carregarCargos = async () => {
@@ -183,6 +193,7 @@ export default function Setores() {
           deleteData={deleteData}
           toggleStatus={toggleStatus}
           columns={columns}
+          permissoes={permissoesUsuario}
         />
       </CardContent>
     </Card>

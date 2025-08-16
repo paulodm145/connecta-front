@@ -12,6 +12,8 @@ export function useInformacoesUsuarioHook() {
   const nivelId = useMemo(() => user?.informacoes_usuario?.nivel_id ?? null, [user]);
   const identificadorEmpresa = useMemo(() => user?.informacoes_usuario?.identificador_empresa ?? '', [user]);
 
+  console.log('Usuario', user)
+
    const temPermissao = (chave: string): boolean => {
     if (isSuperAdmin) return true;
     return permissoes.includes(chave);

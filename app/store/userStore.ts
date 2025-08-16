@@ -62,6 +62,7 @@ export const useUserStore = create<UserStore>((set) => ({
               ...state.user.informacoes_usuario,
               empresa,
             },
+            ...state.user.permissoes, // Mantém as permissões existentes
           }
         : state.user, // Não atualiza se o usuário for nulo
     })),
