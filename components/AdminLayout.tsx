@@ -40,6 +40,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import UserMenuSimple from './user-menu-simple';
 
 import { useUserStore } from '@/app/store/userStore';
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 
 type LogoPosition = 'left' | 'right' | 'top' | 'bottom';
@@ -104,13 +105,14 @@ interface ThemeConfig {
     link?: string;
     children?: MenuItem[];
     onClick?: () => void;
+    permissao?: boolean; // Adicionado campo de permissão
+    canAccess?: () => boolean; // Função para verificar se o usuário pode acessar o item
   }
 
   
 
 const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: boolean; theme: ThemeConfig }> = ({ item, depth, sidebarMinimized, theme }) => {
   const [isOpen, setIsOpen] = useState(false);
-
   const Icon = item.icon;
 
   const paddingLeft = depth * 16;
@@ -204,6 +206,58 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       setIsOpenAlert(false);
     };
 
+    // Funcao para filtrar o menu
+    const montarMenuComPermissoes = function filtrarMenu(menu: MenuItem[]): MenuItem[] {
+      const can = (item: MenuItem) => {
+        // prioridade para canAccess (dinâmica). Senão, cai na booleana. Default = true
+        if (typeof item.canAccess === 'function') return !!item.canAccess();
+        if (typeof item.permissao === 'boolean') return item.permissao;
+        return true;
+      };
+    
+      return menu
+        .filter(can)
+        .map(item => {
+          const children = item.children ? filtrarMenu(item.children) : undefined;
+          // remove nós sem filhos após o filtro
+          if (children && children.length === 0) {
+            const { children: _omit, ...rest } = item;
+            return rest;
+          }
+          return { ...item, children };
+        })
+        .filter(item => {
+          // se o item não tem link nem onClick e ficou sem filhos, some
+          const semAcao = !item.link && !item.onClick;
+          const semFilhos = !item.children || item.children.length === 0;
+          return !(semAcao && semFilhos);
+        });
+    }
+
+    const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+    const permissoesUsuario = {
+      acessarMenuHome: true,
+  
+      acessarMenuSuperAdmin: temPermissao('superadmin.menu.superadmin') || false,
+      acessarSubMenuClientes: temPermissao('superadmin.menu.clientes') || false,
+      acessarSubMenuEmpresas: temPermissao('superadmin.menu.empresas') || false,
+      acessarSubMenuUsuarios: temPermissao('superadmin.menu.usuarios') || false,
+      acessarSubMenuNiveis: temPermissao('superadmin.menu.usuarios.niveis') || false,
+  
+      acessarMenuCadastros: temPermissao('cadastros.cadastros.menu.exibir') || false,
+      acessarSubMenuSetores: temPermissao('cadastros.setor.menu.exibir') || false,
+      acessarSubMenuCargos: temPermissao('cadastros.cargos.menu.exibir') || false,
+      acessarSubMenuPessoas: temPermissao('cadastros.pessoas.menu.exibir') || false,
+  
+      acessarMenuFormularios: temPermissao('formularios.formularios.exibir.menu') || false,
+  
+      acessarMenuPesquisas: temPermissao('pesquisas.tipo.pesquisa.exibir.menu') || false,
+      acessarSubMenuListagem: temPermissao('pesquisas.listagem.exibir.menu') || false,
+      acessarSubMenuTiposPesquisa: temPermissao('pesquisas.tipo.pesquisa.exibir.menu') || false,
+  
+      acessarMenuMinhaEmpresa: temPermissao('minha.empresa.exibir.menu') || false,
+    }
+
     const menuData: MenuItem[] = [
       // {
       //   name: "Dashboard",
@@ -225,19 +279,22 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       {
         name : "Home", 
         icon : Home,
-        link : "/admin/home/cliente"
+        link : "/admin/home/cliente",
+        permissao : true
       },
       {
         name: "SuperAdmin",
         icon: Home,
+        permissao: permissoesUsuario.acessarMenuSuperAdmin,
         children: [
           {
             name: "Clientes",
             icon: Home,
+            permissao: permissoesUsuario.acessarSubMenuClientes,
             children: [
-              { name: "Empresas", icon: FileText, link: "/admin/empresas" },
-              { name: "Usuários", icon: User, link: "/admin/users" },
-              { name: "Nìveis", icon: User, link: "/admin/niveis" },
+              { name: "Empresas", icon: FileText, link: "/admin/empresas", permissao: permissoesUsuario.acessarSubMenuEmpresas },
+              { name: "Usuários", icon: User, link: "/admin/users", permissao: permissoesUsuario.acessarSubMenuUsuarios },
+              { name: "Nìveis", icon: User, link: "/admin/niveis", permissao: permissoesUsuario.acessarSubMenuNiveis },
             ]
           },
         ]
@@ -245,22 +302,26 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       {
         name: "Cadastros",
         icon: Folder,
+        permissao: permissoesUsuario.acessarMenuCadastros,
         children: [
-          { name: "Setores", icon: Clipboard, link: "/cadastros/setores" },
-          { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos" },
-          { name: "Pessoas", icon: Users, link: "/cadastros/pessoas" }
+          { name: "Setores", icon: Clipboard, link: "/cadastros/setores", permissao: permissoesUsuario.acessarSubMenuSetores, },
+          { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos", permissao: permissoesUsuario.acessarSubMenuCargos },
+          { name: "Pessoas", icon: Users, link: "/cadastros/pessoas", permissao: permissoesUsuario.acessarSubMenuPessoas },
         ]
       },
-      { name: "Formulários", icon: ListCheck, link: "/formularios/listagem" },
+      { name: "Formulários", icon: ListCheck, link: "/formularios/listagem", permissao: permissoesUsuario.acessarMenuFormularios },
       { name: "Pesquisas", icon: FileText,
+        permissao: permissoesUsuario.acessarMenuPesquisas,
         children: [
-          { name: "Listagem", icon: FileText, link: "/pesquisas/listagem" },
-          { name: "Tipos de Pesquisa", icon: FileText, link: "/cadastros/tipos-pesquisa" },
+          { name: "Listagem", icon: FileText, link: "/pesquisas/listagem", permissao: permissoesUsuario.acessarSubMenuListagem },
+          { name: "Tipos de Pesquisa", icon: FileText, link: "/cadastros/tipos-pesquisa", permissao: permissoesUsuario.acessarSubMenuTiposPesquisa },
         ]
        },
-      { name: "Minha Empresa", icon: Landmark, link: "/empresas/cliente" },
-      { name: "SAIR", icon: LogOut, link: "#", onClick: () => sair() }
+      { name: "Minha Empresa", icon: Landmark, link: "/empresas/cliente", permissao: permissoesUsuario.acessarMenuMinhaEmpresa },
+      { name: "SAIR", icon: LogOut, permissao: true, link: "#", onClick: () => sair() }
   ];
+
+  const menuDataFiltered = montarMenuComPermissoes(menuData);
 
 
   const user = useUserStore((state) => state.user);
@@ -293,7 +354,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
             </div>
           </div>
           <nav className="mt-4 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-100" style={{ maxHeight: 'calc(100vh - 64px)' }}>
-            {menuData.map((item, index) => (
+            {menuDataFiltered.map((item, index) => (
               <TreeMenuItem key={index} item={item} depth={0} sidebarMinimized={sidebarMinimized} theme={theme} />
             ))}
           </nav>

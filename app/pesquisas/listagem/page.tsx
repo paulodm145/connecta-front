@@ -9,13 +9,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "react-toastify";
-import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
-import { useFormulariosHook } from "@/app/hooks/useFormulariosHook";
-import { useTiposPesquisaHook } from "@/app/hooks/useTiposPesquisaHook";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { parse, format } from "date-fns";
 import { MaskedInput } from "@/components/InputDate";
 import { SquarePlus, Pencil, UserPlus, FileText, Edit2Icon    } from "lucide-react";
+
+import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
+import { useFormulariosHook } from "@/app/hooks/useFormulariosHook";
+import { useTiposPesquisaHook } from "@/app/hooks/useTiposPesquisaHook";
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 
 type Status = "ABERTA" | "FECHADA";
@@ -52,6 +54,7 @@ export default function PaginaListagem() {
   const { listagemPesquisa, changeStatus, novaPesquisa, editarPesquisa } = usePesquisasHook();
   const { formulariosAtivos } = useFormulariosHook();
   const { pesquisasAtivas } = useTiposPesquisaHook();
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
   const [pesquisas, setPesquisas] = useState<Pesquisa[]>([]);
   const [formularios, setFormularios] = useState<Formulario[]>([]);
@@ -59,6 +62,13 @@ export default function PaginaListagem() {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingPesquisa, setEditingPesquisa] = useState<Pesquisa | null>(null);
 
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('pesquisas.pesquisas.adicionar') || false,
+    podeEditar: temPermissao('pesquisas.pesquisas.editar') || false,
+    podeAlterarStatus: temPermissao('pesquisas.pesquisas.ativar.inativar') || false,
+    podeAdicionarRespondentes: temPermissao('pesquisas.pesquisas.adicionar.respondentes') || false,
+    podeAcessarRelatorios: temPermissao('pesquisas.pesquisas.ver.relatorio') || false,
+  }
 
   const {
     register,
@@ -213,10 +223,13 @@ export default function PaginaListagem() {
         <div className="flex items-center justify-between">
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
             <DialogTrigger asChild>
-              <Button variant="outline" onClick={handleNovaPesquisa}>
+
+              {permissoesUsuario.podeCadastrar && (<Button variant="outline" onClick={handleNovaPesquisa}>
                 <SquarePlus size={16} className="mr-2" />
                 Nova Pesquisa
-              </Button>
+              </Button>)}
+
+
             </DialogTrigger>
 
             <DialogContent>
@@ -339,7 +352,7 @@ export default function PaginaListagem() {
               <TableHead>Título</TableHead>
               <TableHead>Formulário</TableHead>
               <TableHead>Tipo</TableHead>
-              <TableHead>Status</TableHead>
+              {permissoesUsuario.podeAlterarStatus && (<TableHead>Status</TableHead>)}
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -351,15 +364,16 @@ export default function PaginaListagem() {
                 <TableCell>{pesquisa.titulo}</TableCell>
                 <TableCell>{pesquisa.formulario}</TableCell>
                 <TableCell>{pesquisa.tipo_pesquisa}</TableCell>
-                <TableCell>
+                {permissoesUsuario.podeAlterarStatus && (<TableCell>
                   <Switch
                     checked={pesquisa.status === "ABERTA"}
                     onCheckedChange={() => handleToggleStatus(pesquisa.id)}
                   />
-                </TableCell>
+                </TableCell>)}
                 {/* Ações: Apenas edição via modal */}
                 <TableCell>
-                  <Button
+
+                  {permissoesUsuario.podeEditar && (<Button
                     title="Editar"
                     variant="outline"
                     size="sm"
@@ -367,22 +381,21 @@ export default function PaginaListagem() {
                       setEditingPesquisa(pesquisa);
                       setModalOpen(true);
                     }}
-                    
                   >
                     <Pencil size={16}/>
-                  </Button>
+                  </Button>)}
 
-                   <Link className="ml-2" href={`/pesquisas/respondentes/${pesquisa.slug}`}>
+                   {permissoesUsuario.podeAdicionarRespondentes && (<Link className="ml-2" href={`/pesquisas/respondentes/${pesquisa.slug}`}>
                       <Button title="Adicionar Respondentes" variant="outline" size="sm">
                          <UserPlus size={16} /> 
                       </Button>
-                    </Link>    
+                    </Link>    )}
 
-                    <Link className="ml-2" href={`/pesquisas/relatorios/${pesquisa.slug}`}>
+                    {permissoesUsuario.podeAcessarRelatorios && (<Link className="ml-2" href={`/pesquisas/relatorios/${pesquisa.slug}`}>
                       <Button title="Relatório" variant="outline" size="sm">
                          <FileText size={16} />
                       </Button>
-                    </Link>    
+                    </Link>    )}
 
 
 

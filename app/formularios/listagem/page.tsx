@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 
+
 import {
   Card,
   CardContent,
@@ -27,6 +28,7 @@ import { toast } from "react-toastify";
 
 
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 interface Formulario {
   id: number
@@ -40,6 +42,13 @@ interface Formulario {
 
 export default function PaginaListagem() {
   const { listagemFormularios, changeStatus } = useFormulariosHook()
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('formularios.formularios.adicionar') || false,
+    podeEditar: temPermissao('formularios.formularios.editar') || false,
+    alterarStatus: temPermissao('formularios.formularios.alterar.status') || false,
+  }
 
   // Exemplo de estado local para os formulários.
   // Caso você carregue da API, pode chamar setForms no useEffect.
@@ -114,12 +123,14 @@ export default function PaginaListagem() {
         {/* Container flex para alinhar o botão e o input na mesma linha */}
         <div className="flex items-center justify-between">
             {/* Botão de Criar */}
-            <Link
-            href={"builder"}
-            className={buttonVariants({ variant: "outline" })}
-            >
-            Novo Formulário
-            </Link>
+            {permissoesUsuario.podeCadastrar && (
+              <Link
+                href={"builder"}
+                className={buttonVariants({ variant: "default" })}
+              >
+                Criar Formulário
+              </Link>
+            )}
 
             {/* Input de Busca */}
             <div className="w-1/4">
@@ -138,10 +149,10 @@ export default function PaginaListagem() {
               <TableHead className="w-[50px]">ID</TableHead>
               <TableHead>Título</TableHead>
               <TableHead>Descrição</TableHead>
-              <TableHead>Publicado/Rascunho</TableHead>
+              {permissoesUsuario.alterarStatus && (<TableHead>Publicado/Rascunho</TableHead>)}
               <TableHead>Criado em</TableHead>
               <TableHead>Última Atualização</TableHead>
-              <TableHead>Editar</TableHead>
+              {permissoesUsuario.podeEditar && (<TableHead>Editar</TableHead>)}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -150,22 +161,22 @@ export default function PaginaListagem() {
                 <TableCell>{form.id}</TableCell>
                 <TableCell>{form.titulo}</TableCell>
                 <TableCell>{form.descricao}</TableCell>
-                <TableCell>
+                {permissoesUsuario.alterarStatus && (<TableCell>
                   <Switch
                     checked={form.status === "PUBLICADO"} // Exemplo: se for "RASCUNHO" é desligado, senão ligado
                     onCheckedChange={() => handleToggleStatus(form.id)}
                   />
-                </TableCell>
+                </TableCell>)}
                 <TableCell>{form.data_criacao}</TableCell>
                 <TableCell>{form.data_atualizacao}</TableCell>
-                <TableCell>
+                {permissoesUsuario.podeEditar && (<TableCell>
                   {/* Botão que direciona para edição */}
                   <Link href={`editar/${form.slug}`}>
                     <Button variant="secondary" size="sm">
                       Editar
                     </Button>
                   </Link>
-                </TableCell>
+                </TableCell>)}
               </TableRow>
             ))}
 

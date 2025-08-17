@@ -12,6 +12,7 @@ import { useEmpresaClienteHook } from "@/app/hooks/useEmpresaClienteHook";
 import { toast } from "react-toastify";
 
 import { useUserStore } from "@/app/store/userStore";
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 
 const EmpresaForm: React.FC = () => {
@@ -39,6 +40,11 @@ const {
   const isManualCepChange = useRef(false); // Rastrea se a alteração do CEP foi manual
 
   const { user, updateEmpresa } = useUserStore(); // Pega o usuário e a ação do store
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeEditar: temPermissao('minha.empresa.editar') || false,
+  }
 
  // Carregar estados ao montar
   useEffect(() => {
@@ -219,6 +225,8 @@ const {
         console.error("Erro ao salvar empresa:", error);
     }
     };
+
+
 
   return (
 <form
@@ -438,9 +446,9 @@ const {
     </div>
 
   {/* Botão de envio */}
-  <Button type="submit" className="w-full md:w-100 px-6 py-2">
+  {permissoesUsuario.podeEditar && (<Button type="submit" className="w-full md:w-100 px-6 py-2">
     Salvar Dados
-  </Button>
+  </Button>)}
 </form>
   );
 };
