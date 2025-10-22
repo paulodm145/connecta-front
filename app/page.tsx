@@ -46,9 +46,6 @@ const LoginPage = () => {
     router.push("/acesso/esqueceu");
   };
 
-
-
-
   return (
     <div className="flex h-screen relative overflow-hidden">
       <div
@@ -136,10 +133,5 @@ const LoginPage = () => {
   );
 };
 
-// const LoginPageWithProvider: React.FC = () => (
-//   <AuthProvider>
-//     <LoginPage />
-//   </AuthProvider>
-// );
 
 export default LoginPage;

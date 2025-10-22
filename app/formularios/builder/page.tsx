@@ -21,6 +21,7 @@ export default function PaginaConstrutor() {
   const { novoFormulario } = useFormulariosHook()
 
   const [formulario, setFormulario] = useState<DadosFormulario>({
+    id: '', // Add a default value for the 'id' property
     titulo: 'Meu Formulário',
     descricao: 'Descrição do meu formulário',
     slug: 'meu-formulario',

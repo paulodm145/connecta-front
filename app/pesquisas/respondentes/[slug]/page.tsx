@@ -9,6 +9,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useRespondentesHook } from "@/app/hooks/useRespondentesHook";
 import { usePessoasHook } from "@/app/hooks/usePessoasHook";
 import { useClipboard } from '@/app/hooks/useClipBoard'; // ajuste o caminho se necessário
+import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
 
 import { Input } from "@/components/ui/input";
@@ -75,6 +76,16 @@ export default function PesquisasRespondentes() {
   const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
   const { copyToClipboard } = useClipboard();
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('pesquisas.pesquisas.adicionar.respondentes.tela') || false,
+    podeCadastrarEmLote: temPermissao('pesquisas.pesquisas.adicionar.respondentes.lote') || false,
+    podeEditar: temPermissao('pesquisas.pesquisas.adicionar.respondentes.lote') || false,
+    podeExcluir: temPermissao('pesquisas.pesquisas.excluir.respondentes') || false,
+    podeAlterarStatus: temPermissao('pesquisas.pesquisas.bloquear.respondentes') || false,
+    podeCopiarLink: temPermissao('pesquisas.pesquisas.copiar.link.pesquisa') || false,
+  }
 
   const [pesquisa, setPesquisa] = useState<{ id: number; titulo: string; formulario_slug: string } | null>(
     null
@@ -248,7 +259,8 @@ export default function PesquisasRespondentes() {
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
 
             <DialogTrigger asChild>
-              <Button
+
+             {permissoesUsuario.podeCadastrar && ( <Button
                 title="Adicionar Respondente"
                 onClick={() => {
                   setEditingRespondente(null);
@@ -256,7 +268,8 @@ export default function PesquisasRespondentes() {
                 }}
               >
                 <PlusCircle size={16} />
-              </Button>
+              </Button>)}
+
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
@@ -307,13 +320,13 @@ export default function PesquisasRespondentes() {
             </DialogContent>
           </Dialog>
 
-          <MultiSelectDropdown
+          {permissoesUsuario.podeCadastrarEmLote && (<MultiSelectDropdown
             data={respondentesCombo}
             title="Selecionar Respondentes"
             onSelectionChange={handleSelectionChange}
             buttonText="Adicionar Respondentes"
             onSend={addRespondentesMultiplos}
-          />
+          />)}
           <Input
             placeholder="Pesquisar respondentes..."
             value={searchTerm}
@@ -328,7 +341,7 @@ export default function PesquisasRespondentes() {
               <TableHead>Nome</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>CPF</TableHead>
-              <TableHead>Status</TableHead>
+              {permissoesUsuario.podeAlterarStatus && (<TableHead>Status</TableHead>)}
               <TableHead>Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -338,14 +351,16 @@ export default function PesquisasRespondentes() {
                 <TableCell>{respondente.pessoa_nome}</TableCell>
                 <TableCell>{respondente.pessoa_email}</TableCell>
                 <TableCell>{respondente.pessoa_cpf}</TableCell>
-                <TableCell>
+                {permissoesUsuario.podeAlterarStatus && (<TableCell>
                   <Switch
                     checked={respondente.status}
                     onCheckedChange={() => handleToggleStatus(respondente.id)}
                   />
-                </TableCell>
+                </TableCell>)}
+                
                 <TableCell>
-                  <Button
+
+                  {permissoesUsuario.podeEditar && (<Button
                     variant="outline"
                     size="sm"
                     className="mr-2"
@@ -359,17 +374,17 @@ export default function PesquisasRespondentes() {
                     }}
                   >
                     Editar
-                  </Button>
+                  </Button>)}
                   
-                  <Button
+                  {permissoesUsuario.podeExcluir && (<Button
                     variant="destructive"
                     size="sm"
                     onClick={() => handleDelete(respondente.id)}
                   >
                     Excluir
-                  </Button>
+                  </Button>)}
 
-                  <Button
+                  {permissoesUsuario.podeCopiarLink && (<Button
                     variant="outline"
                     size="sm"
                     className="ml-2"
@@ -384,7 +399,7 @@ export default function PesquisasRespondentes() {
                     }}
                   >
                     Copiar Link
-                  </Button>
+                  </Button>)}
                 </TableCell>
               </TableRow>
             ))}
