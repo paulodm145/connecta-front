@@ -19,6 +19,7 @@ import { toast } from "react-toastify"
 import { EditModal } from "./edit-modal"
 import { useAnotacoesHook } from "@/app/hooks/useAnotacoesHook"
 import { LeaderEvaluationModal } from "./leader-evaluation-modal"
+import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook"
 
 interface ScoreItem {
   name: string
@@ -49,6 +50,7 @@ export default function Page() {
   const slugPesquisa = params.slug as string
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -78,6 +80,14 @@ export default function Page() {
     createAnotacaoLider ,
     getAnotacaoLider
   } = useAnotacoesHook()
+
+  const permissoesUsuario = {
+    anotacoesAvaliado: temPermissao('pesquisas.relatorio.anotacoes.avaliado') || false,
+    anotacaoLider: temPermissao('pesquisas.relatorio.anotacoes.lider') || false,
+    pdiAvaliado: temPermissao('pesquisas.relatorio.anotacoes.pdi') || false,
+    exportarXLSX: temPermissao('pesquisas.exportar.xlsx') || false,
+    avaliacaoLider: temPermissao('pesquisas.avaliacao.lider') || false,
+  }
 
   const chartRef = useRef(null)
 
@@ -209,8 +219,6 @@ export default function Page() {
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
 
-    console.log("Dados salvos:", { anotacao, rowData, tipo: currentAnnotationType })
-
     try {
       const response = await createAnotacao({
         envio_id: rowData.envio_id,
@@ -284,12 +292,14 @@ export default function Page() {
       icon: Download,
       variant: "outline" as const,
       onClick: handleExport,
+      visible: permissoesUsuario.exportarXLSX,
     },
     {
       label: "Avaliação do líder",
       icon: UserCheckIcon,
       variant: "outline" as const,
       onClick: handleAvaliacaoLider,
+      visible: permissoesUsuario.avaliacaoLider,
     }
   ]
 
@@ -300,6 +310,7 @@ export default function Page() {
       onClick: handleOpenNotesAvaliadoModal,
       variant: "ghost" as const,
       className: "text-blue-500 hover:text-blue-700",
+      visible: permissoesUsuario.anotacoesAvaliado,
     },
     {
       label: "Anotações do Avaliador/Líder",
@@ -307,6 +318,7 @@ export default function Page() {
       onClick: handleOpenNotesAvaliadorLiderModal,
       variant: "ghost" as const,
       className: "text-green-500 hover:text-green-700",
+      visible: permissoesUsuario.anotacaoLider,
     },
     {
       label: "PDI do Avaliado",
@@ -314,6 +326,7 @@ export default function Page() {
       onClick: handleOpenNotesPDIModal,
       variant: "ghost" as const,
       className: "text-purple-500 hover:text-purple-700",
+      visible: permissoesUsuario.pdiAvaliado,
     },
   ]
 

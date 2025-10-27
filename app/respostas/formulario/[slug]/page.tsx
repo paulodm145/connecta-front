@@ -106,6 +106,7 @@ export default function FormularioCompletoPage() {
         setLoading(true);
         const data = await formularioExternoBySlug(slug, respondente!, identificador_empresa!);
         const pesquisaData = await pesquisaexternaBySlug(pesquisaSlug!, respondente!, identificador_empresa!);
+        console.log(pesquisaData);
         setPesquisa(pesquisaData);
         setFormulario(data);
       } catch (error) {

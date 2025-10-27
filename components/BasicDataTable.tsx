@@ -21,6 +21,7 @@ interface ActionButton {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   onClick: (filteredData: Record<string, any>[]) => void
   className?: string
+  visible?: boolean
 }
 
 interface RowAction {
@@ -30,6 +31,7 @@ interface RowAction {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
   className?: string
   actionsColumn?: RowAction[]
+  visible?: boolean
 }
 
 interface TableProps {
@@ -113,6 +115,7 @@ const BasicDataTable: React.FC<TableProps> = ({
                   variant={action.variant || "default"}
                   onClick={() => action.onClick(filteredData)}
                   className={action.className}
+                  style={{ display: action.visible ? 'inline-flex' : 'none' }}
                 >
                   {IconComponent && <IconComponent className="w-4 h-4 mr-2" />}
                   {action.label}
@@ -165,6 +168,7 @@ const BasicDataTable: React.FC<TableProps> = ({
                                   size="sm"
                                   onClick={() => action.onClick(row)}
                                   className={action.className || "h-8 w-8 p-0"}
+                                  style={{ display: action.visible ? 'inline-flex' : 'none' }}
                                 >
                                   {IconComponent ? (
                                     <IconComponent className="h-4 w-4" />
@@ -192,6 +196,7 @@ const BasicDataTable: React.FC<TableProps> = ({
                                     key={actionIndex}
                                     onClick={() => action.onClick(row)}
                                     className={action.className}
+                                    style={{ display: action.visible ? 'inline-flex' : 'none' }}
                                   >
                                     {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
                                     {action.label}
