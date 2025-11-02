@@ -21,12 +21,21 @@ import { useAnotacoesHook } from "@/app/hooks/useAnotacoesHook"
 import { LeaderEvaluationModal } from "./leader-evaluation-modal"
 import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook"
 
+// Enum para tipos de anotação
+enum TipoAnotacao {
+  AVALIADO = "AVALIADO",
+  AVALIADOR_LIDER = "AVALIADOR_LIDER",
+  PDI_AVALIADO = "PDI_AVALIADO",
+  AVALIACAO_EQUIPE_LIDER = "AVALIACAO_EQUIPE_LIDER",
+}
+
 interface ScoreItem {
   name: string
   first_name: string
   score: number
+  percentual_av_lider?: number
   color: string
-  [key: string]: string | number
+  [key: string]: string | number | undefined
 }
 
 interface RespostaDados {
@@ -37,20 +46,12 @@ interface RespostaDados {
   score: ScoreItem[]
 }
 
-// Enum para tipos de anotação
-enum TipoAnotacao {
-  AVALIADO = "AVALIADO",
-  AVALIADOR_LIDER = "AVALIADOR_LIDER",
-  PDI_AVALIADO = "PDI_AVALIADO",
-  AVALIACAO_EQUIPE_LIDER = "AVALIACAO_EQUIPE_LIDER",
-}
-
 export default function Page() {
   const params = useParams()
   const slugPesquisa = params.slug as string
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
-  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
+  const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -71,22 +72,22 @@ export default function Page() {
   const [modalOpenAvaliacaoLider, setModalOpenAvaliacaoLider] = useState(false)
   const [avaliacaoAtual, setAvaliacaoAtual] = useState("")
 
-  const { 
-    createAnotacao, 
-    getAnotacaoAvaliado, 
-    getAnotacaoAvaliadorLider, 
+  const {
+    createAnotacao,
+    getAnotacaoAvaliado,
+    getAnotacaoAvaliadorLider,
     getAnotacaoPDI,
     getAnotacaoBySlug,
-    createAnotacaoLider ,
-    getAnotacaoLider
+    createAnotacaoLider,
+    getAnotacaoLider,
   } = useAnotacoesHook()
 
   const permissoesUsuario = {
-    anotacoesAvaliado: temPermissao('pesquisas.relatorio.anotacoes.avaliado') || false,
-    anotacaoLider: temPermissao('pesquisas.relatorio.anotacoes.lider') || false,
-    pdiAvaliado: temPermissao('pesquisas.relatorio.anotacoes.pdi') || false,
-    exportarXLSX: temPermissao('pesquisas.exportar.xlsx') || false,
-    avaliacaoLider: temPermissao('pesquisas.avaliacao.lider') || false,
+    anotacoesAvaliado: temPermissao("pesquisas.relatorio.anotacoes.avaliado") || false,
+    anotacaoLider: temPermissao("pesquisas.relatorio.anotacoes.lider") || false,
+    pdiAvaliado: temPermissao("pesquisas.relatorio.anotacoes.pdi") || false,
+    exportarXLSX: temPermissao("pesquisas.exportar.xlsx") || false,
+    avaliacaoLider: temPermissao("pesquisas.avaliacao.lider") || false,
   }
 
   const chartRef = useRef(null)
@@ -122,7 +123,8 @@ export default function Page() {
       const formattedScores = retornoDashboard.score.map((item: ScoreItem) => ({
         name: item.name,
         first_name: item.first_name,
-        score: item.score,
+        score: Number.parseFloat(item.score.toString()),
+        percentual_av_lider: item.percentual_av_lider ? Number.parseFloat(item.percentual_av_lider.toString()) : 0,
         color: item.color || "#ccc",
       }))
 
@@ -153,7 +155,6 @@ export default function Page() {
     }
   }
 
-  // Função genérica para buscar anotações baseada no tipo
   const buscarAnotacao = async (envioId: string, tipo: TipoAnotacao) => {
     try {
       let anotacao
@@ -179,17 +180,13 @@ export default function Page() {
     }
   }
 
-  // Função genérica para abrir modal de anotações
   const handleOpenAnnotationModal = async (row: any, tipo: TipoAnotacao) => {
     setCurrentAnnotationType(tipo)
 
-    // Busca a anotação existente
     const anotacaoExistente = await buscarAnotacao(row.envio_id, tipo)
 
-    // Atualiza a linha selecionada com a anotação
     setSelectedRow({ ...row, anotacao: anotacaoExistente })
 
-    // Define o título do modal baseado no tipo
     const tipoTexto = {
       [TipoAnotacao.AVALIADO]: "Avaliado",
       [TipoAnotacao.AVALIADOR_LIDER]: "Avaliador/Líder",
@@ -200,7 +197,6 @@ export default function Page() {
     setIsModalOpen(true)
   }
 
-  // Funções específicas para cada tipo de anotação
   const handleOpenNotesAvaliadoModal = (row: any) => {
     handleOpenAnnotationModal(row, TipoAnotacao.AVALIADO)
   }
@@ -213,9 +209,7 @@ export default function Page() {
     handleOpenAnnotationModal(row, TipoAnotacao.PDI_AVALIADO)
   }
 
-  // Função genérica para salvar anotações
   const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
-    // Atualiza o estado local
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
 
@@ -243,27 +237,21 @@ export default function Page() {
     }
   }
 
-  // Função que será executada quando salvar - aqui você faria a chamada para o backend
   const handleSaveAvaliacao = async (avaliacao: string) => {
     try {
-    
-      // Verifica se já existe uma avaliação do líder
       const avalLider = await getAnotacaoLider(slugPesquisa)
       if (avalLider && avalLider.length > 0) {
-        // Atualiza a avaliação existente
         await createAnotacaoLider({
           slug: slugPesquisa,
           anotacao: avaliacao,
-          id: avalLider[0].id,  // Usa o ID da anotação existente
+          id: avalLider[0].id,
         })
       } else {
-        // Cria uma nova avaliação do líder
         await createAnotacaoLider({
           slug: slugPesquisa,
           anotacao: avaliacao,
         })
       }
-
 
       setAvaliacaoAtual(avaliacao)
       alert("Avaliação salva com sucesso!")
@@ -276,11 +264,10 @@ export default function Page() {
   const handleAvaliacaoLider = async () => {
     setModalOpenAvaliacaoLider(true)
 
-    // Busca a avaliação atual do líder
-    const avalLider  =  await getAnotacaoLider(slugPesquisa)
-    
-    if (avalLider && avalLider.anotacao.length > 0) {
-      setAvaliacaoAtual(avalLider.anotacao || "")
+    const avalLider = await getAnotacaoLider(slugPesquisa)
+
+    if (avalLider && avalLider.length > 0) {
+      setAvaliacaoAtual(avalLider[0].anotacao || "")
     } else {
       setAvaliacaoAtual("tes 222")
     }
@@ -300,7 +287,7 @@ export default function Page() {
       variant: "outline" as const,
       onClick: handleAvaliacaoLider,
       visible: permissoesUsuario.avaliacaoLider,
-    }
+    },
   ]
 
   const actionsColumn = [
@@ -332,17 +319,13 @@ export default function Page() {
 
   return (
     <div className="w-100 p-4 space-y-6">
-      {/* Título principal */}
       <h1 className="text-2xl font-bold">DashBoard - Pesquisa: {pesquisa ? pesquisa.titulo : "Carregando..."}</h1>
 
-      {/* Grid para cards e gráfico */}
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        {/* Card 1/4 - Total de Respondentes */}
         <Card className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <div>
               <CardTitle className="text-sm font-medium">Total de Respondentes</CardTitle>
-              <p className="mt-1 text-xs text-muted-foreground">+12% em relação ao mês anterior</p>
             </div>
             <UserIcon className="h-5 w-5 text-muted-foreground" />
           </CardHeader>
@@ -365,13 +348,12 @@ export default function Page() {
           </CardContent>
         </Card>
 
-        {/* Card 3/4 - Gráfico de Top Scorers */}
         <Card className="col-span-1 md:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="text-sm font-medium">Top 10 Maiores Pontuações</CardTitle>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
                   <Download className="h-4 w-4" />
                   <span>Exportar</span>
                 </Button>
@@ -395,10 +377,14 @@ export default function Page() {
                 <ResponsiveBar
                   data={topScorers}
                   indexBy="first_name"
-                  keys={["score"]}
-                  colors={(bar) => bar.data.color || "#ccc"}
-                  margin={{ top: 20, right: 20, bottom: 60, left: 60 }}
+                  keys={["score", "percentual_av_lider"]}
+                  colors={({ id, data }) => {
+                    if (id === "score") return data.color || "#ccc"
+                    return "#3b82f6"
+                  }}
+                  margin={{ top: 40, right: 130, bottom: 60, left: 60 }}
                   padding={0.3}
+                  groupMode="grouped"
                   valueScale={{ type: "linear" }}
                   axisBottom={{
                     tickSize: 5,
@@ -414,6 +400,30 @@ export default function Page() {
                   labelSkipWidth={12}
                   labelSkipHeight={12}
                   label={(d) => `${d.value}`}
+                  legends={[
+                    {
+                      dataFrom: "keys",
+                      anchor: "top-right",
+                      direction: "column",
+                      justify: false,
+                      translateX: 120,
+                      translateY: 0,
+                      itemsSpacing: 2,
+                      itemWidth: 100,
+                      itemHeight: 20,
+                      itemDirection: "left-to-right",
+                      symbolSize: 12,
+                      symbolShape: "square",
+                      effects: [
+                        {
+                          on: "hover",
+                          style: {
+                            itemOpacity: 1,
+                          },
+                        },
+                      ],
+                    },
+                  ]}
                   theme={{
                     tooltip: {
                       container: {
@@ -435,7 +445,6 @@ export default function Page() {
         </Card>
       </div>
 
-      {/* Card para a Tabela */}
       <h1 className="text-2xl font-bold">Respostas</h1>
       <BasicDataTable
         columns={colunas}

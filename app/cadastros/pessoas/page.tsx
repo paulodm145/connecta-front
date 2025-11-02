@@ -64,8 +64,7 @@ export default function Pessoas() {
 const carregarPessoas = async () => {
   try {
     const response = await get('pessoas');
-
-    console.log('Pessoas carregadas:', response); // Verificar o retorno
+    
     if (response) {
       // Usar map em vez de forEach para transformar os dados e retornar um novo array
       const pessoasLista = response.map((pessoa: any) => {
@@ -110,7 +109,21 @@ useEffect(() => {
     { name: 'email', label: 'Email', type: 'text', required: true },
     { name: 'telefone', label: 'Telefone', type: 'text' },
     { name: 'registro_funcional', label: 'Registro Funcional', type: 'text' },
-    
+    { 
+      name: 'data_admissao', 
+      label: 'Data de Admissão', 
+      type: 'mask', 
+      required: true, 
+      maskPattern: '99/99/9999',
+      render: (value: string) => {
+        // Formata a data para DD/MM/AAAA ao exibir
+        const date = new Date(value);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${day}/${month}/${year}`;
+      }
+    },
     {
       name: 'cargo_id',
       label: 'Cargo',
@@ -136,6 +149,7 @@ useEffect(() => {
     { dataField: 'id', label: 'ID', render: (value: { toString: () => string; }) => value.toString().padStart(5, '0') },
     { label: "Nome", dataField: "nome" },  
     { label: "CPF", dataField: "cpf" },
+    { label: "Data de Admissão", dataField: "data_admissao_formatada" },
     { label: "Email", dataField: "email" },
     { label: "Telefone", dataField: "telefone" },
     { label: "Registro Funcional", dataField: "registro_funcional" },
@@ -152,6 +166,11 @@ useEffect(() => {
   }, [data]);
 
   const saveData = useCallback(async (id: number | null, formData: any) => {
+    
+    formData.cpf = formData.cpf.replace(/\D/g, '');
+    formData.telefone = formData.telefone.replace(/\D/g, '');
+    formData.data_admissao = formData.data_admissao.split('/').reverse().join('-'); // Converte para formato AAAA-MM-DD
+    
     if (id) {
       // Atualiza registro existente
       const response = await put(`pessoas/${id}`, formData);
@@ -163,8 +182,7 @@ useEffect(() => {
     } else {
       // Cria novo registro
       //apenas numeros para cpf e telefone
-      formData.cpf = formData.cpf.replace(/\D/g, '');
-      formData.telefone = formData.telefone.replace(/\D/g, '');
+    
       const response = await post("pessoas", formData);
       if (response) {
         await carregarPessoas(); // Recarrega a lista após criar

@@ -86,6 +86,7 @@ export default function FormularioCompletoPage() {
   const respondente = searchParams.get("t");
   const pesquisaSlug = searchParams.get("p");
   const identificador_empresa = searchParams.get("e");
+  const tipoResposta = searchParams.get("tpo"); // novo parâmetro para tipo de resposta
 
   const { getBySlug, formularioExternoBySlug  } = useFormulariosHook();
   const { getBySlug: getPesquisaBySlug, pesquisaexternaBySlug } = usePesquisasHook();
@@ -123,9 +124,12 @@ export default function FormularioCompletoPage() {
   const onSubmit = async (data: any) => {
     console.log("Respostas brutas:", data);
 
+    const tpoResposta = tipoResposta == '1' ? 'COLABORADOR' : 'LIDER';
+
     const payload = {
       pesquisa_id: pesquisa?.id,
       formulario_id: formulario?.id,
+      tipo_envio: tpoResposta,
       respondente : respondente,
       envio_id: Math.random().toString(36).substr(2, 9),
       respostas: formulario?.perguntas.map((pergunta) => {
@@ -169,6 +173,7 @@ export default function FormularioCompletoPage() {
           tipo_pergunta: pergunta.tipo_pergunta,
           resposta_texto,
           opcoes: opcoesSelecionadas,
+          tipo_resposta: tpoResposta,
         };
       }),
     };
@@ -239,6 +244,12 @@ export default function FormularioCompletoPage() {
           <>
 
           <h1 className="text-xl font-bold mb-2">{pesquisa?.titulo || "Título não disponível"}</h1>
+
+          {tipoResposta === '1' ? (
+            <h2 className="text-lg font-semibold mb-4">Formulário para Colaboradores</h2>
+          ) : (
+            <h2 className="text-lg font-semibold mb-4">Formulário para Líderes</h2>
+          )}
           {/*<p className="text-gray-700 mb-4">{formulario.descricao}</p>*/}
 
           {/* Botões de ajuda e vídeo do formulário */}

@@ -48,7 +48,7 @@ export default function Setores() {
   const carregarPessoas = async () => {
     try {
       const response = await getResponsaveis();
-      console.log('Pessoas carregadas:', response); // Verificar o retorno
+      
       if (response) {
         const options = response.map((pessoa: { id: number; nome: string }) => ({
           value: (pessoa.id).toString(),

@@ -8,6 +8,7 @@ import { toast } from "react-toastify";
 import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useRespondentesHook } from "@/app/hooks/useRespondentesHook";
 import { usePessoasHook } from "@/app/hooks/usePessoasHook";
+import { useSetoresHook } from "@/app/hooks/useSetoresHook";
 import { useClipboard } from '@/app/hooks/useClipBoard'; // ajuste o caminho se necessário
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
@@ -51,8 +52,10 @@ import { PlusCircle } from "lucide-react";
 
 //importar o store
 import { useUserStore } from '@/app/store/userStore'
+import { parse } from "path";
 
 interface Respondente {
+  setor_id: number;
   id: number;
   pessoa_id: number;
   pesquisa_id: number;
@@ -65,6 +68,8 @@ interface Respondente {
   pessoa_nome: string;
   pessoa_email: string;
   pessoa_cpf: string;
+  setor_descricao?: string;
+  cargo_descricao?: string;
 }
 
 export default function PesquisasRespondentes() {
@@ -76,6 +81,7 @@ export default function PesquisasRespondentes() {
   const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
   const { copyToClipboard } = useClipboard();
+  const { setoresAtivos } = useSetoresHook();
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
   const permissoesUsuario = {
@@ -100,6 +106,7 @@ export default function PesquisasRespondentes() {
     null
   );
   const [respondentesCombo, setRespondentesCombo] = useState<any[]>([]);
+  const [setores, setSetores] = useState<any[]>([]);
 
   const itemsPerPage = 10;
 
@@ -112,17 +119,19 @@ export default function PesquisasRespondentes() {
   //Carregando listas iniciais
   useEffect(() => {
     const loadData = async () => {
-    const [respPessoas, respPesquisa, respRespondentes, respCombo] = await Promise.all([
+    const [respPessoas, respPesquisa, respRespondentes, respCombo, respStores] = await Promise.all([
       getPessoasAtivas(),
       getBySlug(slug),
       getRespondentesByPesquisaSlug(slug),
       listarRespondentesCombo(),
+      setoresAtivos(),
     ]);
 
     setPesquisa(respPesquisa || []);
     setRespondentes(respRespondentes || []);
     setPessoas(respPessoas || []);
     setRespondentesCombo(respCombo || []);
+    setSetores(respStores || []);
     };
 
     loadData();
@@ -243,6 +252,33 @@ export default function PesquisasRespondentes() {
     }
   }
 
+  const handleFilterChange = async (setorId: number | null) => {
+    // Implementar lógica de filtragem por setor aqui
+    if (setorId != null && setorId !== 0) {
+      const filteredRespondentes = respondentes.filter(
+        (r) => r.setor_id === setorId
+      );
+
+      const parseSetor = filteredRespondentes.map((item) => ({
+        id: item.id,
+        label: item.pessoa_nome,
+      }));
+      
+      setRespondentesCombo(parseSetor);
+    } else {
+      // Se nenhum setor estiver selecionado, recarregar todos os respondentes
+      const updatedRespondentes = await getPessoasAtivas();
+      const listarPessoasCombos = updatedRespondentes.map((item: { id: any; nome: any; }) => ({
+        id: item.id,
+        label: item.nome,
+      }));
+
+      console.log('LISTAR PESSOAS:: ', listarPessoasCombos);
+    
+      setRespondentesCombo(listarPessoasCombos || []);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -327,6 +363,23 @@ export default function PesquisasRespondentes() {
             buttonText="Adicionar Respondentes"
             onSend={addRespondentesMultiplos}
           />)}
+
+          <div>
+            <Select onValueChange={(value) => handleFilterChange(Number(value) || null)} defaultValue="">
+              <SelectTrigger>
+                <SelectValue placeholder="Filtrar Por Setor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="0">Todos os Setores</SelectItem>
+                {setores.map((setor) => (
+                  <SelectItem key={setor.id} value={setor.id.toString()}>
+                    {setor.descricao}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <Input
             placeholder="Pesquisar respondentes..."
             value={searchTerm}
@@ -339,6 +392,8 @@ export default function PesquisasRespondentes() {
           <TableHeader>
             <TableRow>
               <TableHead>Nome</TableHead>
+              <TableHead>Cargo</TableHead>
+              <TableHead>Setor</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>CPF</TableHead>
               {permissoesUsuario.podeAlterarStatus && (<TableHead>Status</TableHead>)}
@@ -349,6 +404,8 @@ export default function PesquisasRespondentes() {
             {currentRespondentes.map((respondente) => (
               <TableRow key={respondente.id}>
                 <TableCell>{respondente.pessoa_nome}</TableCell>
+                <TableCell>{respondente.cargo_descricao}</TableCell>
+                <TableCell>{respondente.setor_descricao}</TableCell>
                 <TableCell>{respondente.pessoa_email}</TableCell>
                 <TableCell>{respondente.pessoa_cpf}</TableCell>
                 {permissoesUsuario.podeAlterarStatus && (<TableCell>
@@ -389,7 +446,8 @@ export default function PesquisasRespondentes() {
                     size="sm"
                     className="ml-2"
                     onClick={() => {
-                      const link = `${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}`;
+                      const link = `${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}
+                        &e=${user?.informacoes_usuario?.identificador_empresa}&tpo=1`;
                       const success = copyToClipboard(link);
                       if (success) {
                         toast.success("Link copiado com sucesso");
@@ -400,6 +458,26 @@ export default function PesquisasRespondentes() {
                   >
                     Copiar Link
                   </Button>)}
+
+                 {permissoesUsuario.podeCopiarLink && (<Button
+                    variant="outline"
+                    size="sm"
+                    className="ml-2"
+                    onClick={() => {
+                      const link = `${BASE_URL}/respostas/formulario/${pesquisa.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}
+                        &e=${user?.informacoes_usuario?.identificador_empresa}&tpo=2`;
+                      const success = copyToClipboard(link);
+                      if (success) {
+                        toast.success("Link copiado com sucesso");
+                      } else {
+                        toast.error("Não foi possível copiar o link");
+                      }
+                    }}
+                  >
+                    Av. Líder
+                  </Button>)}     
+
+
                 </TableCell>
               </TableRow>
             ))}
