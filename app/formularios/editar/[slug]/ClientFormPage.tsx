@@ -8,6 +8,7 @@ import ConstrutorPergunta from '@/components/form-builder/ConstrutorPergunta'
 import FormBuilder from '@/components/form-builder/FormBuilder'
 import FormPreview from '@/components/form-builder/FormPreview'
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
+import { useCompetenciasHook } from "@/app/hooks/useCompetenciasHook"
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'; // Use o roteamento moderno do Next.js
 import { v4 as uuidv4 } from 'uuid';
@@ -22,6 +23,24 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
   const [loading, setLoading] = useState(true);
 
   const { getBySlug, editarFormulario } = useFormulariosHook();
+  const { index: listarCompetencias } = useCompetenciasHook();
+  const [competenciasOptions, setCompetenciasOptions] = useState<{ value: string; label: string }[]>([]);
+
+  useEffect(() => {
+    const carregarCompetencias = async () => {
+      const response = await listarCompetencias();
+      if (response) {
+        setCompetenciasOptions(
+          response.map((competencia: { id: number; descricao: string }) => ({
+            value: competencia.id.toString(),
+            label: competencia.descricao,
+          }))
+        );
+      }
+    };
+
+    carregarCompetencias();
+  }, []);
 
   useEffect(() => {
     const fetchFormulario = async () => {
@@ -76,6 +95,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
       tipo_pergunta: 'TEXT',
       obrigatoria: false,
       pontuacao_base: 0,
+      competencia_id: undefined,
       opcoes: [],
       ordem: perguntas.length + 1,
       ajuda: '',
@@ -94,6 +114,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
         tipo_pergunta: perguntaAtual.tipo_pergunta || 'TEXT',
         obrigatoria: perguntaAtual.obrigatoria || false,
         pontuacao_base: perguntaAtual.pontuacao_base || 0,
+        competencia_id: perguntaAtual.competencia_id ? Number(perguntaAtual.competencia_id) : undefined,
         mascara: perguntaAtual.mascara,
         opcoes: perguntaAtual.opcoes || [],
         ordem: perguntaAtual.ordem ?? (perguntas.length + 1),
@@ -149,6 +170,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
         onOpenPreview={() => setMostrarFormPreview(true)}
         onSaveForm={enviarFormulario}
         onAddPergunta={abrirModalAdd}
+        competenciasOptions={competenciasOptions}
       />
 
       {/* Modal para Adicionar Nova Pergunta */}
@@ -163,6 +185,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
           <div className="mt-4">
             <ConstrutorPergunta
               pergunta={perguntaAtual}
+              competenciasOptions={competenciasOptions}
               onChange={(atualizada) => setPerguntaAtual(atualizada)}
             />
           </div>

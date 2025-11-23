@@ -12,9 +12,10 @@ interface PropsItemPerguntaOrdenavel {
   index: number,
   atualizarPerguntaNoIndice: (index: number, updated: DadosPergunta) => void,
   removerPergunta: (index: number) => void
+  competenciasOptions?: { value: string; label: string }[]
 }
 
-const ItemPerguntaOrdenavel: FC<PropsItemPerguntaOrdenavel> = ({ pergunta, index, atualizarPerguntaNoIndice, removerPergunta }) => {
+const ItemPerguntaOrdenavel: FC<PropsItemPerguntaOrdenavel> = ({ pergunta, index, atualizarPerguntaNoIndice, removerPergunta, competenciasOptions = [] }) => {
   const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: pergunta.id})
   const style: CSSProperties = {
     transform: CSS.Transform.toString(transform),
@@ -32,6 +33,7 @@ const ItemPerguntaOrdenavel: FC<PropsItemPerguntaOrdenavel> = ({ pergunta, index
           <AccordionContent className="p-4 border-t bg-gray-50">
             <ConstrutorPergunta
               pergunta={pergunta}
+              competenciasOptions={competenciasOptions}
               onChange={(updated) => atualizarPerguntaNoIndice(index, updated)}
               onRemove={() => removerPergunta(index)}
             />

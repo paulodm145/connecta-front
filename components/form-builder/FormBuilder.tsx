@@ -17,7 +17,8 @@ interface FormBuilderProps {
   setPerguntas: (p: DadosPergunta[]) => void,
   onOpenPreview: () => void,
   onSaveForm: () => void,
-  onAddPergunta: () => void
+  onAddPergunta: () => void,
+  competenciasOptions?: { value: string; label: string }[],
 }
 
 const FormBuilder: FC<FormBuilderProps> = ({
@@ -27,7 +28,8 @@ const FormBuilder: FC<FormBuilderProps> = ({
   setPerguntas,
   onOpenPreview,
   onSaveForm,
-  onAddPergunta
+  onAddPergunta,
+  competenciasOptions = [],
 }) => {
 
   const sensores = useSensors(
@@ -159,6 +161,7 @@ const FormBuilder: FC<FormBuilderProps> = ({
               index={index}
               atualizarPerguntaNoIndice={atualizarPerguntaNoIndice}
               removerPergunta={removerPergunta}
+              competenciasOptions={competenciasOptions}
             />
           ))}
         </SortableContext>

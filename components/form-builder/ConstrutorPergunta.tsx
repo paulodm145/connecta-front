@@ -7,19 +7,26 @@ import { Button } from "@/components/ui/button"
 import { Switch } from "@/components/ui/switch"
 import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "@/components/ui/select"
 
+interface OpcaoCompetencia {
+  value: string
+  label: string
+}
+
 interface PropsConstrutorPergunta {
   pergunta?: Partial<DadosPergunta>
   onChange?: (updatedPergunta: DadosPergunta) => void
   onRemove?: () => void
+  competenciasOptions?: OpcaoCompetencia[]
 }
 
-const ConstrutorPergunta: FC<PropsConstrutorPergunta> = ({ pergunta = {}, onChange, onRemove }) => {
+const ConstrutorPergunta: FC<PropsConstrutorPergunta> = ({ pergunta = {}, onChange, onRemove, competenciasOptions = [] }) => {
   const [dadosPergunta, setDadosPergunta] = useState<DadosPergunta>({
     id: pergunta.id || '',
     pergunta_texto: pergunta.pergunta_texto || '',
     tipo_pergunta: pergunta.tipo_pergunta || 'TEXT',
     obrigatoria: pergunta.obrigatoria || false,
     pontuacao_base: pergunta.pontuacao_base || 0,
+    competencia_id: pergunta.competencia_id,
     mascara: pergunta.mascara || '',
     opcoes: pergunta.opcoes || [],
     ordem: pergunta.ordem,
@@ -85,6 +92,25 @@ const ConstrutorPergunta: FC<PropsConstrutorPergunta> = ({ pergunta = {}, onChan
             <SelectItem value="SINGLE_CHOICE">Escolha Única (Radio)</SelectItem>
             <SelectItem value="MULTIPLE_CHOICE">Múltipla Escolha (Checkbox)</SelectItem>
             <SelectItem value="SELECT">Seleção (Select)</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className="block font-semibold mb-1">Competência</label>
+        <Select
+          value={dadosPergunta.competencia_id?.toString() || ""}
+          onValueChange={(val) => handlePerguntaChange('competencia_id', val ? Number(val) : undefined)}
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Selecione uma competência" />
+          </SelectTrigger>
+          <SelectContent>
+            {competenciasOptions.map((option) => (
+              <SelectItem key={option.value} value={option.value}>
+                {option.label}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
       </div>
