@@ -1,14 +1,14 @@
 "use client"
 
 import BasicDataTable from "@/components/BasicDataTable"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon } from "lucide-react"
+import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -49,6 +49,7 @@ interface RespostaDados {
 
 export default function Page() {
   const params = useParams()
+  const router = useRouter()
   const slugPesquisa = params.slug as string
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
@@ -212,6 +213,15 @@ export default function Page() {
     handleOpenAnnotationModal(row, TipoAnotacao.PDI_AVALIADO)
   }
 
+  const handleVisualizarPdi = (row: any) => {
+    if (!row?.envio_id) {
+      toast.error("Envio não encontrado para visualizar o PDI.")
+      return
+    }
+
+    router.push(`/pesquisas/relatorios/${slugPesquisa}/pdi/${row.envio_id}`)
+  }
+
   const handleGerarPdi = async (row: any) => {
     const envioId = Number(row.envio_id)
 
@@ -337,6 +347,14 @@ export default function Page() {
       onClick: handleOpenNotesPDIModal,
       variant: "ghost" as const,
       className: "text-purple-500 hover:text-purple-700",
+      visible: permissoesUsuario.pdiAvaliado,
+    },
+    {
+      label: "Visualizar PDI",
+      icon: Eye,
+      onClick: handleVisualizarPdi,
+      variant: "ghost" as const,
+      className: "text-amber-600 hover:text-amber-700",
       visible: permissoesUsuario.pdiAvaliado,
     },
     {

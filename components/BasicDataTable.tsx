@@ -63,15 +63,17 @@ const BasicDataTable: React.FC<TableProps> = ({
 
   // Filtrando os dados dinamicamente
   const filteredData = useMemo(() => {
-    return data.filter((row) =>
-      columns.some((col) => String(row[col.datafield]).toLowerCase().includes(searchTerm.toLowerCase())),
-    ).filter((row) => {
-      // Verifica se pelo menos uma coluna visível contém o termo de busca
-      return visibleColumns.some((col) => 
-        String(row[col.datafield]).toLowerCase().includes(searchTerm.toLowerCase())
+    return data
+      .filter((row) =>
+        columns.some((col) => String(row[col.datafield]).toLowerCase().includes(searchTerm.toLowerCase())),
       )
-    })
-  }, [searchTerm, data, columns])
+      .filter((row) => {
+        // Verifica se pelo menos uma coluna visível contém o termo de busca
+        return visibleColumns.some((col) =>
+          String(row[col.datafield]).toLowerCase().includes(searchTerm.toLowerCase()),
+        )
+      })
+  }, [searchTerm, data, columns, visibleColumns])
 
   // Paginação
   const totalPages = Math.ceil(filteredData.length / rowsPerPage)
@@ -110,13 +112,16 @@ const BasicDataTable: React.FC<TableProps> = ({
           <div className="flex gap-2 flex-wrap">
             {actionsBar.map((action, index) => {
               const IconComponent = action.icon
+              const isVisible = action.visible !== false
+
+              if (!isVisible) return null
+
               return (
                 <Button
                   key={index}
                   variant={action.variant || "default"}
                   onClick={() => action.onClick(filteredData)}
                   className={action.className}
-                  style={{ display: action.visible ? 'inline-flex' : 'none' }}
                 >
                   {IconComponent && <IconComponent className="w-4 h-4 mr-2" />}
                   {action.label}
@@ -166,6 +171,10 @@ const BasicDataTable: React.FC<TableProps> = ({
                                 typeof action.disabled === "function"
                                   ? action.disabled(row)
                                   : action.disabled
+                              const isVisible = action.visible !== false
+
+                              if (!isVisible) return null
+
                               return (
                                 <Button
                                   key={actionIndex}
@@ -174,7 +183,6 @@ const BasicDataTable: React.FC<TableProps> = ({
                                   onClick={() => !isDisabled && action.onClick(row)}
                                   disabled={isDisabled}
                                   className={action.className || "h-8 w-8 p-0"}
-                                  style={{ display: action.visible ? 'inline-flex' : 'none' }}
                                 >
                                   {IconComponent ? (
                                     <IconComponent className="h-4 w-4" />
@@ -201,13 +209,16 @@ const BasicDataTable: React.FC<TableProps> = ({
                                     typeof action.disabled === "function"
                                       ? action.disabled(row)
                                       : action.disabled
+                                  const isVisible = action.visible !== false
+
+                                  if (!isVisible) return null
+
                                   return (
                                     <DropdownMenuItem
                                       key={actionIndex}
                                       onClick={() => !isDisabled && action.onClick(row)}
                                       className={action.className}
                                       disabled={isDisabled}
-                                      style={{ display: action.visible ? 'inline-flex' : 'none' }}
                                     >
                                       {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
                                       {action.label}
