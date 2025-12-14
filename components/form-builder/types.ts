@@ -20,6 +20,7 @@ export interface DadosPergunta {
   tipo_pergunta: TipoPergunta
   obrigatoria: boolean
   pontuacao_base: number
+  competencia_id?: number
   mascara?: string
   opcoes: OpcaoPergunta[]
   ordem?: number

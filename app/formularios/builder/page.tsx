@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { DadosFormulario, DadosPergunta } from '@/components/form-builder/types'
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
@@ -8,6 +8,7 @@ import ConstrutorPergunta from '@/components/form-builder/ConstrutorPergunta'
 import FormBuilder from '@/components/form-builder/FormBuilder'
 import FormPreview from '@/components/form-builder/FormPreview'
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
+import { useCompetenciasHook } from "@/app/hooks/useCompetenciasHook"
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'; // Use o roteamento moderno do Next.js
  
@@ -19,6 +20,24 @@ export default function PaginaConstrutor() {
   const [mostrarFormPreview, setMostrarFormPreview] = useState(false)
 
   const { novoFormulario } = useFormulariosHook()
+  const { index: listarCompetencias } = useCompetenciasHook()
+  const [competenciasOptions, setCompetenciasOptions] = useState<{ value: string; label: string }[]>([])
+
+  useEffect(() => {
+    const carregarCompetencias = async () => {
+      const response = await listarCompetencias()
+      if (response) {
+        setCompetenciasOptions(
+          response.map((competencia: { id: number; descricao: string }) => ({
+            value: competencia.id.toString(),
+            label: competencia.descricao,
+          }))
+        )
+      }
+    }
+
+    carregarCompetencias()
+  }, [])
 
   const [formulario, setFormulario] = useState<DadosFormulario>({
     id: '', // Add a default value for the 'id' property
@@ -45,6 +64,7 @@ export default function PaginaConstrutor() {
       tipo_pergunta: 'TEXT',
       obrigatoria: false,
       pontuacao_base: 0,
+      competencia_id: undefined,
       opcoes: [],
       ordem: perguntas.length + 1,
       ajuda: '',
@@ -63,6 +83,7 @@ export default function PaginaConstrutor() {
         tipo_pergunta: perguntaAtual.tipo_pergunta || 'TEXT',
         obrigatoria: perguntaAtual.obrigatoria || false,
         pontuacao_base: perguntaAtual.pontuacao_base || 0,
+        competencia_id: perguntaAtual.competencia_id ? Number(perguntaAtual.competencia_id) : undefined,
         mascara: perguntaAtual.mascara,
         opcoes: perguntaAtual.opcoes || [],
         ordem: perguntaAtual.ordem ?? (perguntas.length + 1),
@@ -118,6 +139,7 @@ export default function PaginaConstrutor() {
         onOpenPreview={() => setMostrarFormPreview(true)}
         onSaveForm={enviarFormulario}
         onAddPergunta={abrirModalAdd}
+        competenciasOptions={competenciasOptions}
       />
 
       {/* Modal para Adicionar Nova Pergunta */}
@@ -132,6 +154,7 @@ export default function PaginaConstrutor() {
           <div className="mt-4">
             <ConstrutorPergunta
               pergunta={perguntaAtual}
+              competenciasOptions={competenciasOptions}
               onChange={(atualizada) => setPerguntaAtual(atualizada)}
             />
           </div>

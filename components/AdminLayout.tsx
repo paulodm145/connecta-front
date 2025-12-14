@@ -248,6 +248,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       acessarSubMenuSetores: temPermissao('cadastros.setor.menu.exibir') || false,
       acessarSubMenuCargos: temPermissao('cadastros.cargos.menu.exibir') || false,
       acessarSubMenuPessoas: temPermissao('cadastros.pessoas.menu.exibir') || false,
+      acessarSubMenuCompetencias: temPermissao('cadastros.competencias.menu.exibir') || false,
   
       acessarMenuFormularios: temPermissao('formularios.formularios.exibir.menu') || false,
   
@@ -307,6 +308,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
           { name: "Setores", icon: Clipboard, link: "/cadastros/setores", permissao: permissoesUsuario.acessarSubMenuSetores, },
           { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos", permissao: permissoesUsuario.acessarSubMenuCargos },
           { name: "Pessoas", icon: Users, link: "/cadastros/pessoas", permissao: permissoesUsuario.acessarSubMenuPessoas },
+          { name: "Competências", icon: Clipboard, link: "/cadastros/competencias", permissao: permissoesUsuario.acessarSubMenuCompetencias },
         ]
       },
       { name: "Formulários", icon: ListCheck, link: "/formularios/listagem", permissao: permissoesUsuario.acessarMenuFormularios },
