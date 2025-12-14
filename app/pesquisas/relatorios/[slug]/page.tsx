@@ -8,7 +8,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare, UserCheckIcon } from "lucide-react"
+import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -20,6 +20,7 @@ import { EditModal } from "./edit-modal"
 import { useAnotacoesHook } from "@/app/hooks/useAnotacoesHook"
 import { LeaderEvaluationModal } from "./leader-evaluation-modal"
 import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook"
+import { usePdiHook } from "@/app/hooks/usePdiHook"
 
 // Enum para tipos de anotação
 enum TipoAnotacao {
@@ -52,6 +53,7 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
+  const { gerarPdiEnvio } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -71,6 +73,7 @@ export default function Page() {
 
   const [modalOpenAvaliacaoLider, setModalOpenAvaliacaoLider] = useState(false)
   const [avaliacaoAtual, setAvaliacaoAtual] = useState("")
+  const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
 
   const {
     createAnotacao,
@@ -209,6 +212,27 @@ export default function Page() {
     handleOpenAnnotationModal(row, TipoAnotacao.PDI_AVALIADO)
   }
 
+  const handleGerarPdi = async (row: any) => {
+    const envioId = Number(row.envio_id)
+
+    if (!envioId) {
+      toast.error("Envio não encontrado para gerar o PDI.")
+      return
+    }
+
+    setGerandoPdiEnvioId(envioId)
+
+    try {
+      await gerarPdiEnvio(envioId)
+      toast.success("PDI gerado com sucesso para o envio selecionado.")
+    } catch (error) {
+      console.error("Erro ao gerar PDI:", error)
+      toast.error("Não foi possível gerar o PDI. Tente novamente.")
+    } finally {
+      setGerandoPdiEnvioId(null)
+    }
+  }
+
   const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
@@ -314,6 +338,14 @@ export default function Page() {
       variant: "ghost" as const,
       className: "text-purple-500 hover:text-purple-700",
       visible: permissoesUsuario.pdiAvaliado,
+    },
+    {
+      label: "Gerar PDI",
+      icon: Sparkles,
+      onClick: handleGerarPdi,
+      variant: "ghost" as const,
+      className: "text-amber-600 hover:text-amber-700",
+      disabled: (row) => gerandoPdiEnvioId === row.envio_id,
     },
   ]
 

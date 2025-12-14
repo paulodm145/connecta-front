@@ -32,6 +32,7 @@ interface RowAction {
   className?: string
   actionsColumn?: RowAction[]
   visible?: boolean
+  disabled?: boolean | ((row: Record<string, any>) => boolean)
 }
 
 interface TableProps {
@@ -161,12 +162,17 @@ const BasicDataTable: React.FC<TableProps> = ({
                           <div className="flex justify-end gap-2">
                             {actionsColumn.map((action, actionIndex) => {
                               const IconComponent = action.icon
+                              const isDisabled =
+                                typeof action.disabled === "function"
+                                  ? action.disabled(row)
+                                  : action.disabled
                               return (
                                 <Button
                                   key={actionIndex}
                                   variant={action.variant || "ghost"}
                                   size="sm"
-                                  onClick={() => action.onClick(row)}
+                                  onClick={() => !isDisabled && action.onClick(row)}
+                                  disabled={isDisabled}
                                   className={action.className || "h-8 w-8 p-0"}
                                   style={{ display: action.visible ? 'inline-flex' : 'none' }}
                                 >
@@ -188,19 +194,24 @@ const BasicDataTable: React.FC<TableProps> = ({
                                 <span className="sr-only">Abrir menu</span>
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              {actionsColumn.map((action, actionIndex) => {
-                                const IconComponent = action.icon
-                                return (
-                                  <DropdownMenuItem
-                                    key={actionIndex}
-                                    onClick={() => action.onClick(row)}
-                                    className={action.className}
-                                    style={{ display: action.visible ? 'inline-flex' : 'none' }}
-                                  >
-                                    {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
-                                    {action.label}
-                                  </DropdownMenuItem>
+                              <DropdownMenuContent align="end">
+                                {actionsColumn.map((action, actionIndex) => {
+                                  const IconComponent = action.icon
+                                  const isDisabled =
+                                    typeof action.disabled === "function"
+                                      ? action.disabled(row)
+                                      : action.disabled
+                                  return (
+                                    <DropdownMenuItem
+                                      key={actionIndex}
+                                      onClick={() => !isDisabled && action.onClick(row)}
+                                      className={action.className}
+                                      disabled={isDisabled}
+                                      style={{ display: action.visible ? 'inline-flex' : 'none' }}
+                                    >
+                                      {IconComponent && <IconComponent className="mr-2 h-4 w-4" />}
+                                      {action.label}
+                                    </DropdownMenuItem>
                                 )
                               })}
                             </DropdownMenuContent>
