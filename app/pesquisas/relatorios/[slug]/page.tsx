@@ -231,13 +231,32 @@ export default function Page() {
     }
 
     setGerandoPdiEnvioId(envioId)
+    const loadingToastId = toast.loading("Gerando PDI...", { autoClose: false })
 
     try {
       await gerarPdiEnvio(envioId)
-      toast.success("PDI gerado com sucesso para o envio selecionado.")
+      if (loadingToastId) {
+        toast.update(loadingToastId, {
+          render: "PDI gerado com sucesso para o envio selecionado.",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      } else {
+        toast.success("PDI gerado com sucesso para o envio selecionado.")
+      }
     } catch (error) {
       console.error("Erro ao gerar PDI:", error)
-      toast.error("Não foi possível gerar o PDI. Tente novamente.")
+      if (loadingToastId) {
+        toast.update(loadingToastId, {
+          render: "Não foi possível gerar o PDI. Tente novamente.",
+          type: "error",
+          isLoading: false,
+          autoClose: 4000,
+        })
+      } else {
+        toast.error("Não foi possível gerar o PDI. Tente novamente.")
+      }
     } finally {
       setGerandoPdiEnvioId(null)
     }
@@ -370,6 +389,12 @@ export default function Page() {
   return (
     <div className="w-100 p-4 space-y-6">
       <h1 className="text-2xl font-bold">DashBoard - Pesquisa: {pesquisa ? pesquisa.titulo : "Carregando..."}</h1>
+
+      {gerandoPdiEnvioId && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          Gerando PDI para o envio {gerandoPdiEnvioId}. Aguarde a conclusão para visualizar o resultado.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <Card className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm">
