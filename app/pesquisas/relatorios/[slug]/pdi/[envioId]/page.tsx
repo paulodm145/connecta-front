@@ -14,9 +14,15 @@ interface CompetenciaPdi {
   competencia_id?: number
   descricao?: string
   nota?: number
+  prompt_pdi?: string
   acoes_recomendadas?: string[]
   indicadores_sucesso?: string[]
   prazo_meses?: number
+  recomendacoes?: {
+    dicas?: string[]
+    livros?: { titulo?: string; resumo?: string }[]
+    videos?: { titulo?: string; link?: string; resumo?: string }[]
+  }
 }
 
 interface PlanoPdi {
@@ -38,6 +44,9 @@ export default function VisualizarPdiPage() {
   const [planoPdi, setPlanoPdi] = useState<PlanoPdi | null>(null)
   const [promptPdi, setPromptPdi] = useState<string | null>(null)
   const [competenciasResumo, setCompetenciasResumo] = useState<any[]>([])
+  const [pdiDetalhes, setPdiDetalhes] = useState<{ id?: number; modelo?: string; created_at?: string; updated_at?: string } | null>(
+    null
+  )
 
   const title = useMemo(() => {
     if (avaliacao?.respondente) {
@@ -60,15 +69,36 @@ export default function VisualizarPdiPage() {
       try {
         const dados = await buscarPdiEnvio(envioId)
 
-        const avaliacaoDados = dados.avaliacao || dados.resposta?.avaliacao
-        const plano = dados.pdi || dados.resposta?.pdi || null
-        const competencias = plano?.competencias || dados.competencias || []
-        const prompt = dados.prompt || dados.resposta?.prompt || null
+        const avaliacaoDados = dados.avaliacao || dados.pdi?.resposta?.avaliacao || dados.resposta?.avaliacao
+        const respostaPdi = dados.pdi?.resposta || dados.resposta || null
+        const plano = respostaPdi?.pdi || null
+        const competenciasOrigem = dados.competencias || []
+        const competenciasPdi = plano?.competencias || []
+        const competencias =
+          competenciasPdi.length > 0
+            ? competenciasPdi.map((competencia: CompetenciaPdi) => {
+                const origem = competenciasOrigem.find(
+                  (item: CompetenciaPdi) =>
+                    item.competencia_id === competencia.competencia_id || item.descricao === competencia.descricao
+                )
+
+                return {
+                  ...origem,
+                  ...competencia,
+                  prompt_pdi: competencia.prompt_pdi || origem?.prompt_pdi,
+                  descricao: competencia.descricao || origem?.descricao,
+                  nota: competencia.nota ?? origem?.nota,
+                }
+              })
+            : competenciasOrigem
+        const prompt = dados.pdi?.prompt || respostaPdi?.prompt || dados.prompt || null
+        const detalhesPdi = dados.pdi
 
         setAvaliacao(avaliacaoDados)
         setPlanoPdi(plano)
         setCompetenciasResumo(competencias)
         setPromptPdi(prompt)
+        setPdiDetalhes(detalhesPdi || null)
       } catch (error) {
         console.error("Erro ao carregar PDI:", error)
         setErro("Não foi possível carregar o PDI gerado para este envio.")
@@ -142,6 +172,27 @@ export default function VisualizarPdiPage() {
         </Card>
       )}
 
+      {pdiDetalhes && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Dados da geração do PDI</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 text-sm text-muted-foreground">
+            <p>
+              <strong>ID:</strong> {pdiDetalhes.id || "-"}
+            </p>
+            <p>
+              <strong>Modelo:</strong> {pdiDetalhes.modelo || "-"}
+            </p>
+            {(pdiDetalhes.created_at || pdiDetalhes.updated_at) && (
+              <p>
+                <strong>Gerado em:</strong> {pdiDetalhes.updated_at || pdiDetalhes.created_at}
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {promptPdi && (
         <Card>
           <CardHeader>
@@ -183,6 +234,13 @@ export default function VisualizarPdiPage() {
                     )}
                   </div>
 
+                  {item.prompt_pdi && (
+                    <div>
+                      <p className="text-xs uppercase text-muted-foreground">Prompt da competência</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{item.prompt_pdi}</p>
+                    </div>
+                  )}
+
                   {item.acoes_recomendadas && item.acoes_recomendadas.length > 0 && (
                     <div>
                       <p className="text-xs uppercase text-muted-foreground">Ações recomendadas</p>
@@ -207,6 +265,61 @@ export default function VisualizarPdiPage() {
 
                   {item.prazo_meses && (
                     <p className="text-sm text-muted-foreground">Prazo sugerido: {item.prazo_meses} meses</p>
+                  )}
+
+                  {item.recomendacoes && (
+                    <div className="space-y-3">
+                      {item.recomendacoes.dicas && item.recomendacoes.dicas.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Dicas</p>
+                          <ul className="list-disc list-inside text-sm space-y-1">
+                            {item.recomendacoes.dicas.map((dica: string, dicaIndex: number) => (
+                              <li key={`${dica}-${dicaIndex}`}>{dica}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {item.recomendacoes.livros && item.recomendacoes.livros.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Livros recomendados</p>
+                          <ul className="list-disc list-inside text-sm space-y-1">
+                            {item.recomendacoes.livros.map((livro, livroIndex) => (
+                              <li key={`${livro.titulo}-${livroIndex}`}>
+                                <span className="font-medium">{livro.titulo}</span>
+                                {livro.resumo && <span className="text-muted-foreground"> — {livro.resumo}</span>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {item.recomendacoes.videos && item.recomendacoes.videos.length > 0 && (
+                        <div>
+                          <p className="text-xs uppercase text-muted-foreground">Vídeos recomendados</p>
+                          <ul className="list-disc list-inside text-sm space-y-1">
+                            {item.recomendacoes.videos.map((video, videoIndex) => (
+                              <li key={`${video.titulo}-${videoIndex}`} className="space-y-1">
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{video.titulo}</span>
+                                  {video.link && (
+                                    <a
+                                      href={video.link}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-amber-700 hover:underline"
+                                    >
+                                      {video.link}
+                                    </a>
+                                  )}
+                                </div>
+                                {video.resumo && <p className="text-muted-foreground text-sm">{video.resumo}</p>}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -237,7 +350,7 @@ export default function VisualizarPdiPage() {
               <div key={`${competencia.competencia_id}-${index}`} className="space-y-1">
                 <div className="flex items-center justify-between gap-2">
                   <p className="font-medium">{competencia.descricao}</p>
-                  {competencia.nota && (
+                  {competencia.nota !== undefined && (
                     <Badge variant="secondary">Nota: {Number(competencia.nota).toFixed(2)}</Badge>
                   )}
                 </div>
