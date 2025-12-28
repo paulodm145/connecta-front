@@ -65,7 +65,23 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
           "competencia_id": 1,
           "descricao": "Comunicação",
           "prompt_pdi": "Sugira ações para comunicação...",
-          "nota": 4.5
+          "nota": 4.5,
+          "livros_pdi": [
+            {
+              "id": 10,
+              "titulo": "Comunicação não violenta",
+              "link": "https://exemplo.com/livro",
+              "descricao": "Técnicas práticas para diálogos difíceis."
+            }
+          ],
+          "videos_pdi": [
+            {
+              "id": 22,
+              "titulo": "Como dar feedback",
+              "link": "https://www.youtube.com/watch?v=abc123",
+              "descricao": "Exemplos práticos e roteiro de conversa."
+            }
+          ]
         }
       ],
       "pdi": {
@@ -138,7 +154,23 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
               "nota": 4.5,
               "acoes_recomendadas": ["até 3 ações práticas"],
               "indicadores_sucesso": ["indicadores medíveis"],
-              "prazo_meses": 3
+              "prazo_meses": 3,
+              "recomendacoes": {
+                "livros": [
+                  {
+                    "titulo": "Comunicação não violenta",
+                    "link": "https://exemplo.com/livro",
+                    "descricao": "Resumo de contribuição."
+                  }
+                ],
+                "videos": [
+                  {
+                    "titulo": "Como dar feedback",
+                    "link": "https://www.youtube.com/watch?v=abc123",
+                    "descricao": "Resumo de contribuição."
+                  }
+                ]
+              }
             }
           ]
         }
@@ -196,6 +228,44 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
     - Retorno esperado: objeto atualizado com a competência vinculada.
   - `DELETE /api/empresas/competencia-recomendacoes/{competenciaRecomendacao}`: remove (soft delete) a recomendação.
     - Retorno esperado: `204 No Content`.
+
+- **CRUD de livros de PDI** (rotas autenticadas em `/api/empresas/livros-pdi`):
+  - Campos obrigatórios: `competencia_id`, `titulo`, `link` (URL válida) e `descricao` (texto livre para relevância e resumo do conteúdo).
+  - `GET /api/empresas/livros-pdi`: lista todos os livros com a competência vinculada.
+  - `POST /api/empresas/livros-pdi`: cria um livro associado à competência.
+    - Payload mínimo:
+      ```json
+      {
+        "competencia_id": 1,
+        "titulo": "Comunicação não violenta",
+        "link": "https://exemplo.com/livro",
+        "descricao": "Mostra técnicas práticas para conversas difíceis e indica por que é relevante."
+      }
+      ```
+    - Retorno esperado (201): objeto criado com o relacionamento `competencia`.
+  - `GET /api/empresas/livros-pdi/{id}`: retorna um livro específico com a competência.
+  - `PUT /api/empresas/livros-pdi/{livroPdi}`: atualiza os dados do livro.
+    - Payload: mesma estrutura do `POST`.
+  - `DELETE /api/empresas/livros-pdi/{livroPdi}`: remove (soft delete) o livro.
+
+- **CRUD de vídeos de PDI** (rotas autenticadas em `/api/empresas/videos-pdi`):
+  - Campos obrigatórios: `competencia_id`, `titulo`, `link` (URL válida) e `descricao` (texto livre para relevância e resumo do conteúdo).
+  - `GET /api/empresas/videos-pdi`: lista todos os vídeos com a competência vinculada.
+  - `POST /api/empresas/videos-pdi`: cria um vídeo associado à competência.
+    - Payload mínimo:
+      ```json
+      {
+        "competencia_id": 1,
+        "titulo": "Como dar feedback",
+        "link": "https://www.youtube.com/watch?v=abc123",
+        "descricao": "Explica a importância do conteúdo e dá exemplos práticos para aplicar."
+      }
+      ```
+    - Retorno esperado (201): objeto criado com o relacionamento `competencia`.
+  - `GET /api/empresas/videos-pdi/{id}`: retorna um vídeo específico com a competência.
+  - `PUT /api/empresas/videos-pdi/{videoPdi}`: atualiza os dados do vídeo.
+    - Payload: mesma estrutura do `POST`.
+  - `DELETE /api/empresas/videos-pdi/{videoPdi}`: remove (soft delete) o vídeo.
 
 ## Cálculo de nota por competência
 - **Coleta das respostas**: o serviço reúne as respostas do envio, associando perguntas às respectivas competências (`perguntas.competencia_id`).

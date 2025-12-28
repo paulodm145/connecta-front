@@ -45,7 +45,23 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
           "competencia_id": 1,
           "descricao": "Comunicação",
           "prompt_pdi": "Sugira ações para comunicação...",
-          "nota": 4.5
+          "nota": 4.5,
+          "livros_pdi": [
+            {
+              "id": 10,
+              "titulo": "Comunicação não violenta",
+              "link": "https://exemplo.com/livro",
+              "descricao": "Técnicas práticas para diálogos difíceis."
+            }
+          ],
+          "videos_pdi": [
+            {
+              "id": 22,
+              "titulo": "Como dar feedback",
+              "link": "https://www.youtube.com/watch?v=abc123",
+              "descricao": "Exemplos práticos e roteiro de conversa."
+            }
+          ]
         }
       ],
       "pdi": {
@@ -104,7 +120,23 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
               "nota": 4.5,
               "acoes_recomendadas": ["até 3 ações práticas"],
               "indicadores_sucesso": ["indicadores medíveis"],
-              "prazo_meses": 3
+              "prazo_meses": 3,
+              "recomendacoes": {
+                "livros": [
+                  {
+                    "titulo": "Comunicação não violenta",
+                    "link": "https://exemplo.com/livro",
+                    "descricao": "Resumo de contribuição."
+                  }
+                ],
+                "videos": [
+                  {
+                    "titulo": "Como dar feedback",
+                    "link": "https://www.youtube.com/watch?v=abc123",
+                    "descricao": "Resumo de contribuição."
+                  }
+                ]
+              }
             }
           ]
         }
@@ -157,6 +189,36 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
   - Detalhar (`GET /api/empresas/competencia-recomendacoes/{id}`): retorna um registro com o relacionamento `competencia` carregado.
   - Excluir (`DELETE /api/empresas/competencia-recomendacoes/{competenciaRecomendacao}`): remove o item (soft delete) e retorna `204`.
   - Use os campos `descricao` e `prompt_recomendacao` no front-end para exibir contexto e prevenir a geração de links inexistentes.
+
+- **CRUD de livros do PDI** (rotas autenticadas em `/api/empresas/livros-pdi`):
+  - Campos obrigatórios: `competencia_id`, `titulo`, `link` (URL válida) e `descricao` (texto livre com relevância e resumo).
+  - Criar/atualizar (`POST`/`PUT`):
+    ```json
+    {
+      "competencia_id": 1,
+      "titulo": "Comunicação não violenta",
+      "link": "https://exemplo.com/livro",
+      "descricao": "Resumo do conteúdo e indicação da relevância para o PDI."
+    }
+    ```
+  - Listar (`GET /api/empresas/livros-pdi`): retorna a coleção com a competência vinculada para exibir no grid.
+  - Detalhar (`GET /api/empresas/livros-pdi/{id}`): retorna um item com a competência carregada.
+  - Excluir (`DELETE /api/empresas/livros-pdi/{livroPdi}`): remove (soft delete) o item e retorna `204`.
+
+- **CRUD de vídeos do PDI** (rotas autenticadas em `/api/empresas/videos-pdi`):
+  - Campos obrigatórios: `competencia_id`, `titulo`, `link` (URL válida) e `descricao` (texto livre com relevância e resumo).
+  - Criar/atualizar (`POST`/`PUT`):
+    ```json
+    {
+      "competencia_id": 1,
+      "titulo": "Como dar feedback",
+      "link": "https://www.youtube.com/watch?v=abc123",
+      "descricao": "Explica a importância do tema e dá exemplos práticos de aplicação."
+    }
+    ```
+  - Listar (`GET /api/empresas/videos-pdi`): retorna a coleção com a competência vinculada para exibir no grid.
+  - Detalhar (`GET /api/empresas/videos-pdi/{id}`): retorna um item com a competência carregada.
+  - Excluir (`DELETE /api/empresas/videos-pdi/{videoPdi}`): remove (soft delete) o item e retorna `204`.
 
 ## Sugestão de componentes
 - Tela de detalhes do envio com seção "Competências" listando descrição, nota média e botão para "Gerar PDI".
