@@ -42,8 +42,48 @@ export const usePdiHook = () => {
     }
   }, [])
 
+  const enviarEmailPdiEnvio = useCallback(async (envioId: number) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/envios/${envioId}/pdi/enviar-email`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao enviar PDI por e-mail:", error)
+      throw error
+    }
+  }, [])
+
+  const enviarEmailPdiPesquisa = useCallback(async (pesquisaId: number) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/pesquisas/${pesquisaId}/pdi/enviar-email`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao enviar PDI em massa:", error)
+      throw error
+    }
+  }, [])
+
   return {
     gerarPdiEnvio,
     buscarPdiEnvio,
+    enviarEmailPdiEnvio,
+    enviarEmailPdiPesquisa,
   }
 }

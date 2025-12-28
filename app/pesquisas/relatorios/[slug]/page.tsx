@@ -54,7 +54,7 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
-  const { gerarPdiEnvio } = usePdiHook()
+  const { gerarPdiEnvio, enviarEmailPdiPesquisa } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -75,6 +75,7 @@ export default function Page() {
   const [modalOpenAvaliacaoLider, setModalOpenAvaliacaoLider] = useState(false)
   const [avaliacaoAtual, setAvaliacaoAtual] = useState("")
   const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
+  const [enviandoPdiPesquisa, setEnviandoPdiPesquisa] = useState(false)
 
   const {
     createAnotacao,
@@ -262,6 +263,37 @@ export default function Page() {
     }
   }
 
+  const handleEnviarPdiEmMassa = async () => {
+    if (!pesquisa?.id) {
+      toast.error("Pesquisa não encontrada para envio em massa.")
+      return
+    }
+
+    setEnviandoPdiPesquisa(true)
+    const toastId = toast.loading("Enviando PDIs em massa...", { autoClose: false })
+
+    try {
+      const retorno = await enviarEmailPdiPesquisa(pesquisa.id)
+      const resumo = `Total com PDI: ${retorno?.total_com_pdi ?? 0} • Enviados: ${retorno?.enviados ?? 0} • Sem e-mail: ${retorno?.sem_email ?? 0} • Sem respondente: ${retorno?.sem_respondente ?? 0}`
+      toast.update(toastId, {
+        render: resumo,
+        type: "success",
+        isLoading: false,
+        autoClose: 6000,
+      })
+    } catch (error) {
+      console.error("Erro ao enviar PDIs em massa:", error)
+      toast.update(toastId, {
+        render: "Não foi possível enviar os PDIs em massa.",
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+      })
+    } finally {
+      setEnviandoPdiPesquisa(false)
+    }
+  }
+
   const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
@@ -333,6 +365,14 @@ export default function Page() {
       variant: "outline" as const,
       onClick: handleExport,
       visible: permissoesUsuario.exportarXLSX,
+    },
+    {
+      label: enviandoPdiPesquisa ? "Enviando PDI..." : "Enviar PDI por e-mail",
+      icon: Sparkles,
+      variant: "outline" as const,
+      onClick: handleEnviarPdiEmMassa,
+      visible: permissoesUsuario.pdiAvaliado,
+      disabled: enviandoPdiPesquisa,
     },
     {
       label: "Avaliação do líder",
