@@ -8,7 +8,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye } from "lucide-react"
+import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -54,7 +54,7 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
-  const { gerarPdiEnvio, enviarEmailPdiPesquisa } = usePdiHook()
+  const { gerarPdiEnvio, enviarEmailPdiPesquisa, enviarEmailPdiEnvio } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -76,6 +76,7 @@ export default function Page() {
   const [avaliacaoAtual, setAvaliacaoAtual] = useState("")
   const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
   const [enviandoPdiPesquisa, setEnviandoPdiPesquisa] = useState(false)
+  const [enviandoPdiEnvioId, setEnviandoPdiEnvioId] = useState<number | null>(null)
 
   const {
     createAnotacao,
@@ -263,6 +264,38 @@ export default function Page() {
     }
   }
 
+  const handleEnviarPdiIndividual = async (row: any) => {
+    const envioId = Number(row.envio_id)
+
+    if (!envioId) {
+      toast.error("Envio não encontrado para envio do PDI.")
+      return
+    }
+
+    setEnviandoPdiEnvioId(envioId)
+    const toastId = toast.loading("Enviando PDI por e-mail...", { autoClose: false })
+
+    try {
+      const retorno = await enviarEmailPdiEnvio(envioId)
+      toast.update(toastId, {
+        render: retorno?.message || "PDI enviado com sucesso.",
+        type: "success",
+        isLoading: false,
+        autoClose: 4000,
+      })
+    } catch (error) {
+      console.error("Erro ao enviar PDI individual:", error)
+      toast.update(toastId, {
+        render: "Não foi possível enviar o PDI por e-mail.",
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+      })
+    } finally {
+      setEnviandoPdiEnvioId(null)
+    }
+  }
+
   const handleEnviarPdiEmMassa = async () => {
     if (!pesquisa?.id) {
       toast.error("Pesquisa não encontrada para envio em massa.")
@@ -415,6 +448,15 @@ export default function Page() {
       variant: "ghost" as const,
       className: "text-amber-600 hover:text-amber-700",
       visible: permissoesUsuario.pdiAvaliado,
+    },
+    {
+      label: "Enviar PDI por e-mail",
+      icon: Mail,
+      onClick: handleEnviarPdiIndividual,
+      variant: "ghost" as const,
+      className: "text-blue-600 hover:text-blue-700",
+      visible: permissoesUsuario.pdiAvaliado,
+      disabled: (row) => enviandoPdiEnvioId === row.envio_id,
     },
     {
       label: "Gerar PDI",
