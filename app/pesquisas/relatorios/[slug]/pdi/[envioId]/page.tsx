@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Loader2, Sparkles, ArrowLeft } from "lucide-react"
 import { usePdiHook } from "@/app/hooks/usePdiHook"
+import { toast } from "react-toastify"
 
 interface CompetenciaPdi {
   competencia_id?: number
@@ -33,7 +34,7 @@ interface PlanoPdi {
 export default function VisualizarPdiPage() {
   const params = useParams()
   const router = useRouter()
-  const { buscarPdiEnvio } = usePdiHook()
+  const { buscarPdiEnvio, enviarEmailPdiEnvio } = usePdiHook()
 
   const slugPesquisa = params.slug as string
   const envioIdParam = params.envioId as string
@@ -44,6 +45,8 @@ export default function VisualizarPdiPage() {
   const [planoPdi, setPlanoPdi] = useState<PlanoPdi | null>(null)
   const [promptPdi, setPromptPdi] = useState<string | null>(null)
   const [competenciasResumo, setCompetenciasResumo] = useState<any[]>([])
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
+  const [emailEnviadoPara, setEmailEnviadoPara] = useState<string | null>(null)
   const [pdiDetalhes, setPdiDetalhes] = useState<{ id?: number; modelo?: string; created_at?: string; updated_at?: string } | null>(
     null
   )
@@ -110,6 +113,41 @@ export default function VisualizarPdiPage() {
     carregarPdi()
   }, [buscarPdiEnvio, envioIdParam])
 
+  const handleEnviarEmail = async () => {
+    const envioId = Number(envioIdParam)
+
+    if (!envioId) {
+      toast.error("Envio inválido para envio do PDI por e-mail.")
+      return
+    }
+
+    setEnviandoEmail(true)
+    const toastId = toast.loading("Enviando PDI por e-mail...", { autoClose: false })
+
+    try {
+      const retorno = await enviarEmailPdiEnvio(envioId)
+      const destinatario = retorno?.destinatario
+      setEmailEnviadoPara(destinatario || null)
+
+      toast.update(toastId, {
+        render: retorno?.message || "PDI enviado com sucesso.",
+        type: "success",
+        isLoading: false,
+        autoClose: 4000,
+      })
+    } catch (error) {
+      console.error("Erro ao enviar PDI por e-mail:", error)
+      toast.update(toastId, {
+        render: "Não foi possível enviar o PDI por e-mail.",
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+      })
+    } finally {
+      setEnviandoEmail(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-6 flex items-center gap-2 text-sm text-muted-foreground">
@@ -134,6 +172,20 @@ export default function VisualizarPdiPage() {
         </div>
 
         <div className="flex gap-2">
+          <Button
+            variant="default"
+            onClick={handleEnviarEmail}
+            disabled={enviandoEmail || !pdiDetalhes}
+          >
+            {enviandoEmail ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Enviando PDI...
+              </>
+            ) : (
+              "Enviar PDI por e-mail"
+            )}
+          </Button>
           <Button variant="outline" onClick={() => router.push(`/pesquisas/relatorios/${slugPesquisa}`)}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar para respostas
@@ -145,6 +197,13 @@ export default function VisualizarPdiPage() {
         <Alert variant="destructive">
           <AlertTitle>Erro</AlertTitle>
           <AlertDescription>{erro}</AlertDescription>
+        </Alert>
+      )}
+
+      {emailEnviadoPara && (
+        <Alert>
+          <AlertTitle>Envio concluído</AlertTitle>
+          <AlertDescription>O PDI foi enviado para {emailEnviadoPara}.</AlertDescription>
         </Alert>
       )}
 

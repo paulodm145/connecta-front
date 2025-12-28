@@ -22,6 +22,7 @@ interface ActionButton {
   onClick: (filteredData: Record<string, any>[]) => void
   className?: string
   visible?: boolean
+  disabled?: boolean
 }
 
 interface RowAction {
@@ -122,6 +123,7 @@ const BasicDataTable: React.FC<TableProps> = ({
                   variant={action.variant || "default"}
                   onClick={() => action.onClick(filteredData)}
                   className={action.className}
+                  disabled={action.disabled}
                 >
                   {IconComponent && <IconComponent className="w-4 h-4 mr-2" />}
                   {action.label}
