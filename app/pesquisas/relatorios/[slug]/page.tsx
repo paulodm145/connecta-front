@@ -1,14 +1,14 @@
 "use client"
 
 import BasicDataTable from "@/components/BasicDataTable"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare, UserCheckIcon } from "lucide-react"
+import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -20,6 +20,7 @@ import { EditModal } from "./edit-modal"
 import { useAnotacoesHook } from "@/app/hooks/useAnotacoesHook"
 import { LeaderEvaluationModal } from "./leader-evaluation-modal"
 import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook"
+import { usePdiHook } from "@/app/hooks/usePdiHook"
 
 // Enum para tipos de anotação
 enum TipoAnotacao {
@@ -48,10 +49,12 @@ interface RespostaDados {
 
 export default function Page() {
   const params = useParams()
+  const router = useRouter()
   const slugPesquisa = params.slug as string
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
+  const { gerarPdiEnvio } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -71,6 +74,7 @@ export default function Page() {
 
   const [modalOpenAvaliacaoLider, setModalOpenAvaliacaoLider] = useState(false)
   const [avaliacaoAtual, setAvaliacaoAtual] = useState("")
+  const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
 
   const {
     createAnotacao,
@@ -209,6 +213,55 @@ export default function Page() {
     handleOpenAnnotationModal(row, TipoAnotacao.PDI_AVALIADO)
   }
 
+  const handleVisualizarPdi = (row: any) => {
+    if (!row?.envio_id) {
+      toast.error("Envio não encontrado para visualizar o PDI.")
+      return
+    }
+
+    router.push(`/pesquisas/relatorios/${slugPesquisa}/pdi/${row.envio_id}`)
+  }
+
+  const handleGerarPdi = async (row: any) => {
+    const envioId = Number(row.envio_id)
+
+    if (!envioId) {
+      toast.error("Envio não encontrado para gerar o PDI.")
+      return
+    }
+
+    setGerandoPdiEnvioId(envioId)
+    const loadingToastId = toast.loading("Gerando PDI...", { autoClose: false })
+
+    try {
+      await gerarPdiEnvio(envioId)
+      if (loadingToastId) {
+        toast.update(loadingToastId, {
+          render: "PDI gerado com sucesso para o envio selecionado.",
+          type: "success",
+          isLoading: false,
+          autoClose: 3000,
+        })
+      } else {
+        toast.success("PDI gerado com sucesso para o envio selecionado.")
+      }
+    } catch (error) {
+      console.error("Erro ao gerar PDI:", error)
+      if (loadingToastId) {
+        toast.update(loadingToastId, {
+          render: "Não foi possível gerar o PDI. Tente novamente.",
+          type: "error",
+          isLoading: false,
+          autoClose: 4000,
+        })
+      } else {
+        toast.error("Não foi possível gerar o PDI. Tente novamente.")
+      }
+    } finally {
+      setGerandoPdiEnvioId(null)
+    }
+  }
+
   const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
@@ -315,11 +368,33 @@ export default function Page() {
       className: "text-purple-500 hover:text-purple-700",
       visible: permissoesUsuario.pdiAvaliado,
     },
+    {
+      label: "Visualizar PDI",
+      icon: Eye,
+      onClick: handleVisualizarPdi,
+      variant: "ghost" as const,
+      className: "text-amber-600 hover:text-amber-700",
+      visible: permissoesUsuario.pdiAvaliado,
+    },
+    {
+      label: "Gerar PDI",
+      icon: Sparkles,
+      onClick: handleGerarPdi,
+      variant: "ghost" as const,
+      className: "text-amber-600 hover:text-amber-700",
+      disabled: (row) => gerandoPdiEnvioId === row.envio_id,
+    },
   ]
 
   return (
     <div className="w-100 p-4 space-y-6">
       <h1 className="text-2xl font-bold">DashBoard - Pesquisa: {pesquisa ? pesquisa.titulo : "Carregando..."}</h1>
+
+      {gerandoPdiEnvioId && (
+        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+          Gerando PDI para o envio {gerandoPdiEnvioId}. Aguarde a conclusão para visualizar o resultado.
+        </div>
+      )}
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
         <Card className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm">
