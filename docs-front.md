@@ -28,6 +28,7 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
 - **Dados consolidados de PDI**: consumir o endpoint autenticado `GET /api/empresas/envios/{envioId}/pdi` (enviar bearer token padrão da API). Ele retorna:
   - Metadados do envio: `envio_id`, `pesquisa_id`, `formulario_id`, `respondente`, `token_respondente`, `data_envio`.
   - Lista de competências: `competencia_id`, `descricao`, `prompt_pdi`, `nota` (média ponderada pela `pontuacao_base` das perguntas da competência).
+  - PDI salvo (quando existir): `id`, `modelo`, `prompt`, `resposta` (JSON com recomendações e plano), timestamps de criação/atualização.
   - Exemplo de resposta:
     ```json
     {
@@ -46,7 +47,29 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
           "prompt_pdi": "Sugira ações para comunicação...",
           "nota": 4.5
         }
-      ]
+      ],
+      "pdi": {
+        "id": 99,
+        "modelo": "gpt-4o-mini",
+        "prompt": "...prompt enviado para a IA...",
+        "resposta": {
+          "pdi": {
+            "objetivo_geral": "objetivo resumido",
+            "competencias": [
+              {
+                "competencia_id": 1,
+                "descricao": "Comunicação",
+                "nota": 4.5,
+                "acoes_recomendadas": ["até 3 ações práticas"],
+                "indicadores_sucesso": ["indicadores medíveis"],
+                "prazo_meses": 3
+              }
+            ]
+          }
+        },
+        "created_at": "2025-12-01 10:00:00",
+        "updated_at": "2025-12-01 10:00:00"
+      }
     }
     ```
 

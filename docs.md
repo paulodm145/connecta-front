@@ -67,7 +67,30 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
           "prompt_pdi": "Sugira ações para comunicação...",
           "nota": 4.5
         }
-      ]
+      ],
+      "pdi": {
+        "id": 99,
+        "modelo": "gpt-4o-mini",
+        "prompt": "...prompt enviado para a IA...",
+        "resposta": {
+          "avaliacao": { "envio_id": 44, "respondente": "Fulano da Silva" },
+          "pdi": {
+            "objetivo_geral": "objetivo resumido",
+            "competencias": [
+              {
+                "competencia_id": 1,
+                "descricao": "Comunicação",
+                "nota": 4.5,
+                "acoes_recomendadas": ["até 3 ações práticas"],
+                "indicadores_sucesso": ["indicadores medíveis"],
+                "prazo_meses": 3
+              }
+            ]
+          }
+        },
+        "created_at": "2025-12-01 10:00:00",
+        "updated_at": "2025-12-01 10:00:00"
+      }
     }
     ```
 
