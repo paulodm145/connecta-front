@@ -81,6 +81,7 @@ interface DynamicCrudComponentProps {
   deleteData: (id: number) => Promise<{ success: boolean }>;
   toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
   permissoes: Permissoes;
+  exibirStatus?: boolean;
 }
 
 const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
@@ -91,6 +92,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   deleteData,
   toggleStatus,
   permissoes,
+  exibirStatus = true,
 }) => {
   const [data, setData] = useState<DataItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -302,7 +304,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
             {columns.map((column) => (
               <TableCell key={column.dataField}>{column.label}</TableCell>
             ))}
-            <TableCell>Status</TableCell>
+            {exibirStatus && <TableCell>Status</TableCell>}
             <TableCell>Ações</TableCell>
           </TableRow>
         </TableHeader>
@@ -316,12 +318,14 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
                     : item[column.dataField]}
                 </TableCell>
               ))}
-              <TableCell>
-                <Switch
-                  checked={item.status}
-                  onCheckedChange={() => handleToggleStatus(item.id, item.status)}
-                />
-              </TableCell>
+              {exibirStatus && (
+                <TableCell>
+                  <Switch
+                    checked={item.status}
+                    onCheckedChange={() => handleToggleStatus(item.id, item.status)}
+                  />
+                </TableCell>
+              )}
               <TableCell>
                 <Button onClick={() => handleOpenModal(item)}>Editar</Button>
                 <Button variant="danger" onClick={() => deleteData(item.id)}>
