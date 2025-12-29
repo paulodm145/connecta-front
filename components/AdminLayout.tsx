@@ -249,6 +249,8 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       acessarSubMenuCargos: temPermissao('cadastros.cargos.menu.exibir') || false,
       acessarSubMenuPessoas: temPermissao('cadastros.pessoas.menu.exibir') || false,
       acessarSubMenuCompetencias: temPermissao('cadastros.competencias.menu.exibir') || false,
+      acessarSubMenuLivrosPdi: temPermissao('cadastros.livros-pdi.menu.exibir') || false,
+      acessarSubMenuVideosPdi: temPermissao('cadastros.videos-pdi.menu.exibir') || false,
   
       acessarMenuFormularios: temPermissao('formularios.formularios.exibir.menu') || false,
   
@@ -309,6 +311,8 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
           { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos", permissao: permissoesUsuario.acessarSubMenuCargos },
           { name: "Pessoas", icon: Users, link: "/cadastros/pessoas", permissao: permissoesUsuario.acessarSubMenuPessoas },
           { name: "Competências", icon: Clipboard, link: "/cadastros/competencias", permissao: permissoesUsuario.acessarSubMenuCompetencias },
+          { name: "Livros do PDI", icon: Clipboard, link: "/cadastros/livros-pdi", permissao: permissoesUsuario.acessarSubMenuLivrosPdi },
+          { name: "Vídeos do PDI", icon: Clipboard, link: "/cadastros/videos-pdi", permissao: permissoesUsuario.acessarSubMenuVideosPdi },
         ]
       },
       { name: "Formulários", icon: ListCheck, link: "/formularios/listagem", permissao: permissoesUsuario.acessarMenuFormularios },
