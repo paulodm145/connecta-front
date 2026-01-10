@@ -156,6 +156,16 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
     - Sucesso (200): objeto resumo com `total_com_pdi`, `enviados`, `sem_email` e `sem_respondente`.
     - Use para disparar apenas para respondentes que já possuem PDI gerado.
 
+- **Envio do link de pesquisa por e-mail**: endpoints autenticados
+  - Individual: `POST /api/empresas/respondentes/{respondenteId}/pesquisa/enviar-email`
+    - Payload: vazio.
+    - Sucesso (200): retorna `message`, `destinatario` e `link` com a URL de resposta da pesquisa.
+    - Erros (400): texto explicando ausência de respondente, pesquisa vinculada ou e-mail cadastrado.
+  - Em massa: `POST /api/empresas/pesquisas/{pesquisaId}/respondentes/enviar-email`
+    - Payload: vazio.
+    - Sucesso (200): objeto resumo com `total_respondentes`, `enviados`, `sem_email` e `sem_pessoa`.
+    - O link enviado é montado a partir de `PESQUISA_RESPONDER_URL` (fallback em `APP_URL`), no formato `/pesquisas/{slug}?token=...`.
+
 - **CRUD de competências** (rotas autenticadas em `/api/empresas`):
   - `GET /api/empresas/competencias`: lista todas as competências para montar combos de cadastro de perguntas.
     - Retorno esperado: array de objetos com `id`, `descricao`, `prompt_pdi`, `ativo`, `created_at`, `updated_at`.

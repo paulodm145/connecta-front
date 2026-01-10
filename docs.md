@@ -121,6 +121,25 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
     - Retorno (200): objeto resumo com contadores `total_com_pdi`, `enviados`, `sem_email` e `sem_respondente`.
     - Registros sem respondente ou sem e-mail são ignorados e contabilizados no resumo.
 
+- **Envio de link de pesquisa por e-mail** (rotas autenticadas em `/api/empresas`):
+  - `POST /api/empresas/respondentes/{respondenteId}/pesquisa/enviar-email`
+    - Envia o link de resposta da pesquisa para um único respondente.
+    - Payload: vazio.
+    - Retorno (200):
+      ```json
+      {
+        "message": "E-mail de pesquisa enviado com sucesso.",
+        "destinatario": "email@dominio.com",
+        "link": "https://front.exemplo.com/pesquisas/pesquisa-slug?token=XXXX-XXXX-XXXX-XXXX"
+      }
+      ```
+    - Retornos de erro (400): mensagem explicando ausência de respondente, pesquisa vinculada ou e-mail cadastrado.
+  - `POST /api/empresas/pesquisas/{pesquisaId}/respondentes/enviar-email`
+    - Envia o link de resposta da pesquisa para todos os respondentes vinculados à pesquisa.
+    - Payload: vazio.
+    - Retorno (200): objeto resumo com contadores `total_respondentes`, `enviados`, `sem_email` e `sem_pessoa`.
+    - O link enviado é montado a partir da variável `PESQUISA_RESPONDER_URL` (com fallback para `APP_URL`), seguindo o formato `/pesquisas/{slug}?token=...`.
+
 - **Geração de PDI com IA**: `POST /api/empresas/envios/{envioId}/pdi/gerar`
   - Autenticação: grupo autenticado `empresas`.
   - Payload opcional:
