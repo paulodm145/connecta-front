@@ -131,6 +131,42 @@ export const useRespondentesHook = () => {
         }
     }
 
+    const enviarLinkPesquisaRespondente = async (respondenteId: number) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/respondentes/${respondenteId}/pesquisa/enviar-email`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao enviar link da pesquisa:", error);
+            return null;
+        }
+    }
+
+    const enviarLinksPesquisaEmMassa = async (pesquisaId: number) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/pesquisas/${pesquisaId}/respondentes/enviar-email`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao enviar links da pesquisa em massa:", error);
+            return null;
+        }
+    }
+
 return { 
     index,
     show,
@@ -140,9 +176,10 @@ return {
     changeStatus,
     getRespondentesByPesquisaSlug,
     listarRespondentesCombo,
-    enviarRespondentesMultiplos
+    enviarRespondentesMultiplos,
+    enviarLinkPesquisaRespondente,
+    enviarLinksPesquisaEmMassa
     };     
 };
-
 
 

@@ -78,7 +78,7 @@ export default function PesquisasRespondentes() {
   const BASE_URL = process.env.NEXT_PUBLIC_URL_INICIAL;
 
   const { getBySlug } = usePesquisasHook();
-  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos } = useRespondentesHook();
+  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
   const { copyToClipboard } = useClipboard();
   const { setoresAtivos } = useSetoresHook();
@@ -107,6 +107,8 @@ export default function PesquisasRespondentes() {
   );
   const [respondentesCombo, setRespondentesCombo] = useState<any[]>([]);
   const [setores, setSetores] = useState<any[]>([]);
+  const [respondenteEnviandoId, setRespondenteEnviandoId] = useState<number | null>(null);
+  const [enviandoLinksEmMassa, setEnviandoLinksEmMassa] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -279,6 +281,53 @@ export default function PesquisasRespondentes() {
     }
   };
 
+  const handleEnviarLinkRespondente = async (respondenteId: number) => {
+    try {
+      setRespondenteEnviandoId(respondenteId);
+      const retorno = await enviarLinkPesquisaRespondente(respondenteId);
+      if (retorno?.message) {
+        toast.success(retorno.message);
+        return;
+      }
+      toast.success("Link enviado com sucesso");
+    } catch (error) {
+      console.error("Erro ao enviar link da pesquisa:", error);
+      toast.error("Erro ao enviar link da pesquisa");
+    } finally {
+      setRespondenteEnviandoId(null);
+    }
+  };
+
+  const handleEnviarLinksEmMassa = async () => {
+    if (!pesquisa?.id) {
+      toast.error("Pesquisa não encontrada para envio em massa");
+      return;
+    }
+
+    try {
+      setEnviandoLinksEmMassa(true);
+      const retorno = await enviarLinksPesquisaEmMassa(pesquisa.id);
+      if (retorno) {
+        const resumo = [
+          `Total: ${retorno.total_respondentes ?? 0}`,
+          `Enviados: ${retorno.enviados ?? 0}`,
+          `Sem e-mail: ${retorno.sem_email ?? 0}`,
+          `Sem pessoa: ${retorno.sem_pessoa ?? 0}`,
+        ].join(" | ");
+
+        toast.success(`Envio em massa concluído. ${resumo}`);
+        return;
+      }
+
+      toast.success("Envio em massa concluído");
+    } catch (error) {
+      console.error("Erro ao enviar links da pesquisa em massa:", error);
+      toast.error("Erro ao enviar links da pesquisa em massa");
+    } finally {
+      setEnviandoLinksEmMassa(false);
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
@@ -291,7 +340,7 @@ export default function PesquisasRespondentes() {
       </CardHeader>
 
       <CardContent>
-        <div className="flex justify-between mb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
 
             <DialogTrigger asChild>
@@ -355,6 +404,16 @@ export default function PesquisasRespondentes() {
               </form>
             </DialogContent>
           </Dialog>
+
+          {permissoesUsuario.podeCopiarLink && (
+            <Button
+              variant="outline"
+              onClick={handleEnviarLinksEmMassa}
+              disabled={enviandoLinksEmMassa}
+            >
+              {enviandoLinksEmMassa ? "Enviando links..." : "Enviar links em massa"}
+            </Button>
+          )}
 
           {permissoesUsuario.podeCadastrarEmLote && (<MultiSelectDropdown
             data={respondentesCombo}
@@ -477,6 +536,19 @@ export default function PesquisasRespondentes() {
                     Av. Líder
                   </Button>)}     
 
+                  {permissoesUsuario.podeCopiarLink && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-2"
+                      onClick={() => handleEnviarLinkRespondente(respondente.id)}
+                      disabled={respondenteEnviandoId === respondente.id}
+                    >
+                      {respondenteEnviandoId === respondente.id
+                        ? "Enviando..."
+                        : "Enviar link"}
+                    </Button>
+                  )}
 
                 </TableCell>
               </TableRow>
