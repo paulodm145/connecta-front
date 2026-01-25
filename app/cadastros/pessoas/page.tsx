@@ -350,6 +350,7 @@ useEffect(() => {
           deleteData={deleteData}
           toggleStatus={toggleStatus}
           permissoes={permissoesUsuario}
+          sortableColumns={["id", "nome"]}
         />
       </CardContent>
     </Card>
