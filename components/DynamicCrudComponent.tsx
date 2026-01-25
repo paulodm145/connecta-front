@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, FieldValues, Controller } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +50,8 @@ interface Field {
   fetchOptions?: () => Promise<FieldOption[]>;
   minLength?: number;
   maxLength?: number;
-  toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
   maskPattern?: string;
+  value?: any;
 }
 
 interface DataItem {
@@ -123,7 +123,20 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
   const totalPages = Math.ceil(filteredData.length / itemsPerPage);
 
-  const { register, control, handleSubmit, reset, formState: { errors } } = useForm();
+  const defaultValues = useMemo(
+    () =>
+      fields.reduce<Record<string, any>>((acc, field) => {
+        if (field.value !== undefined) {
+          acc[field.name] = field.value;
+        }
+        return acc;
+      }, {}),
+    [fields]
+  );
+
+  const { register, control, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues,
+  });
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -143,11 +156,11 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
 
   const handleOpenModal = (item?: DataItem) => {
     if (item) {
-      reset(item);
+      reset({ ...defaultValues, ...item });
       setIsEditing(true);
       setCurrentId(item.id);
     } else {
-      reset({});
+      reset(defaultValues);
       setIsEditing(false);
       setCurrentId(null);
     }
