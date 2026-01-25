@@ -246,17 +246,15 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
       return;
     }
 
-    setSortField((prevField) => {
-      if (prevField === field) {
-        setSortDirection((prevDirection) =>
-          prevDirection === "asc" ? "desc" : "asc"
-        );
-        return prevField;
-      }
+    if (sortField === field) {
+      setSortDirection((prevDirection) =>
+        prevDirection === "asc" ? "desc" : "asc"
+      );
+      return;
+    }
 
-      setSortDirection("asc");
-      return field;
-    });
+    setSortField(field);
+    setSortDirection("asc");
   };
 
   const renderSortIndicator = (field: string) => {
@@ -265,11 +263,11 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
     }
 
     if (sortField !== field) {
-      return <span className="ml-2 text-xs text-muted-foreground">↕</span>;
+      return <span className="ml-2 text-base text-muted-foreground">↕</span>;
     }
 
     return (
-      <span className="ml-2 text-xs text-muted-foreground">
+      <span className="ml-2 text-base text-muted-foreground">
         {sortDirection === "asc" ? "↑" : "↓"}
       </span>
     );
