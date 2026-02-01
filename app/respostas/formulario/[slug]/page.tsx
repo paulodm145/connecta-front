@@ -147,9 +147,6 @@ export default function FormularioCompletoPage() {
     respondente,
     identificador_empresa,
     pesquisaSlug,
-    formularioExternoBySlug,
-    pesquisaexternaBySlug,
-    verificarStatusRespostaExterna,
     tipoEnvio,
   ]);
 
