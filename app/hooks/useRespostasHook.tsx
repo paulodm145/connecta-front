@@ -1,6 +1,4 @@
 import axios from "axios";
-import { toast } from "react-toastify";
-
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
 const URL_EXTERNA = process.env.NEXT_PUBLIC_API_BASE_URL;
 
@@ -28,10 +26,11 @@ export const useRespostasHook = () => {
                     Empresa: identificador
                 },
             });
-            return response.data;
-        } catch (error) {
+            return { data: response.data, error: null };
+        } catch (error: any) {
             console.error("Erro ao salvar resposta:", error);
-            return null;
+            const mensagem = error?.response?.data?.message || "Erro ao enviar respostas.";
+            return { data: null, error: mensagem };
         }
      } 
 
@@ -40,6 +39,4 @@ return {
     responderExterno
 };     
 };
-
-
 
