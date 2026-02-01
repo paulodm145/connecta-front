@@ -46,6 +46,7 @@ export const useRespostasHook = () => {
                     pesquisa_id: pesquisaId,
                     respondente,
                     tipo_envio: tipoEnvio,
+                    t: respondente,
                 },
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem("token")}`,
