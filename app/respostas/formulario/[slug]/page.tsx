@@ -87,6 +87,8 @@ export default function FormularioCompletoPage() {
   const [pesquisa, setPesquisa] = useState<Pesquisa | null>(null);
   const [statusResposta, setStatusResposta] = useState<StatusResposta | null>(null);
   const [loading, setLoading] = useState(true);
+  const [mensagemErro, setMensagemErro] = useState<string | null>(null);
+  const [mensagemSucesso, setMensagemSucesso] = useState<string | null>(null);
   const carregamentoInicial = useRef(false);
 
   const params = useParams();
@@ -132,7 +134,7 @@ export default function FormularioCompletoPage() {
             identificador_empresa!
           );
           if (error) {
-            toast.error(error);
+            setMensagemErro(error);
           }
           setStatusResposta(statusData);
         }
@@ -247,15 +249,17 @@ export default function FormularioCompletoPage() {
     };
 
     console.log("Payload final:", payload);
+    setMensagemErro(null);
+    setMensagemSucesso(null);
     const { data: response, error } = await responderExterno(payload, respondente!, identificador_empresa!);
    
     if (error) {
-      toast.error(error);
+      setMensagemErro(error);
       return;
     }
 
     if (response) {
-      toast.success("Respostas enviadas com sucesso!");
+      setMensagemSucesso("Respostas enviadas com sucesso!");
       setEnviado(true);
     }
 
@@ -337,6 +341,17 @@ export default function FormularioCompletoPage() {
               <p className="mt-3 text-sm text-slate-600">{pesquisa.observacao}</p>
             )}
           </header>
+
+          {mensagemErro && (
+            <div className="rounded-2xl border border-red-200 bg-red-50 px-6 py-4 text-sm text-red-700 shadow-sm">
+              {mensagemErro}
+            </div>
+          )}
+          {mensagemSucesso && (
+            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-4 text-sm text-emerald-700 shadow-sm">
+              {mensagemSucesso}
+            </div>
+          )}
 
           {jaRespondido ? (
             <div className="rounded-2xl border border-blue-200 bg-blue-50 px-6 py-8 text-center shadow-sm">
