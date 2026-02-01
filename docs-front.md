@@ -65,6 +65,27 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
       }
       ```
 
+- **Verificar se já respondeu a pesquisa**: consumir `GET /api/externo-respostas/status` antes de renderizar a tela de respostas para exibir a mensagem adequada.
+  - Query params:
+    - `pesquisa_id` (number): id da pesquisa.
+    - `respondente` (string): token do respondente.
+    - `tipo_envio` (string, opcional): `COLABORADOR` (padrão) ou `LIDER`.
+  - Exemplo de chamada:
+    ```
+    /api/externo-respostas/status?pesquisa_id=10&respondente=TOKEN-RESPONDENTE&tipo_envio=COLABORADOR
+    ```
+  - Resposta:
+    ```json
+    {
+      "respondido": true,
+      "envio_id": 44,
+      "pesquisa_id": 10,
+      "tipo_envio": "COLABORADOR",
+      "data_envio": "2025-11-20 12:00:00"
+    }
+    ```
+  - Quando não houver resposta, o backend retorna `respondido: false` e `envio_id`/`data_envio` como `null`.
+
 - **Serviço de cálculo**: o backend chama `RespostasService::responder`; não é necessário acionar manualmente o cálculo no front-end.
 
 - **Dados consolidados de PDI**: consumir o endpoint autenticado `GET /api/empresas/envios/{envioId}/pdi` (enviar bearer token padrão da API). Ele retorna:

@@ -48,6 +48,24 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
   - Possíveis erros:
     - `422`: pesquisa fora do prazo ou tentativa de resposta duplicada quando `resposta_unica` estiver ativa.
 
+- **Status de resposta do respondente**: `GET /api/externo-respostas/status`
+  - Autenticação: liberada pelo middleware `AcessoPublicoFormularioMiddleware`.
+  - Parâmetros de query:
+    - `pesquisa_id` (obrigatório): id da pesquisa.
+    - `respondente` (obrigatório): token do respondente.
+    - `tipo_envio` (opcional): `COLABORADOR` (padrão) ou `LIDER`.
+  - Retorno esperado (exemplo):
+    ```json
+    {
+      "respondido": true,
+      "envio_id": 44,
+      "pesquisa_id": 10,
+      "tipo_envio": "COLABORADOR",
+      "data_envio": "2025-11-20 12:00:00"
+    }
+    ```
+  - Observação: quando não houver envio, `respondido` retorna `false` e os campos `envio_id`/`data_envio` retornam `null`.
+
 - **Relatório consolidado de um envio**: `GET /api/empresas/respostas/relatorio-envio/{envioId}`
   - Autenticação: rotas autenticadas do grupo `empresas`.
   - Retorno esperado: coleção com texto da pergunta, resposta preenchida e pontuação total calculada por pergunta.
@@ -147,6 +165,9 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
 
 ## Campos adicionais em pesquisas
 - `resposta_unica` (boolean): quando `true`, impede múltiplas respostas do mesmo respondente para a pesquisa.
+
+## Ajustes recentes
+- `perguntas.pergunta_texto` agora suporta textos longos (tipo `text`) para evitar truncamento em formulários extensos.
 
 - **Geração de PDI com IA**: `POST /api/empresas/envios/{envioId}/pdi/gerar`
   - Autenticação: grupo autenticado `empresas`.
