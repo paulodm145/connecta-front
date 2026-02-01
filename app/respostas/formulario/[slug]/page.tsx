@@ -69,6 +69,14 @@ type Opcao = {
   texto_opcao: string;
 };
 
+type StatusResposta = {
+  respondido: boolean;
+  envio_id: number | null;
+  pesquisa_id: number | null;
+  tipo_envio: string | null;
+  data_envio: string | null;
+};
+
 export default function FormularioCompletoPage() {
   const [enviado, setEnviado] = useState(false);
   const [videoHtml, setVideoHtml] = useState<string | null>(null);
@@ -77,6 +85,7 @@ export default function FormularioCompletoPage() {
   const [openDialogAjuda, setOpenDialogAjuda] = useState(false);
   const [formulario, setFormulario] = useState<Formulario | null>(null);
   const [pesquisa, setPesquisa] = useState<Pesquisa | null>(null);
+  const [statusResposta, setStatusResposta] = useState<StatusResposta | null>(null);
   const [loading, setLoading] = useState(true);
 
   const params = useParams();
@@ -89,7 +98,7 @@ export default function FormularioCompletoPage() {
 
   const { formularioExternoBySlug  } = useFormulariosHook();
   const { pesquisaexternaBySlug } = usePesquisasHook();
-  const { responderExterno } = useRespostasHook();
+  const { responderExterno, verificarStatusRespostaExterna } = useRespostasHook();
 
   const {
     register,
@@ -98,17 +107,32 @@ export default function FormularioCompletoPage() {
     formState: { errors },
   } = useForm();
 
+  const tipoEnvio = tipoResposta === "1" ? "COLABORADOR" : "LIDER";
+
   useEffect(() => {
     if (!slug) return;
 
     const fetchFormulario = async () => {
       try {
         setLoading(true);
-        const data = await formularioExternoBySlug(slug, respondente!, identificador_empresa!);
-        const pesquisaData = await pesquisaexternaBySlug(pesquisaSlug!, respondente!, identificador_empresa!);
-        console.log(pesquisaData);
+        const [data, pesquisaData] = await Promise.all([
+          formularioExternoBySlug(slug, respondente!, identificador_empresa!),
+          pesquisaexternaBySlug(pesquisaSlug!, respondente!, identificador_empresa!),
+        ]);
         setPesquisa(pesquisaData);
         setFormulario(data);
+        if (pesquisaData?.id && respondente) {
+          const { data: statusData, error } = await verificarStatusRespostaExterna(
+            pesquisaData.id,
+            respondente,
+            tipoEnvio,
+            identificador_empresa!
+          );
+          if (error) {
+            toast.error(error);
+          }
+          setStatusResposta(statusData);
+        }
       } catch (error) {
         console.error("Erro ao carregar o formulário:", error);
         setFormulario(null);
@@ -118,7 +142,16 @@ export default function FormularioCompletoPage() {
     };
 
     fetchFormulario();
-  }, [slug]);
+  }, [
+    slug,
+    respondente,
+    identificador_empresa,
+    pesquisaSlug,
+    formularioExternoBySlug,
+    pesquisaexternaBySlug,
+    verificarStatusRespostaExterna,
+    tipoEnvio,
+  ]);
 
   const obterStatusPeriodo = (dadosPesquisa: Pesquisa | null) => {
     if (!dadosPesquisa?.data_inicio && !dadosPesquisa?.data_fim) {
@@ -150,18 +183,21 @@ export default function FormularioCompletoPage() {
   const onSubmit = async (data: any) => {
     console.log("Respostas brutas:", data);
 
+    if (statusResposta?.respondido) {
+      toast.info("Você já respondeu esta pesquisa.");
+      return;
+    }
+
     const statusPeriodo = obterStatusPeriodo(pesquisa);
     if (!statusPeriodo.valido) {
       toast.error(statusPeriodo.mensagem);
       return;
     }
 
-    const tpoResposta = tipoResposta == '1' ? 'COLABORADOR' : 'LIDER';
-
     const payload = {
       pesquisa_id: pesquisa?.id,
       formulario_id: formulario?.id,
-      tipo_envio: tpoResposta,
+      tipo_envio: tipoEnvio,
       respondente : respondente,
       envio_id: Math.random().toString(36).substr(2, 9),
       respostas: formulario?.perguntas.map((pergunta) => {
@@ -205,7 +241,7 @@ export default function FormularioCompletoPage() {
           tipo_pergunta: pergunta.tipo_pergunta,
           resposta_texto,
           opcoes: opcoesSelecionadas,
-          tipo_resposta: tpoResposta,
+          tipo_resposta: tipoEnvio,
         };
       }),
     };
@@ -237,10 +273,22 @@ export default function FormularioCompletoPage() {
     setOpenDialogAjuda(true);
   };
 
+  const formatarDataEnvio = (dataEnvio: string | null) => {
+    if (!dataEnvio) return "";
+    const dataIso = dataEnvio.includes("T") ? dataEnvio : dataEnvio.replace(" ", "T");
+    const data = new Date(dataIso);
+    if (Number.isNaN(data.getTime())) return dataEnvio;
+    return new Intl.DateTimeFormat("pt-BR", {
+      dateStyle: "short",
+      timeStyle: "short",
+    }).format(data);
+  };
+
   if (loading) return <p className="text-center text-gray-700 mt-10">Carregando formulário...</p>;
   if (!formulario) return <p className="text-center text-red-500 mt-10">Erro ao carregar formulário.</p>;
 
   const statusPeriodo = obterStatusPeriodo(pesquisa);
+  const jaRespondido = statusResposta?.respondido;
 
   return (
     <>
@@ -282,7 +330,7 @@ export default function FormularioCompletoPage() {
                 </h1>
               </div>
               <span className="inline-flex w-fit items-center rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600">
-                {tipoResposta === "1" ? "Formulário para Colaboradores" : "Formulário para Líderes"}
+                {tipoEnvio === "COLABORADOR" ? "Formulário para Colaboradores" : "Formulário para Líderes"}
               </span>
             </div>
             {pesquisa?.observacao && (
@@ -290,7 +338,14 @@ export default function FormularioCompletoPage() {
             )}
           </header>
 
-          {enviado ? (
+          {jaRespondido ? (
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 px-6 py-8 text-center shadow-sm">
+              <h2 className="text-2xl font-bold text-blue-700">Você já respondeu esta pesquisa.</h2>
+              <p className="mt-2 text-sm text-blue-700">
+                Obrigado por participar. {statusResposta?.data_envio ? `Envio registrado em ${formatarDataEnvio(statusResposta.data_envio)}.` : ""}
+              </p>
+            </div>
+          ) : enviado ? (
             <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-8 text-center shadow-sm">
               <h2 className="text-2xl font-bold text-emerald-700">Obrigado por sua resposta!</h2>
               <p className="mt-2 text-sm text-emerald-700">Seus dados foram enviados com sucesso.</p>

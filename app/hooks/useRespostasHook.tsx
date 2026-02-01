@@ -34,9 +34,35 @@ export const useRespostasHook = () => {
         }
      } 
 
+     const verificarStatusRespostaExterna = async (
+        pesquisaId: number,
+        respondente: string,
+        tipoEnvio: string,
+        identificador: string
+     ) => {
+        try {
+            const response = await axios.get(`${URL_EXTERNA}/externo-respostas/status`, {
+                params: {
+                    pesquisa_id: pesquisaId,
+                    respondente,
+                    tipo_envio: tipoEnvio,
+                },
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    Empresa: identificador,
+                },
+            });
+            return { data: response.data, error: null };
+        } catch (error: any) {
+            console.error("Erro ao verificar status da resposta:", error);
+            const mensagem = error?.response?.data?.message || "Erro ao verificar status da resposta.";
+            return { data: null, error: mensagem };
+        }
+     }
+
 return { 
     responder,
-    responderExterno
+    responderExterno,
+    verificarStatusRespostaExterna
 };     
 };
-
