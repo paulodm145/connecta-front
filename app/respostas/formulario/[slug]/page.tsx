@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useForm, Controller } from "react-hook-form";
 import InputMask from "react-input-mask";
 import { useParams, useSearchParams } from "next/navigation";
@@ -87,6 +87,7 @@ export default function FormularioCompletoPage() {
   const [pesquisa, setPesquisa] = useState<Pesquisa | null>(null);
   const [statusResposta, setStatusResposta] = useState<StatusResposta | null>(null);
   const [loading, setLoading] = useState(true);
+  const carregamentoInicial = useRef(false);
 
   const params = useParams();
   const searchParams = useSearchParams();
@@ -110,7 +111,9 @@ export default function FormularioCompletoPage() {
   const tipoEnvio = tipoResposta === "1" ? "COLABORADOR" : "LIDER";
 
   useEffect(() => {
-    if (!slug) return;
+    if (carregamentoInicial.current) return;
+    if (!slug || !respondente || !identificador_empresa || !pesquisaSlug) return;
+    carregamentoInicial.current = true;
 
     const fetchFormulario = async () => {
       try {
