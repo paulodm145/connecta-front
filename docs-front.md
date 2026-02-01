@@ -22,6 +22,48 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
   }
   ```
   O backend cria o envio, salva respostas e calcula automaticamente as médias ponderadas por competência (usando `pontuacao_base` de cada pergunta como peso), retornando a lista de respostas persistidas.
+  - Regras de bloqueio:
+    - O envio só é aceito dentro do período configurado (`data_inicio`/`data_fim`) da pesquisa.
+    - Quando `resposta_unica` estiver ativa, o mesmo respondente não pode submeter múltiplas respostas.
+  - Formato detalhado do JSON de envio:
+    - `pesquisa_id` (number): identificador da pesquisa.
+    - `formulario_id` (number): identificador do formulário vinculado.
+    - `respondente` (string): token do respondente (ou id, quando aplicável).
+    - `tipo_envio` (string, opcional): `COLABORADOR` (padrão) ou `LIDER`.
+    - `respostas` (array): lista de respostas do formulário.
+      - `pergunta_id` (number): id da pergunta respondida.
+      - `resposta_texto` (string, opcional): texto livre para perguntas abertas.
+      - `tipo_resposta` (string, opcional): `COLABORADOR` (padrão) ou `LIDER`.
+      - `opcoes` (array<number>, opcional): ids das opções marcadas (para perguntas com alternativas).
+    - Exemplo mínimo com texto:
+      ```json
+      {
+        "pesquisa_id": 10,
+        "formulario_id": 5,
+        "respondente": "TOKEN-RESPONDENTE",
+        "respostas": [
+          {
+            "pergunta_id": 1,
+            "resposta_texto": "Texto da resposta"
+          }
+        ]
+      }
+      ```
+    - Exemplo com opções:
+      ```json
+      {
+        "pesquisa_id": 10,
+        "formulario_id": 5,
+        "respondente": "TOKEN-RESPONDENTE",
+        "tipo_envio": "COLABORADOR",
+        "respostas": [
+          {
+            "pergunta_id": 2,
+            "opcoes": [3, 4]
+          }
+        ]
+      }
+      ```
 
 - **Serviço de cálculo**: o backend chama `RespostasService::responder`; não é necessário acionar manualmente o cálculo no front-end.
 
@@ -176,6 +218,9 @@ Disponibilizar no front-end a visualização das competências avaliadas em um e
   - `PUT /api/empresas/competencias/{competencia}`: atualiza campos informados.
   - `DELETE /api/empresas/competencias/{competencia}`: remove (soft delete) a competência.
   - `GET /api/empresas/competencias/change-status/{idCompetencia}`: alterna o campo `ativo` e devolve o objeto atualizado.
+
+## Campos extras de pesquisa para uso no front-end
+- `resposta_unica` (boolean): indica se o front deve impedir múltiplos envios do mesmo respondente.
 
 - **CRUD de recomendações de competência** (rotas autenticadas em `/api/empresas/competencia-recomendacoes`):
   - Estrutura dos campos de recomendação:

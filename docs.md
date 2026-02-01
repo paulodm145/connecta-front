@@ -11,6 +11,9 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
 ## Rotas, payloads e retornos
 - **Envio público de respostas**: `POST /api/externo-respostas`
   - Autenticação: liberada pelo middleware `AcessoPublicoFormularioMiddleware`.
+  - Regras de negócio:
+    - Só aceita respostas dentro do intervalo entre `data_inicio` e `data_fim` da pesquisa (quando definidos).
+    - Quando `resposta_unica` estiver ativa, o mesmo respondente não pode enviar mais de uma resposta para a pesquisa.
   - Payload esperado:
     ```json
     {
@@ -42,6 +45,8 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
       }
     ]
     ```
+  - Possíveis erros:
+    - `422`: pesquisa fora do prazo ou tentativa de resposta duplicada quando `resposta_unica` estiver ativa.
 
 - **Relatório consolidado de um envio**: `GET /api/empresas/respostas/relatorio-envio/{envioId}`
   - Autenticação: rotas autenticadas do grupo `empresas`.
@@ -139,6 +144,9 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
     - Payload: vazio.
     - Retorno (200): objeto resumo com contadores `total_respondentes`, `enviados`, `sem_email` e `sem_pessoa`.
     - O link enviado é montado a partir da variável `PESQUISA_RESPONDER_URL` (com fallback para `APP_URL`), seguindo o formato `/pesquisas/{slug}?token=...`.
+
+## Campos adicionais em pesquisas
+- `resposta_unica` (boolean): quando `true`, impede múltiplas respostas do mesmo respondente para a pesquisa.
 
 - **Geração de PDI com IA**: `POST /api/empresas/envios/{envioId}/pdi/gerar`
   - Autenticação: grupo autenticado `empresas`.
