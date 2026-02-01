@@ -31,6 +31,7 @@ interface Pesquisa {
   data_fim: string | null;
   observacao: string;
   autenticacao: boolean | string;
+  resposta_unica?: boolean | string;
   tipo_pesquisa_id: number;
   tipo_pesquisa?: string;
   formulario_id: number;
@@ -86,6 +87,7 @@ export default function PaginaListagem() {
       data_inicio: "",
       data_fim: "",
       autenticacao: false,
+      resposta_unica: false,
       tipo_pesquisa_id: "",
     },
   });
@@ -139,6 +141,12 @@ export default function PaginaListagem() {
           : editingPesquisa.autenticacao;
       setValue("autenticacao", authValue);
 
+      const respostaUnicaValue =
+        typeof editingPesquisa.resposta_unica === "string"
+          ? editingPesquisa.resposta_unica === "true"
+          : editingPesquisa.resposta_unica ?? false;
+      setValue("resposta_unica", respostaUnicaValue);
+
       setValue("formulario_id", String(editingPesquisa.formulario_id));
       setValue("tipo_pesquisa_id", String(editingPesquisa.tipo_pesquisa_id));
     }
@@ -173,6 +181,7 @@ export default function PaginaListagem() {
         data_inicio: data.data_inicio,
         data_fim: data.data_fim ? data.data_fim : null,
         autenticacao: data.autenticacao ? true : false,
+        resposta_unica: data.resposta_unica ? true : false,
       };
 
       if (editingPesquisa) {
@@ -205,6 +214,7 @@ export default function PaginaListagem() {
       data_inicio: "",
       data_fim: "",
       autenticacao: false,
+      resposta_unica: false,
       tipo_pesquisa_id: "",
     })
     setModalOpen(true)         // <- Abre o modal
@@ -321,12 +331,22 @@ export default function PaginaListagem() {
                     </select>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-5">
-                    <Switch
-                      checked={watch("autenticacao")}
-                      onCheckedChange={(value) => setValue("autenticacao", value)}
-                    />
-                    <label className="cursor-pointer select-none">Requer Autenticação</label>
+                  <div className="flex flex-col gap-4 mt-5">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={watch("autenticacao")}
+                        onCheckedChange={(value) => setValue("autenticacao", value)}
+                      />
+                      <label className="cursor-pointer select-none">Requer Autenticação</label>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={watch("resposta_unica")}
+                        onCheckedChange={(value) => setValue("resposta_unica", value)}
+                      />
+                      <label className="cursor-pointer select-none">Responder uma única vez</label>
+                    </div>
                   </div>
                 </div>
 
