@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, FieldValues, Controller } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,8 +50,8 @@ interface Field {
   fetchOptions?: () => Promise<FieldOption[]>;
   minLength?: number;
   maxLength?: number;
-  toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
   maskPattern?: string;
+  value?: any;
 }
 
 interface DataItem {
@@ -82,6 +82,7 @@ interface DynamicCrudComponentProps {
   toggleStatus: (id: number, isActive: boolean) => Promise<{ success: boolean }>;
   permissoes: Permissoes;
   exibirStatus?: boolean;
+  sortableColumns?: string[];
 }
 
 const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
@@ -93,6 +94,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   toggleStatus,
   permissoes,
   exibirStatus = true,
+  sortableColumns,
 }) => {
   const [data, setData] = useState<DataItem[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -102,6 +104,8 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const [searchText, setSearchText] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(10);
+  const [sortField, setSortField] = useState<string | null>(null);
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
 
   const { isSuperAdmin } = useInformacoesUsuarioHook();
 
@@ -111,19 +115,78 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const podeVisualizar = isSuperAdmin || permissoes.podeVisualizar;
 
 
+  const getValueByPath = (item: DataItem, path: string) =>
+    path.split(".").reduce((acc: any, key) => acc?.[key], item);
+
   const filteredData = data.filter((item) =>
     columns.some((column) =>
-      String(item[column.dataField] || "")
+      String(getValueByPath(item, column.dataField) ?? "")
         .toLowerCase()
         .includes(searchText.toLowerCase())
     )
   );
 
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedData = filteredData.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const sortableColumnsSet = useMemo(() => {
+    if (sortableColumns && sortableColumns.length > 0) {
+      return new Set(sortableColumns);
+    }
+    return new Set(columns.map((column) => column.dataField));
+  }, [columns, sortableColumns]);
 
-  const { register, control, handleSubmit, reset, formState: { errors } } = useForm();
+  const sortedData = useMemo(() => {
+    if (!sortField) {
+      return filteredData;
+    }
+
+    const sorted = [...filteredData].sort((a, b) => {
+      const aValue = getValueByPath(a, sortField);
+      const bValue = getValueByPath(b, sortField);
+
+      if (aValue == null && bValue == null) {
+        return 0;
+      }
+
+      if (aValue == null) {
+        return sortDirection === "asc" ? 1 : -1;
+      }
+
+      if (bValue == null) {
+        return sortDirection === "asc" ? -1 : 1;
+      }
+
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
+      }
+
+      const aText = String(aValue).toLowerCase();
+      const bText = String(bValue).toLowerCase();
+
+      return sortDirection === "asc"
+        ? aText.localeCompare(bText, "pt-BR", { numeric: true })
+        : bText.localeCompare(aText, "pt-BR", { numeric: true });
+    });
+
+    return sorted;
+  }, [filteredData, sortDirection, sortField]);
+
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedData = sortedData.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(sortedData.length / itemsPerPage);
+
+  const defaultValues = useMemo(
+    () =>
+      fields.reduce<Record<string, any>>((acc, field) => {
+        if (field.value !== undefined) {
+          acc[field.name] = field.value;
+        }
+        return acc;
+      }, {}),
+    [fields]
+  );
+
+  const { register, control, handleSubmit, reset, formState: { errors } } = useForm({
+    defaultValues,
+  });
 
   useEffect(() => {
     const carregarDados = async () => {
@@ -143,11 +206,11 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
 
   const handleOpenModal = (item?: DataItem) => {
     if (item) {
-      reset(item);
+      reset({ ...defaultValues, ...item });
       setIsEditing(true);
       setCurrentId(item.id);
     } else {
-      reset({});
+      reset(defaultValues);
       setIsEditing(false);
       setCurrentId(null);
     }
@@ -176,6 +239,38 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
     } else {
       alert('Erro ao alterar status');
     }
+  };
+
+  const handleSort = (field: string) => {
+    if (!sortableColumnsSet.has(field)) {
+      return;
+    }
+
+    if (sortField === field) {
+      setSortDirection((prevDirection) =>
+        prevDirection === "asc" ? "desc" : "asc"
+      );
+      return;
+    }
+
+    setSortField(field);
+    setSortDirection("asc");
+  };
+
+  const renderSortIndicator = (field: string) => {
+    if (!sortableColumnsSet.has(field)) {
+      return null;
+    }
+
+    if (sortField !== field) {
+      return <span className="ml-2 text-base text-muted-foreground">↕</span>;
+    }
+
+    return (
+      <span className="ml-2 text-base text-muted-foreground">
+        {sortDirection === "asc" ? "↑" : "↓"}
+      </span>
+    );
   };
 
   const handleCloseModal = () => {
@@ -302,7 +397,16 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
         <TableHeader>
           <TableRow>
             {columns.map((column) => (
-              <TableCell key={column.dataField}>{column.label}</TableCell>
+              <TableCell
+                key={column.dataField}
+                className={sortableColumnsSet.has(column.dataField) ? "cursor-pointer select-none" : undefined}
+                onClick={() => handleSort(column.dataField)}
+              >
+                <span className="inline-flex items-center">
+                  {column.label}
+                  {renderSortIndicator(column.dataField)}
+                </span>
+              </TableCell>
             ))}
             {exibirStatus && <TableCell>Status</TableCell>}
             <TableCell>Ações</TableCell>
