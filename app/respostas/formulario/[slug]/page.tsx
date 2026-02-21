@@ -217,7 +217,6 @@ export default function FormularioCompletoPage() {
    
     if (error) {
       setErroEnvio(error);
-      toast.error(error);
       return;
     }
 
