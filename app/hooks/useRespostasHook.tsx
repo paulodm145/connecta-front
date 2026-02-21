@@ -4,6 +4,26 @@ const URL_EXTERNA = process.env.NEXT_PUBLIC_API_BASE_URL;
 
 export const useRespostasHook = () => { 
 
+     const extrairMensagemErroExterno = (error: any) => {
+        const resposta = error?.response?.data;
+        const mensagemErro = resposta?.error;
+        const mensagemPadrao = resposta?.message;
+
+        if (typeof mensagemErro === "string" && mensagemErro.trim()) {
+            return mensagemErro;
+        }
+
+        if (
+            typeof mensagemPadrao === "string" &&
+            mensagemPadrao.trim() &&
+            mensagemPadrao.toLowerCase() !== "internal server error."
+        ) {
+            return mensagemPadrao;
+        }
+
+        return "Não foi possível enviar as respostas. Tente novamente em instantes.";
+     }
+
      const responder = async (data: any) => {
         try {
             const response = await axios.post(`${BASE_URL}/respostas`, data, {
@@ -29,7 +49,7 @@ export const useRespostasHook = () => {
             return { data: response.data, error: null };
         } catch (error: any) {
             console.error("Erro ao salvar resposta:", error);
-            const mensagem = error?.response?.data?.message || "Erro ao enviar respostas.";
+            const mensagem = extrairMensagemErroExterno(error);
             return { data: null, error: mensagem };
         }
      } 
@@ -39,4 +59,3 @@ return {
     responderExterno
 };     
 };
-

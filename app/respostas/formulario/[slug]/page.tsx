@@ -78,6 +78,7 @@ export default function FormularioCompletoPage() {
   const [formulario, setFormulario] = useState<Formulario | null>(null);
   const [pesquisa, setPesquisa] = useState<Pesquisa | null>(null);
   const [loading, setLoading] = useState(true);
+  const [erroEnvio, setErroEnvio] = useState<string | null>(null);
 
   const params = useParams();
   const searchParams = useSearchParams();
@@ -149,6 +150,7 @@ export default function FormularioCompletoPage() {
 
   const onSubmit = async (data: any) => {
     console.log("Respostas brutas:", data);
+    setErroEnvio(null);
 
     const statusPeriodo = obterStatusPeriodo(pesquisa);
     if (!statusPeriodo.valido) {
@@ -214,6 +216,7 @@ export default function FormularioCompletoPage() {
     const { data: response, error } = await responderExterno(payload, respondente!, identificador_empresa!);
    
     if (error) {
+      setErroEnvio(error);
       toast.error(error);
       return;
     }
@@ -300,6 +303,18 @@ export default function FormularioCompletoPage() {
               {statusPeriodo.mensagem && (
                 <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
                   {statusPeriodo.mensagem}
+                </div>
+              )}
+
+              {erroEnvio && (
+                <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                  <p className="font-semibold">Não foi possível enviar sua resposta.</p>
+                  <p className="mt-1">{erroEnvio}</p>
+                  {erroEnvio.toLowerCase().includes("uma resposta") && (
+                    <p className="mt-2 text-xs text-rose-600">
+                      Se você acredita que isso é um engano, entre em contato com o RH ou com o responsável pela pesquisa.
+                    </p>
+                  )}
                 </div>
               )}
 
