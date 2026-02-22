@@ -7,7 +7,7 @@ export interface LivroPdi {
   id: number;
   competencia_id: number;
   titulo: string;
-  link: string;
+  link?: string | null;
   descricao: string;
   competencia?: {
     id: number;

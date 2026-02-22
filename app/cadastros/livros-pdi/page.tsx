@@ -19,7 +19,7 @@ interface LivroPdiData {
   id: number;
   competencia_id: number;
   titulo: string;
-  link: string;
+  link?: string | null;
   descricao: string;
   competencia?: {
     id: number;
@@ -83,7 +83,7 @@ export default function LivrosPdi() {
       fetchOptions: async () => competenciasOptions,
     },
     { name: 'titulo', label: 'Título', type: 'text', required: true },
-    { name: 'link', label: 'Link', type: 'text', required: true },
+    { name: 'link', label: 'Link', type: 'text', required: false },
     {
       name: 'descricao',
       label: 'Descrição',
@@ -100,7 +100,7 @@ export default function LivrosPdi() {
     const payload = {
       competencia_id: Number(formData.competencia_id),
       titulo: formData.titulo,
-      link: formData.link,
+      link: formData.link?.trim() || null,
       descricao: formData.descricao,
     };
 
@@ -151,16 +151,22 @@ export default function LivrosPdi() {
     {
       dataField: 'link',
       label: 'Link',
-      render: (value: string) => (
-        <a
-          href={value}
-          target="_blank"
-          rel="noreferrer"
-          className="text-amber-700 hover:underline"
-        >
-          {value?.length > 40 ? `${value.slice(0, 37)}...` : value}
-        </a>
-      ),
+      render: (value: string | null) => {
+        if (!value) {
+          return 'Não informado';
+        }
+
+        return (
+          <a
+            href={value}
+            target="_blank"
+            rel="noreferrer"
+            className="text-amber-700 hover:underline"
+          >
+            {value.length > 40 ? `${value.slice(0, 37)}...` : value}
+          </a>
+        );
+      },
     },
     {
       dataField: 'descricao',
