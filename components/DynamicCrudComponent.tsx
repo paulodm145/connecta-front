@@ -303,13 +303,20 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
                 <div key={field.name}>
                   <label className="block text-sm font-medium">{field.label}</label>
                   {field.type === "text" ? (
-                    <Input {...register(field.name, {
-                      required: field.required ? 'Este campo é obrigatório' : false,
-                    })} />
+                    <Input
+                      {...register(
+                        field.name,
+                        field.required ? { required: 'Este campo é obrigatório' } : {}
+                      )}
+                    />
                   ) : field.type === "email" ? (
-                    <Input type="email" {...register(field.name, {
-                      required: field.required ? 'Este campo é obrigatório' : false,
-                    })} />
+                    <Input
+                      type="email"
+                      {...register(
+                        field.name,
+                        field.required ? { required: 'Este campo é obrigatório' } : {}
+                      )}
+                    />
                   ) : field.type === "mask" ? (
                     <Controller
                       name={field.name}
@@ -331,9 +338,12 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
                       )}
                     />
                   ) : field.type === "textarea" ? (
-                    <Textarea {...register(field.name, {
-                      required: field.required ? 'Este campo é obrigatório' : false,
-                    })} />
+                    <Textarea
+                      {...register(
+                        field.name,
+                        field.required ? { required: 'Este campo é obrigatório' } : {}
+                      )}
+                    />
                   ) : field.type === "select" ? (
                     <Controller
                       name={field.name}

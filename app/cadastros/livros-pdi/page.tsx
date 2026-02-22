@@ -100,7 +100,7 @@ export default function LivrosPdi() {
     const payload = {
       competencia_id: Number(formData.competencia_id),
       titulo: formData.titulo,
-      link: formData.link?.trim() || null,
+      ...(formData.link?.trim() ? { link: formData.link.trim() } : {}),
       descricao: formData.descricao,
     };
 
