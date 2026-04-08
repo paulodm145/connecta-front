@@ -294,95 +294,97 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
           )}
 
 
-          <DialogContent>
+          <DialogContent className="flex flex-col max-h-[90dvh]">
             <DialogHeader>
               <DialogTitle>{isEditing ? "Editar Registro" : "Novo Registro"}</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-              {fields.map((field) => (
-                <div key={field.name}>
-                  <label className="block text-sm font-medium">{field.label}</label>
-                  {field.type === "text" ? (
-                    <Input
-                      {...register(
-                        field.name,
-                        field.required ? { required: 'Este campo é obrigatório' } : {}
-                      )}
-                    />
-                  ) : field.type === "email" ? (
-                    <Input
-                      type="email"
-                      {...register(
-                        field.name,
-                        field.required ? { required: 'Este campo é obrigatório' } : {}
-                      )}
-                    />
-                  ) : field.type === "mask" ? (
-                    <Controller
-                      name={field.name}
-                      control={control}
-                      render={({ field: innerField }) => (
-                        <InputMask
-                          mask={field.maskPattern || ""}
-                          value={innerField.value || ""}
-                          onChange={(e) => innerField.onChange(e.target.value)}
-                          onBlur={innerField.onBlur}
-                        >
-                          {(inputProps: any) => (
-                            <Input
-                              {...inputProps}
-                              className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-                            />
-                          )}
-                        </InputMask>
-                      )}
-                    />
-                  ) : field.type === "textarea" ? (
-                    <Textarea
-                      {...register(
-                        field.name,
-                        field.required ? { required: 'Este campo é obrigatório' } : {}
-                      )}
-                    />
-                  ) : field.type === "select" ? (
-                    <Controller
-                      name={field.name}
-                      control={control}
-                      render={({ field: selectField }) => (
-                        <Select
-                          value={(selectField.value)?.toString() || ""}
-                          onValueChange={(value) => selectField.onChange(value)}
-                        >
-                          <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Selecione uma opção" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {lookupData[field.name]?.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-                    />
-                  ) : field.type === "toggle" ? (
-                    <Controller
-                      name={field.name}
-                      control={control}
-                      render={({ field }) => (
-                        <Switch
-                          checked={field.value || false}
-                          onCheckedChange={(checked) => field.onChange(checked)}
-                        />
-                      )}
-                    />
-                  ) : null}
-                  {errors[field.name] && (
-                    <p className="text-red-500 text-xs">{errors[field.name]?.message}</p>
-                  )}
-                </div>
-              ))}
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-1 overflow-hidden gap-4">
+              <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+                {fields.map((field) => (
+                  <div key={field.name}>
+                    <label className="block text-sm font-medium">{field.label}</label>
+                    {field.type === "text" ? (
+                      <Input
+                        {...register(
+                          field.name,
+                          field.required ? { required: 'Este campo é obrigatório' } : {}
+                        )}
+                      />
+                    ) : field.type === "email" ? (
+                      <Input
+                        type="email"
+                        {...register(
+                          field.name,
+                          field.required ? { required: 'Este campo é obrigatório' } : {}
+                        )}
+                      />
+                    ) : field.type === "mask" ? (
+                      <Controller
+                        name={field.name}
+                        control={control}
+                        render={({ field: innerField }) => (
+                          <InputMask
+                            mask={field.maskPattern || ""}
+                            value={innerField.value || ""}
+                            onChange={(e) => innerField.onChange(e.target.value)}
+                            onBlur={innerField.onBlur}
+                          >
+                            {(inputProps: any) => (
+                              <Input
+                                {...inputProps}
+                                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+                              />
+                            )}
+                          </InputMask>
+                        )}
+                      />
+                    ) : field.type === "textarea" ? (
+                      <Textarea
+                        {...register(
+                          field.name,
+                          field.required ? { required: 'Este campo é obrigatório' } : {}
+                        )}
+                      />
+                    ) : field.type === "select" ? (
+                      <Controller
+                        name={field.name}
+                        control={control}
+                        render={({ field: selectField }) => (
+                          <Select
+                            value={(selectField.value)?.toString() || ""}
+                            onValueChange={(value) => selectField.onChange(value)}
+                          >
+                            <SelectTrigger className="w-full">
+                              <SelectValue placeholder="Selecione uma opção" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {lookupData[field.name]?.map((option) => (
+                                <SelectItem key={option.value} value={option.value}>
+                                  {option.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        )}
+                      />
+                    ) : field.type === "toggle" ? (
+                      <Controller
+                        name={field.name}
+                        control={control}
+                        render={({ field }) => (
+                          <Switch
+                            checked={field.value || false}
+                            onCheckedChange={(checked) => field.onChange(checked)}
+                          />
+                        )}
+                      />
+                    ) : null}
+                    {errors[field.name] && (
+                      <p className="text-red-500 text-xs">{errors[field.name]?.message}</p>
+                    )}
+                  </div>
+                ))}
+              </div>
               <DialogFooter>
                 <Button type="submit">{isEditing ? "Atualizar" : "Salvar"}</Button>
               </DialogFooter>
