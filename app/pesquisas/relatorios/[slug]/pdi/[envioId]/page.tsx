@@ -53,7 +53,8 @@ export default function VisualizarPdiPage() {
   const [pdiDetalhes, setPdiDetalhes] = useState<{ id?: number; status?: string; erro?: string; modelo?: string; created_at?: string; updated_at?: string } | null>(
     null
   )
-  const [statusPdi, setStatusPdi] = useState<"pendente" | "processando" | "concluido" | "falhou" | null>(null)
+  const [statusPdi, setStatusPdi] = useState<"processando" | "concluido" | "falhou" | null>(null)
+  const [pollingAtivo, setPollingAtivo] = useState(false)
   const [gerandoPdi, setGerandoPdi] = useState(false)
   const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -98,12 +99,14 @@ export default function VisualizarPdiPage() {
   }, [])
 
   const iniciarPolling = useCallback((envioId: number) => {
+    setPollingAtivo(true)
     const inicio = Date.now()
 
     pollingRef.current = setInterval(async () => {
       if (Date.now() - inicio > POLLING_TIMEOUT_MS) {
         clearInterval(pollingRef.current!)
         pollingRef.current = null
+        setPollingAtivo(false)
         setStatusPdi("falhou")
         setPdiDetalhes((prev) => ({ ...prev, erro: "Tempo limite de geração atingido. Tente novamente." }))
         return
@@ -115,19 +118,23 @@ export default function VisualizarPdiPage() {
         if (resultado.status === "concluido") {
           clearInterval(pollingRef.current!)
           pollingRef.current = null
+          setPollingAtivo(false)
           const dadosCompletos = await buscarPdiEnvio(envioId)
           aplicarDadosPdi(dadosCompletos)
         } else if (resultado.status === "falhou") {
           clearInterval(pollingRef.current!)
           pollingRef.current = null
+          setPollingAtivo(false)
           setStatusPdi("falhou")
           setPdiDetalhes((prev) => ({ ...prev, erro: resultado.erro || "Falha ao gerar o PDI." }))
-        } else {
+        } else if (resultado.status) {
           setStatusPdi(resultado.status)
         }
+        // status null = worker ainda não iniciou, continuar polling sem alterar estado
       } catch {
         clearInterval(pollingRef.current!)
         pollingRef.current = null
+        setPollingAtivo(false)
         setStatusPdi("falhou")
         setPdiDetalhes((prev) => ({ ...prev, erro: "Erro ao verificar status do PDI." }))
       }
@@ -155,7 +162,7 @@ export default function VisualizarPdiPage() {
         aplicarDadosPdi(dados)
 
         const status = dados.pdi?.status ?? null
-        if (status === "pendente" || status === "processando") {
+        if (status === "processando") {
           iniciarPolling(envioId)
         }
       } catch (error) {
@@ -174,8 +181,7 @@ export default function VisualizarPdiPage() {
     if (!envioId) return
 
     setGerandoPdi(true)
-    setStatusPdi("pendente")
-    setPdiDetalhes((prev) => ({ ...prev, erro: undefined }))
+    setPdiDetalhes((prev) => prev ? { ...prev, erro: undefined } : null)
 
     try {
       await gerarPdiEnvio(envioId)
@@ -339,7 +345,7 @@ export default function VisualizarPdiPage() {
         </Card>
       )}
 
-      {(statusPdi === "pendente" || statusPdi === "processando") && (
+      {pollingAtivo && (
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
           <AlertTitle>Gerando PDI...</AlertTitle>
