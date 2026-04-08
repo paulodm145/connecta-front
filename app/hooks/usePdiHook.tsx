@@ -27,6 +27,21 @@ export const usePdiHook = () => {
     }
   }, [])
 
+  const consultarStatusPdi = useCallback(async (envioId: number) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/envios/${envioId}/pdi/status`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      })
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao consultar status do PDI:", error)
+      throw error
+    }
+  }, [])
+
   const buscarPdiEnvio = useCallback(async (envioId: number) => {
     try {
       const response = await axios.get(`${BASE_URL}/envios/${envioId}/pdi`, {
@@ -82,6 +97,7 @@ export const usePdiHook = () => {
 
   return {
     gerarPdiEnvio,
+    consultarStatusPdi,
     buscarPdiEnvio,
     enviarEmailPdiEnvio,
     enviarEmailPdiPesquisa,

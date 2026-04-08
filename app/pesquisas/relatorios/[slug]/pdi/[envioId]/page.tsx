@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -10,6 +10,9 @@ import { Separator } from "@/components/ui/separator"
 import { Loader2, Sparkles, ArrowLeft } from "lucide-react"
 import { usePdiHook } from "@/app/hooks/usePdiHook"
 import { toast } from "react-toastify"
+
+const POLLING_INTERVALO_MS = 4000
+const POLLING_TIMEOUT_MS = 3 * 60 * 1000
 
 interface CompetenciaPdi {
   competencia_id?: number
@@ -34,7 +37,7 @@ interface PlanoPdi {
 export default function VisualizarPdiPage() {
   const params = useParams()
   const router = useRouter()
-  const { buscarPdiEnvio, enviarEmailPdiEnvio } = usePdiHook()
+  const { buscarPdiEnvio, consultarStatusPdi, gerarPdiEnvio, enviarEmailPdiEnvio } = usePdiHook()
 
   const slugPesquisa = params.slug as string
   const envioIdParam = params.envioId as string
@@ -47,9 +50,12 @@ export default function VisualizarPdiPage() {
   const [competenciasResumo, setCompetenciasResumo] = useState<any[]>([])
   const [enviandoEmail, setEnviandoEmail] = useState(false)
   const [emailEnviadoPara, setEmailEnviadoPara] = useState<string | null>(null)
-  const [pdiDetalhes, setPdiDetalhes] = useState<{ id?: number; modelo?: string; created_at?: string; updated_at?: string } | null>(
+  const [pdiDetalhes, setPdiDetalhes] = useState<{ id?: number; status?: string; erro?: string; modelo?: string; created_at?: string; updated_at?: string } | null>(
     null
   )
+  const [statusPdi, setStatusPdi] = useState<"pendente" | "processando" | "concluido" | "falhou" | null>(null)
+  const [gerandoPdi, setGerandoPdi] = useState(false)
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
   const title = useMemo(() => {
     if (avaliacao?.respondente) {
@@ -58,6 +64,81 @@ export default function VisualizarPdiPage() {
 
     return "Plano de Desenvolvimento Individual"
   }, [avaliacao])
+
+  const aplicarDadosPdi = useCallback((dados: any) => {
+    const avaliacaoDados = dados.avaliacao || dados.pdi?.resposta?.avaliacao || dados.resposta?.avaliacao
+    const respostaPdi = dados.pdi?.resposta || dados.resposta || null
+    const plano = respostaPdi?.pdi || null
+    const competenciasOrigem = dados.competencias || []
+    const competenciasPdi = plano?.competencias || []
+    const competencias =
+      competenciasPdi.length > 0
+        ? competenciasPdi.map((competencia: CompetenciaPdi) => {
+            const origem = competenciasOrigem.find(
+              (item: CompetenciaPdi) =>
+                item.competencia_id === competencia.competencia_id || item.descricao === competencia.descricao
+            )
+            return {
+              ...origem,
+              ...competencia,
+              prompt_pdi: competencia.prompt_pdi || origem?.prompt_pdi,
+              descricao: competencia.descricao || origem?.descricao,
+              nota: competencia.nota ?? origem?.nota,
+            }
+          })
+        : competenciasOrigem
+    const prompt = dados.pdi?.prompt || respostaPdi?.prompt || dados.prompt || null
+
+    setAvaliacao(avaliacaoDados)
+    setPlanoPdi(plano)
+    setCompetenciasResumo(competencias)
+    setPromptPdi(prompt)
+    setPdiDetalhes(dados.pdi || null)
+    setStatusPdi(dados.pdi?.status ?? null)
+  }, [])
+
+  const iniciarPolling = useCallback((envioId: number) => {
+    const inicio = Date.now()
+
+    pollingRef.current = setInterval(async () => {
+      if (Date.now() - inicio > POLLING_TIMEOUT_MS) {
+        clearInterval(pollingRef.current!)
+        pollingRef.current = null
+        setStatusPdi("falhou")
+        setPdiDetalhes((prev) => ({ ...prev, erro: "Tempo limite de geração atingido. Tente novamente." }))
+        return
+      }
+
+      try {
+        const resultado = await consultarStatusPdi(envioId)
+
+        if (resultado.status === "concluido") {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          const dadosCompletos = await buscarPdiEnvio(envioId)
+          aplicarDadosPdi(dadosCompletos)
+        } else if (resultado.status === "falhou") {
+          clearInterval(pollingRef.current!)
+          pollingRef.current = null
+          setStatusPdi("falhou")
+          setPdiDetalhes((prev) => ({ ...prev, erro: resultado.erro || "Falha ao gerar o PDI." }))
+        } else {
+          setStatusPdi(resultado.status)
+        }
+      } catch {
+        clearInterval(pollingRef.current!)
+        pollingRef.current = null
+        setStatusPdi("falhou")
+        setPdiDetalhes((prev) => ({ ...prev, erro: "Erro ao verificar status do PDI." }))
+      }
+    }, POLLING_INTERVALO_MS)
+  }, [consultarStatusPdi, buscarPdiEnvio, aplicarDadosPdi])
+
+  useEffect(() => {
+    return () => {
+      if (pollingRef.current) clearInterval(pollingRef.current)
+    }
+  }, [])
 
   useEffect(() => {
     const carregarPdi = async () => {
@@ -71,37 +152,12 @@ export default function VisualizarPdiPage() {
 
       try {
         const dados = await buscarPdiEnvio(envioId)
+        aplicarDadosPdi(dados)
 
-        const avaliacaoDados = dados.avaliacao || dados.pdi?.resposta?.avaliacao || dados.resposta?.avaliacao
-        const respostaPdi = dados.pdi?.resposta || dados.resposta || null
-        const plano = respostaPdi?.pdi || null
-        const competenciasOrigem = dados.competencias || []
-        const competenciasPdi = plano?.competencias || []
-        const competencias =
-          competenciasPdi.length > 0
-            ? competenciasPdi.map((competencia: CompetenciaPdi) => {
-                const origem = competenciasOrigem.find(
-                  (item: CompetenciaPdi) =>
-                    item.competencia_id === competencia.competencia_id || item.descricao === competencia.descricao
-                )
-
-                return {
-                  ...origem,
-                  ...competencia,
-                  prompt_pdi: competencia.prompt_pdi || origem?.prompt_pdi,
-                  descricao: competencia.descricao || origem?.descricao,
-                  nota: competencia.nota ?? origem?.nota,
-                }
-              })
-            : competenciasOrigem
-        const prompt = dados.pdi?.prompt || respostaPdi?.prompt || dados.prompt || null
-        const detalhesPdi = dados.pdi
-
-        setAvaliacao(avaliacaoDados)
-        setPlanoPdi(plano)
-        setCompetenciasResumo(competencias)
-        setPromptPdi(prompt)
-        setPdiDetalhes(detalhesPdi || null)
+        const status = dados.pdi?.status ?? null
+        if (status === "pendente" || status === "processando") {
+          iniciarPolling(envioId)
+        }
       } catch (error) {
         console.error("Erro ao carregar PDI:", error)
         setErro("Não foi possível carregar o PDI gerado para este envio.")
@@ -111,7 +167,27 @@ export default function VisualizarPdiPage() {
     }
 
     carregarPdi()
-  }, [buscarPdiEnvio, envioIdParam])
+  }, [buscarPdiEnvio, envioIdParam, aplicarDadosPdi, iniciarPolling])
+
+  const handleTentarNovamente = async () => {
+    const envioId = Number(envioIdParam)
+    if (!envioId) return
+
+    setGerandoPdi(true)
+    setStatusPdi("pendente")
+    setPdiDetalhes((prev) => ({ ...prev, erro: undefined }))
+
+    try {
+      await gerarPdiEnvio(envioId)
+      iniciarPolling(envioId)
+    } catch (error) {
+      console.error("Erro ao tentar gerar PDI novamente:", error)
+      toast.error("Não foi possível iniciar a geração do PDI. Tente novamente.")
+      setStatusPdi("falhou")
+    } finally {
+      setGerandoPdi(false)
+    }
+  }
 
   const handleEnviarEmail = async () => {
     const envioId = Number(envioIdParam)
@@ -175,7 +251,7 @@ export default function VisualizarPdiPage() {
           <Button
             variant="default"
             onClick={handleEnviarEmail}
-            disabled={enviandoEmail || !pdiDetalhes}
+            disabled={enviandoEmail || statusPdi !== "concluido"}
           >
             {enviandoEmail ? (
               <>
@@ -261,6 +337,40 @@ export default function VisualizarPdiPage() {
             <p className="whitespace-pre-wrap text-sm text-muted-foreground">{promptPdi}</p>
           </CardContent>
         </Card>
+      )}
+
+      {(statusPdi === "pendente" || statusPdi === "processando") && (
+        <Alert>
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <AlertTitle>Gerando PDI...</AlertTitle>
+          <AlertDescription>
+            O plano está sendo gerado em background. Esta página será atualizada automaticamente quando estiver pronto.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {statusPdi === "falhou" && (
+        <Alert variant="destructive">
+          <AlertTitle>Falha na geração do PDI</AlertTitle>
+          <AlertDescription className="space-y-2">
+            <p>{pdiDetalhes?.erro || "Ocorreu um erro ao gerar o PDI."}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTentarNovamente}
+              disabled={gerandoPdi}
+            >
+              {gerandoPdi ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Iniciando...
+                </>
+              ) : (
+                "Tentar novamente"
+              )}
+            </Button>
+          </AlertDescription>
+        </Alert>
       )}
 
       {planoPdi ? (

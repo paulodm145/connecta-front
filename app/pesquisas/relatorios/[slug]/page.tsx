@@ -54,7 +54,7 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
-  const { gerarPdiEnvio, enviarEmailPdiPesquisa, enviarEmailPdiEnvio } = usePdiHook()
+  const { gerarPdiEnvio, consultarStatusPdi, enviarEmailPdiPesquisa, enviarEmailPdiEnvio } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -224,6 +224,9 @@ export default function Page() {
     router.push(`/pesquisas/relatorios/${slugPesquisa}/pdi/${row.envio_id}`)
   }
 
+  const POLLING_INTERVALO_MS = 4000
+  const POLLING_TIMEOUT_MS = 3 * 60 * 1000
+
   const handleGerarPdi = async (row: any) => {
     const envioId = Number(row.envio_id)
 
@@ -233,35 +236,70 @@ export default function Page() {
     }
 
     setGerandoPdiEnvioId(envioId)
-    const loadingToastId = toast.loading("Gerando PDI...", { autoClose: false })
+    const loadingToastId = toast.loading("Geração do PDI iniciada. Aguarde...", { autoClose: false })
 
     try {
       await gerarPdiEnvio(envioId)
-      if (loadingToastId) {
-        toast.update(loadingToastId, {
-          render: "PDI gerado com sucesso para o envio selecionado.",
-          type: "success",
-          isLoading: false,
-          autoClose: 3000,
-        })
-      } else {
-        toast.success("PDI gerado com sucesso para o envio selecionado.")
-      }
     } catch (error) {
-      console.error("Erro ao gerar PDI:", error)
-      if (loadingToastId) {
+      console.error("Erro ao iniciar geração do PDI:", error)
+      toast.update(loadingToastId, {
+        render: "Não foi possível iniciar a geração do PDI. Tente novamente.",
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+      })
+      setGerandoPdiEnvioId(null)
+      return
+    }
+
+    const inicioPolling = Date.now()
+
+    const intervalo = setInterval(async () => {
+      if (Date.now() - inicioPolling > POLLING_TIMEOUT_MS) {
+        clearInterval(intervalo)
         toast.update(loadingToastId, {
-          render: "Não foi possível gerar o PDI. Tente novamente.",
+          render: "A geração do PDI está demorando mais que o esperado. Verifique novamente em instantes.",
+          type: "warning",
+          isLoading: false,
+          autoClose: 6000,
+        })
+        setGerandoPdiEnvioId(null)
+        return
+      }
+
+      try {
+        const resultado = await consultarStatusPdi(envioId)
+
+        if (resultado.status === "concluido") {
+          clearInterval(intervalo)
+          toast.update(loadingToastId, {
+            render: "PDI gerado com sucesso.",
+            type: "success",
+            isLoading: false,
+            autoClose: 3000,
+          })
+          setGerandoPdiEnvioId(null)
+        } else if (resultado.status === "falhou") {
+          clearInterval(intervalo)
+          toast.update(loadingToastId, {
+            render: resultado.erro || "Falha ao gerar o PDI. Tente novamente.",
+            type: "error",
+            isLoading: false,
+            autoClose: 5000,
+          })
+          setGerandoPdiEnvioId(null)
+        }
+      } catch (error) {
+        clearInterval(intervalo)
+        toast.update(loadingToastId, {
+          render: "Erro ao verificar o status do PDI. Tente novamente.",
           type: "error",
           isLoading: false,
           autoClose: 4000,
         })
-      } else {
-        toast.error("Não foi possível gerar o PDI. Tente novamente.")
+        setGerandoPdiEnvioId(null)
       }
-    } finally {
-      setGerandoPdiEnvioId(null)
-    }
+    }, POLLING_INTERVALO_MS)
   }
 
   const handleEnviarPdiIndividual = async (row: any) => {
