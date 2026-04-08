@@ -239,7 +239,7 @@ const BasicDataTable: React.FC<TableProps> = ({
           </div>
 
           {/* Paginação */}
-          <div className="flex justify-between items-center mt-4">
+          <div className="flex flex-wrap justify-between items-center gap-2 mt-4">
             <Button
               variant="outline"
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
@@ -249,7 +249,7 @@ const BasicDataTable: React.FC<TableProps> = ({
               Anterior
             </Button>
 
-            <span>
+            <span className="text-sm">
               Página {currentPage} de {totalPages}
             </span>
 

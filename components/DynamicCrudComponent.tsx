@@ -282,7 +282,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center mb-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 mb-4">
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
 
           {podeCadastrar && (
@@ -390,7 +390,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
           </DialogContent>
         </Dialog>
 
-        <div className="relative w-1/6">
+        <div className="relative w-full sm:w-64">
           <Input
             placeholder="Buscar..."
             value={searchText}
@@ -403,6 +403,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
         </div>
       </div>
 
+      <div className="overflow-x-auto">
       <Table>
         <TableHeader>
           <TableRow>
@@ -450,6 +451,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
           ))}
         </TableBody>
       </Table>
+      </div>
 
       <Pagination>
         <PaginationContent>
