@@ -91,7 +91,7 @@ const BasicDataTable: React.FC<TableProps> = ({
   }
 
    return (
-    <div className="w-full mx-auto p-4 bg-white rounded-lg shadow-md">
+    <div className="w-full mx-auto p-4 bg-white rounded-lg shadow-md overflow-hidden">
       {/* Barra superior com busca e botões de ação */}
       <div className="flex flex-col sm:flex-row gap-4 mb-4">
         {/* Campo de busca com ícone de lupa */}
