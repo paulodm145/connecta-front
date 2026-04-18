@@ -54,7 +54,7 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
-  const { gerarPdiEnvio, consultarStatusPdi, enviarEmailPdiPesquisa, enviarEmailPdiEnvio } = usePdiHook()
+  const { gerarPdiEnvio, consultarStatusPdi, enviarEmailPdiPesquisa, enviarEmailPdiEnvio, gerarLotePdi, consultarStatusLotePdi } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -77,6 +77,8 @@ export default function Page() {
   const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
   const [enviandoPdiPesquisa, setEnviandoPdiPesquisa] = useState(false)
   const [enviandoPdiEnvioId, setEnviandoPdiEnvioId] = useState<number | null>(null)
+  const [gerandoLotePdi, setGerandoLotePdi] = useState(false)
+  const [progressoLotePdi, setProgressoLotePdi] = useState<{ concluidos: number; total: number } | null>(null)
 
   const {
     createAnotacao,
@@ -429,6 +431,89 @@ export default function Page() {
     }
   }
 
+  const handleGerarLotePdi = async () => {
+    const envioIds = respostas.map((r) => Number(r.envio_id)).filter(Boolean)
+
+    if (envioIds.length === 0) {
+      toast.error("Nenhum envio encontrado para gerar PDIs.")
+      return
+    }
+
+    setGerandoLotePdi(true)
+    setProgressoLotePdi({ concluidos: 0, total: envioIds.length })
+    const toastId = toast.loading(`Iniciando geração de ${envioIds.length} PDIs...`, { autoClose: false })
+
+    try {
+      await gerarLotePdi(envioIds)
+    } catch {
+      toast.update(toastId, {
+        render: "Não foi possível iniciar a geração em lote. Tente novamente.",
+        type: "error",
+        isLoading: false,
+        autoClose: 4000,
+      })
+      setGerandoLotePdi(false)
+      setProgressoLotePdi(null)
+      return
+    }
+
+    const inicioPolling = Date.now()
+
+    const intervalo = setInterval(async () => {
+      if (Date.now() - inicioPolling > POLLING_TIMEOUT_MS) {
+        clearInterval(intervalo)
+        toast.update(toastId, {
+          render: "A geração em lote está demorando mais que o esperado. Verifique novamente em instantes.",
+          type: "warning",
+          isLoading: false,
+          autoClose: 6000,
+        })
+        setGerandoLotePdi(false)
+        setProgressoLotePdi(null)
+        return
+      }
+
+      try {
+        const resultado = await consultarStatusLotePdi(envioIds)
+        const pdis: { envio_id: number; status: string | null }[] = resultado.pdis ?? []
+
+        const concluidos = pdis.filter((p) => p.status === "concluido" || p.status === "falhou").length
+        setProgressoLotePdi({ concluidos, total: envioIds.length })
+
+        toast.update(toastId, {
+          render: `Gerando PDIs... ${concluidos} de ${envioIds.length} concluídos.`,
+        })
+
+        if (concluidos === envioIds.length) {
+          clearInterval(intervalo)
+          const falhas = pdis.filter((p) => p.status === "falhou").length
+          const mensagem =
+            falhas > 0
+              ? `${concluidos - falhas} PDIs gerados com sucesso. ${falhas} falharam.`
+              : `${concluidos} PDIs gerados com sucesso.`
+          toast.update(toastId, {
+            render: mensagem,
+            type: falhas > 0 ? "warning" : "success",
+            isLoading: false,
+            autoClose: 6000,
+          })
+          setGerandoLotePdi(false)
+          setProgressoLotePdi(null)
+        }
+      } catch {
+        clearInterval(intervalo)
+        toast.update(toastId, {
+          render: "Erro ao verificar o status do lote de PDIs.",
+          type: "error",
+          isLoading: false,
+          autoClose: 4000,
+        })
+        setGerandoLotePdi(false)
+        setProgressoLotePdi(null)
+      }
+    }, POLLING_INTERVALO_MS)
+  }
+
   const actionsBar = [
     {
       label: "Exportar",
@@ -436,6 +521,18 @@ export default function Page() {
       variant: "outline" as const,
       onClick: handleExport,
       visible: permissoesUsuario.exportarXLSX,
+    },
+    {
+      label: gerandoLotePdi
+        ? progressoLotePdi
+          ? `Gerando... ${progressoLotePdi.concluidos}/${progressoLotePdi.total}`
+          : "Iniciando..."
+        : "Gerar todos os PDIs",
+      icon: Sparkles,
+      variant: "outline" as const,
+      onClick: handleGerarLotePdi,
+      visible: permissoesUsuario.pdiAvaliado,
+      disabled: gerandoLotePdi,
     },
     {
       label: enviandoPdiPesquisa ? "Enviando PDI..." : "Enviar PDI por e-mail",

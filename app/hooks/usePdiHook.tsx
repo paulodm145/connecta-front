@@ -76,6 +76,47 @@ export const usePdiHook = () => {
     }
   }, [])
 
+  const gerarLotePdi = useCallback(async (envioIds: number[], contextoAdicional?: string) => {
+    try {
+      const payload: { envio_ids: number[]; contexto_adicional?: string } = { envio_ids: envioIds }
+      if (contextoAdicional) payload.contexto_adicional = contextoAdicional
+
+      const response = await axios.post(
+        `${BASE_URL}/pdis/gerar-lote`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao gerar PDIs em lote:", error)
+      throw error
+    }
+  }, [])
+
+  const consultarStatusLotePdi = useCallback(async (envioIds: number[]) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/pdis/status-lote`,
+        { envio_ids: envioIds },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao consultar status do lote de PDIs:", error)
+      throw error
+    }
+  }, [])
+
   const enviarEmailPdiPesquisa = useCallback(async (pesquisaId: number) => {
     try {
       const response = await axios.post(
@@ -101,5 +142,7 @@ export const usePdiHook = () => {
     buscarPdiEnvio,
     enviarEmailPdiEnvio,
     enviarEmailPdiPesquisa,
+    gerarLotePdi,
+    consultarStatusLotePdi,
   }
 }
