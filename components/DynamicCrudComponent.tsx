@@ -322,6 +322,13 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
                       <Controller
                         name={field.name}
                         control={control}
+                        rules={field.required ? {
+                          required: 'Este campo é obrigatório',
+                          validate: (value) => {
+                            if (!value || value.includes('_')) return 'Preencha o campo completamente';
+                            return true;
+                          },
+                        } : {}}
                         render={({ field: innerField }) => (
                           <InputMask
                             mask={field.maskPattern || ""}

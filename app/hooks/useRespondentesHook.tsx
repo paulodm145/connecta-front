@@ -167,7 +167,43 @@ export const useRespondentesHook = () => {
         }
     }
 
-return { 
+    const enviarEmailResponsavelSetor = async (pesquisaId: number, setorId: number) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/pesquisas/${pesquisaId}/setores/${setorId}/responsavel/enviar-email`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao enviar e-mail para o responsável do setor.");
+        }
+    }
+
+    const enviarEmailTodosResponsaveis = async (pesquisaId: number) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/pesquisas/${pesquisaId}/setores/responsaveis/enviar-email`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao enviar e-mails para responsáveis de setores:", error);
+            return null;
+        }
+    }
+
+return {
     index,
     show,
     store,
@@ -178,8 +214,10 @@ return {
     listarRespondentesCombo,
     enviarRespondentesMultiplos,
     enviarLinkPesquisaRespondente,
-    enviarLinksPesquisaEmMassa
-    };     
+    enviarLinksPesquisaEmMassa,
+    enviarEmailResponsavelSetor,
+    enviarEmailTodosResponsaveis,
+    };
 };
 
 

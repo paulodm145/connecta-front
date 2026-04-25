@@ -18,6 +18,7 @@ import { useFormulariosHook } from "@/app/hooks/useFormulariosHook";
 import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useRespostasHook } from "@/app/hooks/useRespostasHook";
 import { toast } from "react-toastify";
+import { CheckCircle2 } from "lucide-react";
 
 // Tipos para o formulário e perguntas
 type Formulario = {
@@ -221,7 +222,6 @@ export default function FormularioCompletoPage() {
     }
 
     if (response) {
-      toast.success("Respostas enviadas com sucesso!");
       setEnviado(true);
     }
 
@@ -241,6 +241,29 @@ export default function FormularioCompletoPage() {
 
   if (loading) return <p className="text-center text-gray-700 mt-10">Carregando formulário...</p>;
   if (!formulario) return <p className="text-center text-red-500 mt-10">Erro ao carregar formulário.</p>;
+
+  if (enviado) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-10">
+        <div className="w-full max-w-sm text-center space-y-6">
+          <div className="flex justify-center">
+            <CheckCircle2 className="h-24 w-24 text-emerald-500" strokeWidth={1.5} />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold text-slate-900">Obrigado!</h1>
+            <p className="text-base text-slate-600">
+              Suas respostas foram enviadas com sucesso.
+            </p>
+          </div>
+          {pesquisa?.titulo && (
+            <span className="inline-block rounded-full bg-slate-100 px-4 py-2 text-xs font-medium text-slate-500">
+              {pesquisa.titulo}
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   const statusPeriodo = obterStatusPeriodo(pesquisa);
 
@@ -292,109 +315,102 @@ export default function FormularioCompletoPage() {
             )}
           </header>
 
-          {enviado ? (
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-6 py-8 text-center shadow-sm">
-              <h2 className="text-2xl font-bold text-emerald-700">Obrigado por sua resposta!</h2>
-              <p className="mt-2 text-sm text-emerald-700">Seus dados foram enviados com sucesso.</p>
-            </div>
-          ) : (
-            <div className="rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-8">
-              {statusPeriodo.mensagem && (
-                <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
-                  {statusPeriodo.mensagem}
-                </div>
-              )}
-
-              {erroEnvio && (
-                <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
-                  <p className="font-semibold">Não foi possível enviar sua resposta.</p>
-                  <p className="mt-1">{erroEnvio}</p>
-                  {erroEnvio.toLowerCase().includes("uma resposta") && (
-                    <p className="mt-2 text-xs text-rose-600">
-                      Se você acredita que isso é um engano, entre em contato com o RH ou com o responsável pela pesquisa.
-                    </p>
-                  )}
-                </div>
-              )}
-
-              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                <div>
-                  <h2 className="text-lg font-semibold text-slate-900">Formulário</h2>
-                  <p className="text-sm text-slate-500">Preencha as perguntas abaixo.</p>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {formulario.mostrar_embed_youtube && formulario.embed_youtube && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenVideo(formulario.embed_youtube!)}
-                    >
-                      ▶ Assistir Vídeo do Formulário
-                    </Button>
-                  )}
-                  {formulario.mostrar_ajuda && formulario.ajuda && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenAjuda(formulario.ajuda!)}
-                    >
-                      ℹ️ Ajuda do Formulário
-                    </Button>
-                  )}
-                </div>
+          <div className="rounded-2xl border border-slate-200 bg-white px-6 py-8 shadow-sm sm:px-8">
+            {statusPeriodo.mensagem && (
+              <div className="mb-6 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+                {statusPeriodo.mensagem}
               </div>
+            )}
 
-              <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
-                {formulario.perguntas.map((pergunta) => (
-                  <div
-                    key={pergunta.id}
-                    className="rounded-xl border border-slate-200 bg-slate-50/40 p-4 shadow-sm"
+            {erroEnvio && (
+              <div className="mb-6 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+                <p className="font-semibold">Não foi possível enviar sua resposta.</p>
+                <p className="mt-1">{erroEnvio}</p>
+                {erroEnvio.toLowerCase().includes("uma resposta") && (
+                  <p className="mt-2 text-xs text-rose-600">
+                    Se você acredita que isso é um engano, entre em contato com o RH ou com o responsável pela pesquisa.
+                  </p>
+                )}
+              </div>
+            )}
+
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-slate-900">Formulário</h2>
+                <p className="text-sm text-slate-500">Preencha as perguntas abaixo.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {formulario.mostrar_embed_youtube && formulario.embed_youtube && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenVideo(formulario.embed_youtube!)}
                   >
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                      <label className="text-sm font-semibold text-slate-900">
-                        {pergunta.pergunta_texto}{" "}
-                        {pergunta.obrigatoria && <span className="text-red-600">*</span>}
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {pergunta.mostrar_embed_youtube && pergunta.embed_youtube && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenVideo(pergunta.embed_youtube!)}
-                          >
-                            ▶ Ver Vídeo da Pergunta
-                          </Button>
-                        )}
-                        {pergunta.mostrar_ajuda && pergunta.ajuda && (
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleOpenAjuda(pergunta.ajuda!)}
-                          >
-                            ℹ️ Ajuda da Pergunta
-                          </Button>
-                        )}
-                      </div>
-                    </div>
+                    ▶ Assistir Vídeo do Formulário
+                  </Button>
+                )}
+                {formulario.mostrar_ajuda && formulario.ajuda && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleOpenAjuda(formulario.ajuda!)}
+                  >
+                    ℹ️ Ajuda do Formulário
+                  </Button>
+                )}
+              </div>
+            </div>
 
-                    <div className="mt-3">
-                      {renderizarPerguntaHookForm(pergunta, register, control, errors)}
-                      {errors[pergunta.id.toString()] && (
-                        <p className="mt-2 text-sm text-red-500">Campo obrigatório.</p>
+            <form onSubmit={handleSubmit(onSubmit)} className="mt-6 space-y-5">
+              {formulario.perguntas.map((pergunta) => (
+                <div
+                  key={pergunta.id}
+                  className="rounded-xl border border-slate-200 bg-slate-50/40 p-4 shadow-sm"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <label className="text-sm font-semibold text-slate-900">
+                      {pergunta.pergunta_texto}{" "}
+                      {pergunta.obrigatoria && <span className="text-red-600">*</span>}
+                    </label>
+                    <div className="flex flex-wrap gap-2">
+                      {pergunta.mostrar_embed_youtube && pergunta.embed_youtube && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenVideo(pergunta.embed_youtube!)}
+                        >
+                          ▶ Ver Vídeo da Pergunta
+                        </Button>
+                      )}
+                      {pergunta.mostrar_ajuda && pergunta.ajuda && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleOpenAjuda(pergunta.ajuda!)}
+                        >
+                          ℹ️ Ajuda da Pergunta
+                        </Button>
                       )}
                     </div>
                   </div>
-                ))}
-                <Button
-                  type="submit"
-                  className="w-full bg-blue-600 text-white hover:bg-blue-500"
-                  disabled={!statusPeriodo.valido}
-                >
-                  Enviar
-                </Button>
-              </form>
-            </div>
-          )}
+
+                  <div className="mt-3">
+                    {renderizarPerguntaHookForm(pergunta, register, control, errors)}
+                    {errors[pergunta.id.toString()] && (
+                      <p className="mt-2 text-sm text-red-500">Campo obrigatório.</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 text-white hover:bg-blue-500"
+                disabled={!statusPeriodo.valido}
+              >
+                Enviar
+              </Button>
+            </form>
+          </div>
         </div>
       </div>
     </>

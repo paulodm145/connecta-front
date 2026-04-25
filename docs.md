@@ -72,7 +72,33 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
 
 - **Dados consolidados para PDI**: `GET /api/empresas/envios/{envioId}/pdi`
   - Autenticação: grupo autenticado `empresas` (enviar bearer token padrão da aplicação).
-  - Retorno esperado (exemplo):
+  - Este endpoint também serve para o front-end verificar o andamento de uma geração em curso: quando a chave `pdi` estiver presente, checar `pdi.status` antes de exibir o conteúdo.
+  - Retorno quando PDI ainda não foi gerado:
+    ```json
+    {
+      "avaliacao": { ... },
+      "competencias": [ ... ],
+      "pdi": null
+    }
+    ```
+  - Retorno quando geração está em andamento (`status` = `processando`):
+    ```json
+    {
+      "avaliacao": { ... },
+      "competencias": [ ... ],
+      "pdi": {
+        "id": 99,
+        "status": "processando",
+        "erro": null,
+        "modelo": "gpt-4o-mini",
+        "prompt": "...prompt montado localmente...",
+        "resposta": null,
+        "created_at": "2025-12-01 10:00:00",
+        "updated_at": "2025-12-01 10:00:00"
+      }
+    }
+    ```
+  - Retorno quando geração foi concluída (`status` = `concluido`):
     ```json
     {
       "avaliacao": {
@@ -109,6 +135,8 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
       ],
       "pdi": {
         "id": 99,
+        "status": "concluido",
+        "erro": null,
         "modelo": "gpt-4o-mini",
         "prompt": "...prompt enviado para a IA...",
         "resposta": {
@@ -132,6 +160,28 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
       }
     }
     ```
+  - Retorno quando geração falhou (`status` = `falhou`):
+    ```json
+    {
+      "avaliacao": { ... },
+      "competencias": [ ... ],
+      "pdi": {
+        "id": 99,
+        "status": "falhou",
+        "erro": "descrição do erro",
+        "modelo": "gpt-4o-mini",
+        "prompt": "...prompt montado localmente...",
+        "resposta": null,
+        "created_at": "2025-12-01 10:00:00",
+        "updated_at": "2025-12-01 10:00:00"
+      }
+    }
+    ```
+  - **Orientação ao front-end**: ao carregar a tela de PDI, chamar este endpoint e verificar `pdi.status`:
+    - `null` (pdi ausente): PDI ainda não solicitado — exibir botão "Gerar PDI".
+    - `processando`: job está em execução — exibir indicador de carregamento e fazer polling a cada 3–5 s neste mesmo endpoint.
+    - `concluido`: exibir o PDI a partir de `pdi.resposta`.
+    - `falhou`: exibir mensagem de erro (`pdi.erro`) e permitir nova tentativa (chamar `POST /pdi/gerar` novamente).
 
 - **Envio de PDI por e-mail** (rotas autenticadas em `/api/empresas`):
   - `POST /api/empresas/envios/{envioId}/pdi/enviar-email`
@@ -163,6 +213,169 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
     - Retorno (200): objeto resumo com contadores `total_respondentes`, `enviados`, `sem_email` e `sem_pessoa`.
     - O link enviado é montado a partir da variável `PESQUISA_RESPONDER_URL` (com fallback para `APP_URL`), seguindo o formato `/pesquisas/{slug}?token=...`.
 
+---
+
+## Envio de links de avaliação para responsáveis de setor
+
+### Visão geral
+
+Neste fluxo, o responsável por um setor recebe um único e-mail contendo a lista de todos os colaboradores do seu setor que são respondentes de uma pesquisa, cada um com seu link individual de avaliação. Ele não precisa acessar o sistema para saber quem deve avaliar — tudo chega consolidado no e-mail.
+
+### Pré-requisitos
+
+- A pesquisa deve ter respondentes cadastrados.
+- O setor deve ter o campo `pessoa_id` preenchido (responsável definido).
+- O responsável deve ter `email` cadastrado em `pessoas`.
+- Os respondentes do setor são identificados pelo relacionamento `pessoas → cargos → setores` (via `cargo_id` e `cargos.setor_id`).
+
+### Rotas
+
+#### `POST /api/empresas/pesquisas/{pesquisaId}/setores/{setorId}/responsavel/enviar-email`
+
+Autenticação: bearer token padrão (`auth:api`).
+
+Envia o e-mail de links de avaliação para o responsável de um setor específico dentro de uma pesquisa.
+
+**Parâmetros de URL:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `pesquisaId` | integer | ID da pesquisa |
+| `setorId` | integer | ID do setor cujo responsável receberá o e-mail |
+
+**Payload:** vazio.
+
+**Retorno (200):**
+```json
+{
+  "message": "E-mail enviado com sucesso ao responsável do setor.",
+  "setor": "Tecnologia",
+  "responsavel": "Ana Silva",
+  "destinatario": "ana.silva@empresa.com",
+  "total_avaliados": 5
+}
+```
+
+**Retornos de erro (400):**
+```json
+{ "message": "O setor \"Tecnologia\" não possui responsável cadastrado." }
+{ "message": "O responsável do setor \"Tecnologia\" não possui e-mail cadastrado." }
+{ "message": "Nenhum respondente encontrado para o setor \"Tecnologia\" nesta pesquisa." }
+```
+
+**Retorno de erro (404):** pesquisa ou setor não encontrado.
+
+---
+
+#### `POST /api/empresas/pesquisas/{pesquisaId}/setores/responsaveis/enviar-email`
+
+Autenticação: bearer token padrão (`auth:api`).
+
+Envia o e-mail de links de avaliação para os responsáveis de **todos os setores** que possuam respondentes cadastrados na pesquisa. Setores sem responsável, sem e-mail ou sem respondentes na pesquisa são ignorados e contabilizados no resumo.
+
+**Parâmetros de URL:**
+
+| Parâmetro | Tipo | Descrição |
+|---|---|---|
+| `pesquisaId` | integer | ID da pesquisa |
+
+**Payload:** vazio.
+
+**Retorno (200):**
+```json
+{
+  "total_setores": 4,
+  "enviados": 3,
+  "sem_responsavel": 0,
+  "sem_email_responsavel": 1,
+  "sem_respondentes": 0,
+  "detalhes": [
+    {
+      "setor": "Tecnologia",
+      "responsavel": "Ana Silva",
+      "destinatario": "ana.silva@empresa.com",
+      "total_avaliados": 5
+    },
+    {
+      "setor": "Comercial",
+      "responsavel": "João Souza",
+      "destinatario": "joao.souza@empresa.com",
+      "total_avaliados": 3
+    }
+  ]
+}
+```
+
+| Campo | Significado |
+|---|---|
+| `total_setores` | Total de setores com responsável preenchido |
+| `enviados` | Setores cujo responsável recebeu o e-mail com sucesso |
+| `sem_responsavel` | Setores sem `pessoa_id` cadastrado |
+| `sem_email_responsavel` | Setores cujo responsável não tem e-mail |
+| `sem_respondentes` | Setores sem respondentes nesta pesquisa |
+| `detalhes` | Array com o resumo de cada e-mail enviado |
+
+**Retorno de erro (404):** pesquisa não encontrada.
+
+---
+
+### Fluxo recomendado para o front-end React
+
+#### Caso de uso: disparar e-mail para um setor específico
+
+```tsx
+async function enviarEmailSetor(pesquisaId: number, setorId: number) {
+  try {
+    const { data } = await api.post(
+      `/empresas/pesquisas/${pesquisaId}/setores/${setorId}/responsavel/enviar-email`
+    );
+    // data.message, data.setor, data.responsavel, data.total_avaliados
+    toast.success(`E-mail enviado para ${data.responsavel} com ${data.total_avaliados} avaliados.`);
+  } catch (error) {
+    // error.response.data.message descreve o motivo da falha
+    toast.error(error.response?.data?.message ?? 'Erro ao enviar e-mail.');
+  }
+}
+```
+
+#### Caso de uso: disparar e-mail para todos os responsáveis
+
+```tsx
+async function enviarEmailTodosResponsaveis(pesquisaId: number) {
+  const { data } = await api.post(
+    `/empresas/pesquisas/${pesquisaId}/setores/responsaveis/enviar-email`
+  );
+
+  // data.enviados — quantos foram enviados com sucesso
+  // data.sem_responsavel — setores ignorados por ausência de responsável
+  // data.sem_email_responsavel — setores ignorados por e-mail ausente
+  // data.sem_respondentes — setores sem respondentes na pesquisa
+  // data.detalhes — array com detalhes de cada envio realizado
+  return data;
+}
+```
+
+#### Sugestão de UX
+
+- Exibir um botão **"Enviar links para responsáveis"** na tela de gestão de pesquisa.
+- Ao clicar, disparar o endpoint em massa e mostrar o resumo retornado em um modal ou toast:
+  - "X setores notificados com sucesso."
+  - "Y setores ignorados: responsável sem e-mail."
+- Oferecer também a ação individual por setor na listagem de setores da pesquisa.
+- Não há polling necessário — o envio é síncrono e a resposta já traz o resultado final.
+
+#### Estrutura do e-mail recebido pelo responsável
+
+O responsável recebe uma tabela com:
+- Nome de cada colaborador do setor que é respondente da pesquisa.
+- Link individual de acesso ao formulário de avaliação.
+- Prazo final da pesquisa (se configurado).
+
+O link segue o mesmo padrão dos demais links de pesquisa:
+```
+{PESQUISA_RESPONDER_URL}/respostas/formulario/{formulario-slug}?t={token}&p={pesquisa-slug}&e={empresa_id}&tpo=1
+```
+
 ## Campos adicionais em pesquisas
 - `resposta_unica` (boolean): quando `true`, impede múltiplas respostas do mesmo respondente para a pesquisa.
 
@@ -177,56 +390,268 @@ O fluxo atual permite que colaboradores respondam a formulários dinâmicos, ger
       "contexto_adicional": "observações de liderança ou RH para enriquecer o plano"
     }
     ```
-  - Comportamento: monta o payload via `PdiService::montarDadosPdi`, cria um prompt e envia para a API da OpenAI usando o modelo configurado em `OPENAI_MODEL`. O retorno é persistido em `pdis` e devolvido na resposta.
-  - Resposta (201):
+  - Comportamento: a geração é **assíncrona**. A rota despacha um job para a fila e retorna imediatamente com `202 Accepted`. O processamento (chamada à OpenAI) ocorre em background sem bloquear a requisição HTTP. Nenhum registro é criado no banco neste momento — o registro em `pdis` só é inserido quando o worker inicia o job.
+  - Resposta (202):
     ```json
     {
-      "id": 1,
-      "envio_id": 44,
-      "modelo": "gpt-4o-mini",
-      "prompt": "...",
-      "resposta": {
-        "avaliacao": {
-          "envio_id": 44,
-          "pesquisa_id": 10,
-          "formulario_id": 5,
-          "respondente": "Fulano da Silva",
-          "data_envio": "2025-11-20 12:00:00"
-        },
-        "pdi": {
-          "objetivo_geral": "objetivo resumido",
-          "competencias": [
-            {
-              "competencia_id": 1,
-              "descricao": "Comunicação",
-              "nota": 4.5,
-              "acoes_recomendadas": ["até 3 ações práticas"],
-              "indicadores_sucesso": ["indicadores medíveis"],
-              "prazo_meses": 3,
-              "recomendacoes": {
-                "livros": [
-                  {
-                    "titulo": "Comunicação não violenta",
-                    "link": "https://exemplo.com/livro",
-                    "descricao": "Resumo de contribuição."
-                  }
-                ],
-                "videos": [
-                  {
-                    "titulo": "Como dar feedback",
-                    "link": "https://www.youtube.com/watch?v=abc123",
-                    "descricao": "Resumo de contribuição."
-                  }
-                ]
-              }
-            }
-          ]
-        }
-      },
-      "created_at": "2025-12-01T10:00:00Z",
-      "updated_at": "2025-12-01T10:00:00Z"
+      "message": "Geração do PDI iniciada.",
+      "envio_id": 44
     }
     ```
+  - **Ciclo de vida do status** (`status` na tabela `pdis`):
+    | Valor | Quando ocorre |
+    |---|---|
+    | `processando` | worker pegou o job e montou o prompt — chamada à OpenAI em andamento |
+    | `concluido` | OpenAI respondeu e o PDI foi salvo com sucesso |
+    | `falhou` | erro durante a geração (detalhes em `erro`) |
+
+    > **Importante**: não existe estado `pendente` no banco. Entre o `202` e o worker iniciar o job, `GET /pdi` retorna `"pdi": null`. O front-end deve tratar `null` pós-disparo como "aguardando início".
+
+  - **Consulta de status dedicada**: `GET /api/empresas/envios/{envioId}/pdi/status`
+    - Autenticação: grupo autenticado `empresas`.
+    - Alternativa ao polling via `GET /pdi` quando se deseja uma resposta mais enxuta.
+    - Resposta enquanto em processamento (200):
+      ```json
+      {
+        "envio_id": 44,
+        "status": "processando",
+        "erro": null,
+        "pdi": null
+      }
+      ```
+    - Resposta quando concluído (200):
+      ```json
+      {
+        "envio_id": 44,
+        "status": "concluido",
+        "erro": null,
+        "pdi": {
+          "id": 1,
+          "envio_id": 44,
+          "status": "concluido",
+          "modelo": "gpt-4o-mini",
+          "prompt": "...",
+          "resposta": {
+            "avaliacao": {
+              "envio_id": 44,
+              "pesquisa_id": 10,
+              "formulario_id": 5,
+              "respondente": "Fulano da Silva",
+              "data_envio": "2025-11-20 12:00:00"
+            },
+            "pdi": {
+              "objetivo_geral": "objetivo resumido",
+              "competencias": [
+                {
+                  "competencia_id": 1,
+                  "descricao": "Comunicação",
+                  "nota": 4.5,
+                  "acoes_recomendadas": ["até 3 ações práticas"],
+                  "indicadores_sucesso": ["indicadores medíveis"],
+                  "prazo_meses": 3,
+                  "recomendacoes": {
+                    "livros": [
+                      {
+                        "titulo": "Comunicação não violenta",
+                        "link": "https://exemplo.com/livro",
+                        "descricao": "Resumo de contribuição."
+                      }
+                    ],
+                    "videos": [
+                      {
+                        "titulo": "Como dar feedback",
+                        "link": "https://www.youtube.com/watch?v=abc123",
+                        "descricao": "Resumo de contribuição."
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          },
+          "created_at": "2025-12-01T10:00:00Z",
+          "updated_at": "2025-12-01T10:00:00Z"
+        }
+      }
+      ```
+    - Resposta quando falhou (200):
+      ```json
+      {
+        "envio_id": 44,
+        "status": "falhou",
+        "erro": "descrição do erro",
+        "pdi": null
+      }
+      ```
+
+  - **Fluxo recomendado para o front-end**:
+    1. Ao abrir a tela, chamar `GET /api/empresas/envios/{envioId}/pdi` e verificar `pdi`:
+       - `null`: PDI não solicitado ainda — exibir botão "Gerar PDI".
+       - `status = processando`: geração em andamento — exibir indicador e iniciar polling.
+       - `status = concluido`: exibir PDI.
+       - `status = falhou`: exibir erro e botão para tentar novamente.
+    2. Ao clicar em "Gerar PDI", chamar `POST /pdi/gerar` (202) e iniciar polling imediatamente.
+    3. Polling: chamar `GET /pdi/status` (ou `GET /pdi`) a cada 3–5 segundos.
+       - `pdi === null`: worker ainda não iniciou — continuar polling.
+       - `status = processando`: continuar polling.
+       - `status = concluido`: encerrar polling e exibir PDI.
+       - `status = falhou`: encerrar polling, exibir `erro` e permitir nova tentativa.
+    4. Aplicar timeout de polling no front-end (sugestão: 3 minutos) e exibir aviso caso o PDI demore além do esperado.
+
+---
+
+## Geração de PDI em lote
+
+### Visão geral
+
+O fluxo em lote permite que o front-end selecione múltiplos envios de uma pesquisa e dispare a geração de PDI para todos ao mesmo tempo. Cada envio é tratado de forma independente na fila, mantendo a mesma lógica assíncrona do fluxo individual.
+
+### Rotas
+
+#### `POST /api/empresas/pdis/gerar-lote`
+
+Autenticação: bearer token padrão (`auth:api`).
+
+Despacha um `GerarPdiJob` para cada `envio_id` informado. Retorna imediatamente com `202 Accepted`.
+
+**Payload:**
+```json
+{
+  "envio_ids": [44, 45, 46],
+  "contexto_adicional": "Observações do RH para enriquecer os planos (opcional)"
+}
+```
+
+| Campo | Tipo | Obrigatório | Descrição |
+|---|---|---|---|
+| `envio_ids` | array de inteiros | sim | IDs dos envios cujos PDIs devem ser gerados |
+| `contexto_adicional` | string | não | Contexto extra enviado para a IA em todos os PDIs do lote |
+
+**Resposta (202):**
+```json
+{
+  "message": "Geração em lote iniciada.",
+  "envio_ids": [44, 45, 46],
+  "total": 3
+}
+```
+
+> O campo `contexto_adicional` é compartilhado entre todos os PDIs do lote. Se cada PDI precisar de contexto diferente, use o endpoint individual `POST /api/empresas/envios/{envioId}/pdi/gerar`.
+
+---
+
+#### `POST /api/empresas/pdis/status-lote`
+
+Autenticação: bearer token padrão (`auth:api`).
+
+Retorna o status atual de cada PDI do lote. Ideal para polling após o disparo.
+
+**Payload:**
+```json
+{
+  "envio_ids": [44, 45, 46]
+}
+```
+
+**Resposta (200):**
+```json
+{
+  "pdis": [
+    { "envio_id": 44, "status": "concluido", "erro": null },
+    { "envio_id": 45, "status": "processando", "erro": null },
+    { "envio_id": 46, "status": null, "erro": null }
+  ]
+}
+```
+
+| `status` | Significado |
+|---|---|
+| `null` | PDI ainda não registrado — worker ainda não iniciou o job |
+| `processando` | Chamada à OpenAI em andamento |
+| `concluido` | PDI gerado com sucesso |
+| `falhou` | Erro durante a geração — detalhe em `erro` |
+
+---
+
+### Fluxo recomendado para o front-end React
+
+#### 1. Seleção e disparo
+
+```tsx
+// Enviar IDs selecionados para a fila
+const response = await api.post('/empresas/pdis/gerar-lote', {
+  envio_ids: enviosSelecionados, // number[]
+  contexto_adicional: contexto || undefined,
+});
+// response.status === 202 — geração iniciada
+```
+
+#### 2. Polling de status
+
+Após o disparo, iniciar polling a cada **3–5 segundos** com o endpoint de status em lote:
+
+```tsx
+const POLLING_INTERVAL = 4000; // ms
+const POLLING_TIMEOUT  = 3 * 60 * 1000; // 3 minutos
+
+async function pollStatusLote(envioIds: number[]) {
+  const inicio = Date.now();
+
+  const intervalo = setInterval(async () => {
+    if (Date.now() - inicio > POLLING_TIMEOUT) {
+      clearInterval(intervalo);
+      // Exibir aviso de timeout
+      return;
+    }
+
+    const { data } = await api.post('/empresas/pdis/status-lote', { envio_ids: envioIds });
+
+    const pendentes = data.pdis.filter(
+      (p) => p.status === null || p.status === 'processando'
+    );
+
+    // Atualizar estado local com os status recebidos
+    atualizarStatusNaTela(data.pdis);
+
+    if (pendentes.length === 0) {
+      clearInterval(intervalo); // Todos concluíram ou falharam
+    }
+  }, POLLING_INTERVAL);
+}
+```
+
+#### 3. Renderização por status
+
+| `status` | O que exibir |
+|---|---|
+| `null` | Spinner — aguardando início do worker |
+| `processando` | Spinner — IA gerando o PDI |
+| `concluido` | Ícone de sucesso — PDI disponível |
+| `falhou` | Ícone de erro + botão "Tentar novamente" |
+
+Para exibir o PDI gerado de um envio concluído, chamar individualmente:
+
+```
+GET /api/empresas/envios/{envioId}/pdi
+```
+
+e ler `pdi.resposta`.
+
+#### 4. Nova tentativa para falhas
+
+Se algum envio retornar `status = falhou`, o front-end pode reenviar apenas os IDs com falha:
+
+```tsx
+const falhos = data.pdis
+  .filter((p) => p.status === 'falhou')
+  .map((p) => p.envio_id);
+
+if (falhos.length > 0) {
+  await api.post('/empresas/pdis/gerar-lote', { envio_ids: falhos });
+}
+```
+
+---
 
 - **CRUD de competências** (rotas autenticadas em `/api/empresas`):
   - `GET /api/empresas/competencias`: lista todas as competências.

@@ -78,7 +78,7 @@ export default function PesquisasRespondentes() {
   const BASE_URL = process.env.NEXT_PUBLIC_URL_INICIAL;
 
   const { getBySlug } = usePesquisasHook();
-  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa } = useRespondentesHook();
+  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa, enviarEmailResponsavelSetor, enviarEmailTodosResponsaveis } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
   const { copyToClipboard } = useClipboard();
   const { setoresAtivos } = useSetoresHook();
@@ -109,6 +109,9 @@ export default function PesquisasRespondentes() {
   const [setores, setSetores] = useState<any[]>([]);
   const [respondenteEnviandoId, setRespondenteEnviandoId] = useState<number | null>(null);
   const [enviandoLinksEmMassa, setEnviandoLinksEmMassa] = useState(false);
+  const [setorSelecionadoId, setSetorSelecionadoId] = useState<number | null>(null);
+  const [enviandoEmailResponsavelSetorId, setEnviandoEmailResponsavelSetorId] = useState<number | null>(null);
+  const [enviandoEmailTodosResponsaveis, setEnviandoEmailTodosResponsaveis] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -255,7 +258,8 @@ export default function PesquisasRespondentes() {
   }
 
   const handleFilterChange = async (setorId: number | null) => {
-    // Implementar lógica de filtragem por setor aqui
+    setSetorSelecionadoId(setorId && setorId !== 0 ? setorId : null);
+
     if (setorId != null && setorId !== 0) {
       const filteredRespondentes = respondentes.filter(
         (r) => r.setor_id === setorId
@@ -265,7 +269,7 @@ export default function PesquisasRespondentes() {
         id: item.id,
         label: item.pessoa_nome,
       }));
-      
+
       setRespondentesCombo(parseSetor);
     } else {
       // Se nenhum setor estiver selecionado, recarregar todos os respondentes
@@ -276,8 +280,52 @@ export default function PesquisasRespondentes() {
       }));
 
       console.log('LISTAR PESSOAS:: ', listarPessoasCombos);
-    
+
       setRespondentesCombo(listarPessoasCombos || []);
+    }
+  };
+
+  const handleEnviarEmailResponsavelSetor = async () => {
+    if (!pesquisa?.id || !setorSelecionadoId) return;
+
+    try {
+      setEnviandoEmailResponsavelSetorId(setorSelecionadoId);
+      const retorno = await enviarEmailResponsavelSetor(pesquisa.id, setorSelecionadoId);
+      toast.success(
+        `E-mail enviado para ${retorno.responsavel} com ${retorno.total_avaliados} avaliado(s).`
+      );
+    } catch (error) {
+      toast.error((error as Error).message || "Erro ao enviar e-mail para o responsável do setor.");
+    } finally {
+      setEnviandoEmailResponsavelSetorId(null);
+    }
+  };
+
+  const handleEnviarEmailTodosResponsaveis = async () => {
+    if (!pesquisa?.id) {
+      toast.error("Pesquisa não encontrada para envio aos responsáveis.");
+      return;
+    }
+
+    try {
+      setEnviandoEmailTodosResponsaveis(true);
+      const retorno = await enviarEmailTodosResponsaveis(pesquisa.id);
+      if (retorno) {
+        const resumo = [
+          `Enviados: ${retorno.enviados ?? 0}`,
+          `Total de setores: ${retorno.total_setores ?? 0}`,
+          `Sem responsável: ${retorno.sem_responsavel ?? 0}`,
+          `Sem e-mail: ${retorno.sem_email_responsavel ?? 0}`,
+          `Sem respondentes: ${retorno.sem_respondentes ?? 0}`,
+        ].join(" | ");
+        toast.success(`Envio concluído. ${resumo}`);
+        return;
+      }
+      toast.success("E-mails enviados para os responsáveis dos setores.");
+    } catch (error) {
+      toast.error("Erro ao enviar e-mails para os responsáveis dos setores.");
+    } finally {
+      setEnviandoEmailTodosResponsaveis(false);
     }
   };
 
@@ -412,6 +460,28 @@ export default function PesquisasRespondentes() {
               disabled={enviandoLinksEmMassa}
             >
               {enviandoLinksEmMassa ? "Enviando links..." : "Enviar links em massa"}
+            </Button>
+          )}
+
+          {permissoesUsuario.podeCopiarLink && (
+            <Button
+              variant="outline"
+              onClick={handleEnviarEmailTodosResponsaveis}
+              disabled={enviandoEmailTodosResponsaveis}
+            >
+              {enviandoEmailTodosResponsaveis ? "Enviando para responsáveis..." : "Enviar links para responsáveis"}
+            </Button>
+          )}
+
+          {permissoesUsuario.podeCopiarLink && setorSelecionadoId && (
+            <Button
+              variant="outline"
+              onClick={handleEnviarEmailResponsavelSetor}
+              disabled={enviandoEmailResponsavelSetorId === setorSelecionadoId}
+            >
+              {enviandoEmailResponsavelSetorId === setorSelecionadoId
+                ? "Enviando para responsável..."
+                : "Enviar links ao responsável do setor"}
             </Button>
           )}
 
