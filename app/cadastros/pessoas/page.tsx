@@ -168,8 +168,13 @@ useEffect(() => {
   const saveData = useCallback(async (id: number | null, formData: any) => {
     
     formData.cpf = formData.cpf.replace(/\D/g, '');
-    formData.telefone = formData.telefone.replace(/\D/g, '');
-    formData.data_admissao = formData.data_admissao.split('/').reverse().join('-'); // Converte para formato AAAA-MM-DD
+    formData.telefone = formData.telefone ? formData.telefone.replace(/\D/g, '') : '';
+
+    if (!formData.data_admissao || formData.data_admissao.includes('_')) {
+      toast.error('Data de Admissão é obrigatória e deve estar completa.');
+      return { success: false };
+    }
+    formData.data_admissao = formData.data_admissao.split('/').reverse().join('-');
     
     if (id) {
       // Atualiza registro existente
