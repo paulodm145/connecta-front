@@ -30,6 +30,7 @@ import {
   PaginationNext,
 } from "@/components/ui/pagination";
 import InputMask from 'react-input-mask';
+import { toast } from 'react-toastify';
 
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 
@@ -220,11 +221,12 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const onSubmit = async (formData: FieldValues) => {
     const response = await saveData(currentId, formData);
     if (response.success) {
+      toast.success(currentId ? 'Registro atualizado com sucesso.' : 'Registro cadastrado com sucesso.');
       const updatedData = await fetchData();
       setData(updatedData);
       handleCloseModal();
     } else {
-      alert("Erro ao salvar os dados");
+      toast.error('Erro ao salvar os dados.');
     }
   };
 
@@ -237,7 +239,18 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
         )
       );
     } else {
-      alert('Erro ao alterar status');
+      toast.error('Erro ao alterar status.');
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    const response = await deleteData(id);
+    if (response.success) {
+      toast.success('Registro excluído com sucesso.');
+      const updatedData = await fetchData();
+      setData(updatedData);
+    } else {
+      toast.error('Erro ao excluir o registro.');
     }
   };
 
@@ -452,7 +465,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
               )}
               <TableCell>
                 <Button onClick={() => handleOpenModal(item)}>Editar</Button>
-                <Button variant="danger" onClick={() => deleteData(item.id)}>
+                <Button variant="danger" onClick={() => handleDelete(item.id)}>
                   Excluir
                 </Button>
               </TableCell>
