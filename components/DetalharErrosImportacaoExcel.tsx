@@ -86,7 +86,7 @@ export default function DetalharErrosImportacaoExcel({ resultado, open, onOpenCh
           <DialogTitle className="text-xl">Relatório Detalhado de Erros</DialogTitle>
         </DialogHeader>
 
-        <div className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden flex flex-col min-w-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
             <Alert className="border-green-200 bg-green-50">
               <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -110,7 +110,7 @@ export default function DetalharErrosImportacaoExcel({ resultado, open, onOpenCh
           </div>
 
           {resultado.erros > 0 && (
-            <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="flex-1 overflow-hidden flex flex-col min-w-0">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-3">
                 <h3 className="text-lg font-medium">Detalhamento dos Erros</h3>
                 <div className="relative w-full sm:w-64">
@@ -124,8 +124,8 @@ export default function DetalharErrosImportacaoExcel({ resultado, open, onOpenCh
                 </div>
               </div>
 
-              <div className="border rounded-md overflow-hidden flex-1 flex flex-col">
-                <div className="overflow-auto max-h-[50vh]">
+              <div className="border rounded-md overflow-hidden flex-1 flex flex-col min-w-0">
+                <div className="overflow-auto max-h-[50vh] min-w-0">
                   <Table className="whitespace-nowrap">
                     <TableHeader className="sticky top-0 bg-background z-10">
                       <TableRow>
