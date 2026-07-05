@@ -92,11 +92,49 @@ export const useVideosPdiHook = () => {
     }
   };
 
+  const exportarVideos = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/videos-pdi/exportar`, {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      return response.data as Blob;
+    } catch (error) {
+      console.error("Erro ao exportar vídeos do PDI:", error);
+      toast.error("Erro ao exportar vídeos do PDI.");
+      return null;
+    }
+  };
+
+  const importarVideos = async (arquivo: File) => {
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    try {
+      const response = await axios.post(`${BASE_URL}/videos-pdi/importar`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage = (error as any).response?.data?.message
+        || "Verifique se o arquivo é um JSON válido exportado pelo sistema.";
+      toast.error("Erro ao importar vídeos do PDI: " + errorMessage);
+      console.error("Erro ao importar vídeos do PDI:", error);
+      return null;
+    }
+  };
+
   return {
     index,
     show,
     store,
     update,
     destroy,
+    exportarVideos,
+    importarVideos,
   };
 };

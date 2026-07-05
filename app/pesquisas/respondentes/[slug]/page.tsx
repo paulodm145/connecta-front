@@ -68,6 +68,7 @@ interface Respondente {
   pessoa_nome: string;
   pessoa_email: string;
   pessoa_cpf: string;
+  pessoa_telefone?: string;
   setor_descricao?: string;
   cargo_descricao?: string;
 }
@@ -617,6 +618,24 @@ export default function PesquisasRespondentes() {
                       {respondenteEnviandoId === respondente.id
                         ? "Enviando..."
                         : "Enviar link"}
+                    </Button>
+                  )}
+
+                  {permissoesUsuario.podeCopiarLink && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="ml-2"
+                      disabled={!respondente.pessoa_telefone}
+                      onClick={() => {
+                        const linkPesquisa = `${BASE_URL}/respostas/formulario/${pesquisa?.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}&tpo=1`;
+                        const telefoneFormatado = respondente.pessoa_telefone?.replace(/\D/g, '') || '';
+                        const telefoneComDDI = telefoneFormatado.startsWith('55') ? telefoneFormatado : `55${telefoneFormatado}`;
+                        const mensagem = encodeURIComponent(`Olá! Segue o link para responder a pesquisa: ${linkPesquisa}`);
+                        window.open(`https://wa.me/${telefoneComDDI}?text=${mensagem}`, '_blank');
+                      }}
+                    >
+                      WhatsApp
                     </Button>
                   )}
 

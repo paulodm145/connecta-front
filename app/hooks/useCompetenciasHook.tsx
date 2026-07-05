@@ -102,6 +102,42 @@ export const useCompetenciasHook = () => {
     }
   };
 
+  const exportarCompetencias = async () => {
+    try {
+      const response = await axios.get(`${BASE_URL}/competencias/exportar`, {
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      });
+      return response.data as Blob;
+    } catch (error) {
+      console.error("Erro ao exportar competências:", error);
+      toast.error("Erro ao exportar competências.");
+      return null;
+    }
+  };
+
+  const importarCompetencias = async (arquivo: File) => {
+    const formData = new FormData();
+    formData.append("arquivo", arquivo);
+    try {
+      const response = await axios.post(`${BASE_URL}/competencias/importar`, formData, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    } catch (error) {
+      const errorMessage = (error as any).response?.data?.message
+        || "Verifique se o arquivo é um JSON válido exportado pelo sistema.";
+      toast.error("Erro ao importar competências: " + errorMessage);
+      console.error("Erro ao importar competências:", error);
+      return null;
+    }
+  };
+
   return {
     index,
     show,
@@ -109,5 +145,7 @@ export const useCompetenciasHook = () => {
     update,
     destroy,
     changeStatus,
+    exportarCompetencias,
+    importarCompetencias,
   };
 };

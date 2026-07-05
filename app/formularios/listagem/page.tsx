@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 
 
@@ -41,13 +41,15 @@ interface Formulario {
 }
 
 export default function PaginaListagem() {
-  const { listagemFormularios, changeStatus } = useFormulariosHook()
+  const { listagemFormularios, changeStatus, exportarFormulario, importarFormulario } = useFormulariosHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
   const permissoesUsuario = {
     podeCadastrar: temPermissao('formularios.formularios.adicionar') || false,
     podeEditar: temPermissao('formularios.formularios.editar') || false,
     alterarStatus: temPermissao('formularios.formularios.alterar.status') || false,
+    podeExportar: temPermissao('formularios.formularios.exportar') || false,
+    podeImportar: temPermissao('formularios.formularios.importar') || false,
   }
 
   // Exemplo de estado local para os formulários.
@@ -56,6 +58,8 @@ export default function PaginaListagem() {
 
   const [searchTerm, setSearchTerm] = useState("")
   const [currentPage, setCurrentPage] = useState(1)
+  const [importando, setImportando] = useState(false)
+  const inputArquivoImportacao = useRef<HTMLInputElement>(null)
   const itemsPerPage = 5
 
   // Filtro por busca
@@ -112,6 +116,40 @@ export default function PaginaListagem() {
     }
   }
 
+  async function handleExportar(form: Formulario) {
+    const arquivo = await exportarFormulario(form.id)
+    if (arquivo) {
+      const url = URL.createObjectURL(arquivo)
+      const link = document.createElement("a")
+      link.href = url
+      link.download = `formulario-${form.id}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+      toast.success("Formulário exportado com sucesso!")
+    } else {
+      toast.error("Erro ao exportar formulário.")
+    }
+  }
+
+  async function handleImportar(e: React.ChangeEvent<HTMLInputElement>) {
+    const arquivo = e.target.files?.[0]
+    if (!arquivo) return
+
+    setImportando(true)
+    const response = await importarFormulario(arquivo)
+    setImportando(false)
+
+    // Limpa o input para permitir importar o mesmo arquivo novamente
+    if (inputArquivoImportacao.current) inputArquivoImportacao.current.value = ""
+
+    if (response) {
+      toast.success(`Formulário "${response.data?.titulo}" importado com sucesso!`)
+      await carregarFormularios()
+    } else {
+      toast.error("Erro ao importar formulário. Verifique se o arquivo é um JSON válido exportado pelo sistema.")
+    }
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -122,15 +160,37 @@ export default function PaginaListagem() {
       <CardContent className="space-y-4">
         {/* Container flex para alinhar o botão e o input na mesma linha */}
         <div className="flex items-center justify-between">
-            {/* Botão de Criar */}
-            {permissoesUsuario.podeCadastrar && (
-              <Link
-                href={"builder"}
-                className={buttonVariants({ variant: "default" })}
-              >
-                Criar Formulário
-              </Link>
-            )}
+            <div className="flex items-center gap-2">
+              {/* Botão de Criar */}
+              {permissoesUsuario.podeCadastrar && (
+                <Link
+                  href={"builder"}
+                  className={buttonVariants({ variant: "default" })}
+                >
+                  Criar Formulário
+                </Link>
+              )}
+
+              {/* Botão de Importar */}
+              {permissoesUsuario.podeImportar && (
+                <>
+                  <input
+                    ref={inputArquivoImportacao}
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={handleImportar}
+                  />
+                  <Button
+                    variant="outline"
+                    disabled={importando}
+                    onClick={() => inputArquivoImportacao.current?.click()}
+                  >
+                    {importando ? "Importando..." : "Importar Formulário"}
+                  </Button>
+                </>
+              )}
+            </div>
 
             {/* Input de Busca */}
             <div className="w-1/4">
@@ -152,6 +212,7 @@ export default function PaginaListagem() {
               {permissoesUsuario.alterarStatus && (<TableHead>Publicado/Rascunho</TableHead>)}
               <TableHead>Criado em</TableHead>
               <TableHead>Última Atualização</TableHead>
+              {permissoesUsuario.podeExportar && (<TableHead>Exportar</TableHead>)}
               {permissoesUsuario.podeEditar && (<TableHead>Editar</TableHead>)}
             </TableRow>
           </TableHeader>
@@ -169,6 +230,15 @@ export default function PaginaListagem() {
                 </TableCell>)}
                 <TableCell>{form.data_criacao}</TableCell>
                 <TableCell>{form.data_atualizacao}</TableCell>
+                {permissoesUsuario.podeExportar && (<TableCell>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleExportar(form)}
+                  >
+                    Exportar
+                  </Button>
+                </TableCell>)}
                 {permissoesUsuario.podeEditar && (<TableCell>
                   {/* Botão que direciona para edição */}
                   <Link href={`editar/${form.slug}`}>
@@ -183,7 +253,7 @@ export default function PaginaListagem() {
             {/* Caso não haja resultados */}
             {currentForms.length === 0 && (
               <TableRow>
-                <TableCell colSpan={7} className="text-center">
+                <TableCell colSpan={8} className="text-center">
                   Nenhum formulário encontrado.
                 </TableCell>
               </TableRow>

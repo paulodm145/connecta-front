@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import DynamicCrudComponent from '@/components/DynamicCrudComponent';
+import BotoesImportacaoExportacao from '@/components/BotoesImportacaoExportacao';
 import {
   Card,
   CardContent,
@@ -9,10 +10,21 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 import { useCompetenciasHook } from '@/app/hooks/useCompetenciasHook';
+
+interface ResultadoImportacaoCompetencias {
+  message: string;
+  criadas: number;
+  ignoradas: number;
+  detalhes: {
+    criadas: string[];
+    ignoradas: string[];
+  };
+}
 
 interface CompetenciaData {
   id: number;
@@ -23,16 +35,19 @@ interface CompetenciaData {
 }
 
 export default function Competencias() {
-  const { index, store, update, destroy, changeStatus } = useCompetenciasHook();
+  const { index, store, update, destroy, changeStatus, exportarCompetencias, importarCompetencias } = useCompetenciasHook();
   const { temPermissao } = useInformacoesUsuarioHook();
 
   const [data, setData] = useState<CompetenciaData[]>([]);
+  const [resultadoImportacao, setResultadoImportacao] = useState<ResultadoImportacaoCompetencias | null>(null);
 
   const permissoesUsuario = {
     podeCadastrar: temPermissao('cadastros.competencias.adicionar') || false,
     podeEditar: temPermissao('cadastros.competencias.editar') || false,
     podeExcluir: temPermissao('cadastros.competencias.excluir') || false,
     podeVisualizar: temPermissao('cadastros.competencias.visualizar') || true,
+    podeExportar: temPermissao('competencias.competencias.exportar') || false,
+    podeImportar: temPermissao('competencias.competencias.importar') || false,
   };
 
   const carregarCompetencias = async () => {
@@ -136,6 +151,12 @@ export default function Competencias() {
     return { success: false };
   };
 
+  const aoImportarCompetencias = async (resultado: ResultadoImportacaoCompetencias) => {
+    toast.success(`Importação concluída: ${resultado.criadas} criadas, ${resultado.ignoradas} ignoradas.`);
+    setResultadoImportacao(resultado);
+    await carregarCompetencias();
+  };
+
   const columns = [
     { dataField: 'id', label: 'ID', render: (value: number) => value.toString().padStart(5, '0') },
     { dataField: 'descricao', label: 'Descrição' },
@@ -155,7 +176,35 @@ export default function Competencias() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="flex justify-end">
+          <BotoesImportacaoExportacao
+            textoBotaoExportar="Exportar Competências"
+            textoBotaoImportar="Importar Competências"
+            nomeArquivoExportacao="competencias.json"
+            exportarArquivo={exportarCompetencias}
+            importarArquivo={importarCompetencias}
+            aoImportarComSucesso={aoImportarCompetencias}
+            podeExportar={permissoesUsuario.podeExportar}
+            podeImportar={permissoesUsuario.podeImportar}
+          />
+        </div>
+
+        {resultadoImportacao && (
+          <Alert>
+            <AlertTitle>Resultado da importação</AlertTitle>
+            <AlertDescription>
+              <p>{resultadoImportacao.criadas} competência(s) criada(s), {resultadoImportacao.ignoradas} ignorada(s) por já existirem.</p>
+              {resultadoImportacao.detalhes?.criadas?.length > 0 && (
+                <p>Criadas: {resultadoImportacao.detalhes.criadas.join(', ')}.</p>
+              )}
+              {resultadoImportacao.detalhes?.ignoradas?.length > 0 && (
+                <p>Ignoradas: {resultadoImportacao.detalhes.ignoradas.join(', ')}.</p>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <DynamicCrudComponent
           fields={formCompetencias}
           fetchData={fetchData}

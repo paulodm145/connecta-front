@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import DynamicCrudComponent from '@/components/DynamicCrudComponent';
+import BotoesImportacaoExportacao from '@/components/BotoesImportacaoExportacao';
 import {
   Card,
   CardContent,
@@ -9,11 +10,23 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 import { useCompetenciasHook } from '@/app/hooks/useCompetenciasHook';
 import { useVideosPdiHook } from '@/app/hooks/useVideosPdiHook';
+
+interface ResultadoImportacaoRecursosPdi {
+  message: string;
+  criados: number;
+  ignorados: number;
+  nao_encontradas: string[];
+  detalhes: {
+    criados: string[];
+    ignorados: string[];
+  };
+}
 
 interface VideoPdiData {
   id: number;
@@ -29,10 +42,11 @@ interface VideoPdiData {
 
 export default function VideosPdi() {
   const { index: listarCompetencias } = useCompetenciasHook();
-  const { index, store, update, destroy } = useVideosPdiHook();
+  const { index, store, update, destroy, exportarVideos, importarVideos } = useVideosPdiHook();
   const { temPermissao } = useInformacoesUsuarioHook();
 
   const [data, setData] = useState<VideoPdiData[]>([]);
+  const [resultadoImportacao, setResultadoImportacao] = useState<ResultadoImportacaoRecursosPdi | null>(null);
   const [competenciasOptions, setCompetenciasOptions] = useState<{ value: string; label: string }[]>([]);
 
   const permissoesUsuario = {
@@ -40,6 +54,8 @@ export default function VideosPdi() {
     podeEditar: temPermissao('cadastros.videos-pdi.editar') || false,
     podeExcluir: temPermissao('cadastros.videos-pdi.excluir') || false,
     podeVisualizar: temPermissao('cadastros.videos-pdi.visualizar') || true,
+    podeExportar: temPermissao('competencias.videos.exportar') || false,
+    podeImportar: temPermissao('competencias.videos.importar') || false,
   };
 
   const carregarCompetencias = async () => {
@@ -140,6 +156,12 @@ export default function VideosPdi() {
     return { success: false };
   };
 
+  const aoImportarVideos = async (resultado: ResultadoImportacaoRecursosPdi) => {
+    toast.success(`Importação concluída: ${resultado.criados} criado(s), ${resultado.ignorados} ignorado(s).`);
+    setResultadoImportacao(resultado);
+    await carregarVideos();
+  };
+
   const columns = [
     { dataField: 'id', label: 'ID', render: (value: number) => value.toString().padStart(5, '0') },
     { dataField: 'titulo', label: 'Título' },
@@ -178,7 +200,35 @@ export default function VideosPdi() {
         </CardDescription>
       </CardHeader>
 
-      <CardContent>
+      <CardContent className="space-y-4">
+        <div className="flex justify-end">
+          <BotoesImportacaoExportacao
+            textoBotaoExportar="Exportar Vídeos"
+            textoBotaoImportar="Importar Vídeos"
+            nomeArquivoExportacao="videos-pdi.json"
+            exportarArquivo={exportarVideos}
+            importarArquivo={importarVideos}
+            aoImportarComSucesso={aoImportarVideos}
+            podeExportar={permissoesUsuario.podeExportar}
+            podeImportar={permissoesUsuario.podeImportar}
+          />
+        </div>
+
+        {resultadoImportacao && (
+          <Alert variant={resultadoImportacao.nao_encontradas?.length > 0 ? 'destructive' : 'default'}>
+            <AlertTitle>Resultado da importação</AlertTitle>
+            <AlertDescription>
+              <p>{resultadoImportacao.criados} vídeo(s) criado(s), {resultadoImportacao.ignorados} ignorado(s) por já existirem.</p>
+              {resultadoImportacao.nao_encontradas?.length > 0 && (
+                <p>
+                  As seguintes competências não foram encontradas: {resultadoImportacao.nao_encontradas.join(', ')}.
+                  Importe as competências antes de importar os vídeos.
+                </p>
+              )}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <DynamicCrudComponent
           fields={formVideos}
           fetchData={fetchData}

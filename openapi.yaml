@@ -1,0 +1,4110 @@
+openapi: 3.0.3
+info:
+  title: 'Laravel API Documentation'
+  description: 'API da plataforma Connecta. Autenticação via Bearer Token (Laravel Passport). Rotas de empresa exigem o header Authorization com o token do usuário.'
+  version: 1.0.0
+servers:
+  -
+    url: 'http://localhost'
+tags:
+  -
+    name: Autenticação
+    description: "\nLogin, registro de usuário e recuperação de senha."
+  -
+    name: 'Admin — Empresas'
+    description: "\nGestão de empresas pelo painel administrativo."
+  -
+    name: 'Admin — Usuários'
+    description: "\nGestão de usuários operadores pelo painel administrativo."
+  -
+    name: Localização
+    description: "\nCidades e estados disponíveis no sistema."
+  -
+    name: Empresa
+    description: "\nDados da empresa cliente do tenant."
+  -
+    name: 'Empresa — Setores'
+    description: "\nCRUD de setores da empresa."
+  -
+    name: 'Empresa — Cargos'
+    description: "\nCRUD de cargos e vinculação com setores."
+  -
+    name: 'Empresa — Pessoas'
+    description: "\nCRUD de colaboradores (pessoas) da empresa."
+  -
+    name: 'Empresa — Níveis e Permissões'
+    description: "\nNíveis de acesso e permissões dos usuários."
+  -
+    name: Pesquisas
+    description: "\nTipos, criação e gestão de pesquisas e formulários."
+  -
+    name: Formulários
+    description: "\nCriação e edição de formulários com perguntas e opções."
+  -
+    name: Respondentes
+    description: "\nGestão de respondentes vinculados a pesquisas."
+  -
+    name: Respostas
+    description: "\nEnvio e consulta de respostas de pesquisas."
+  -
+    name: Dashboard
+    description: "\nTotais e métricas consolidadas para o dashboard."
+  -
+    name: Competências
+    description: "\nCRUD de competências avaliadas nas pesquisas."
+  -
+    name: Anotações
+    description: "\nAnotações de avaliadores vinculadas a envios."
+  -
+    name: PDI
+    description: ''
+  -
+    name: 'PDI — Lote'
+    description: ''
+  -
+    name: 'PDI — E-mail'
+    description: ''
+  -
+    name: 'PDI — Recursos'
+    description: "\nLivros e vídeos recomendados por competência no PDI."
+  -
+    name: Outros
+    description: ''
+components:
+  securitySchemes:
+    default:
+      type: http
+      scheme: bearer
+      description: 'Faça login via <code>POST /api/login</code> e use o token retornado como Bearer no header <code>Authorization</code>.'
+security:
+  -
+    default: []
+paths:
+  /api/register:
+    post:
+      summary: 'User registration'
+      operationId: userRegistration
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: vmqeopfuudtdsufvyvddq
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: kunde.eloisa@example.com
+                password:
+                  type: string
+                  description: 'Must be at least 8 characters.'
+                  example: '4[*UyPJ"}6'
+              required:
+                - name
+                - email
+                - password
+  /api/login:
+    post:
+      summary: 'Login api'
+      operationId: loginApi
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+  /api/me:
+    get:
+      summary: 'Login user'
+      operationId: loginUser
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Autenticação
+  /api/logout:
+    post:
+      summary: Logout
+      operationId: logout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+  /api/password/email:
+    post:
+      summary: ''
+      operationId: postApiPasswordEmail
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: qkunze@example.com
+              required:
+                - email
+  /api/password/reset:
+    post:
+      summary: ''
+      operationId: postApiPasswordReset
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: ''
+                  example: consequatur
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: carolyne.luettgen@example.org
+                password:
+                  type: string
+                  description: 'Must be at least 8 characters.'
+                  example: ij-e/dl4m
+                password_dois:
+                  type: string
+                  description: 'The value and <code>password</code> must match.'
+                  example: consequatur
+              required:
+                - token
+                - email
+                - password
+                - password_dois
+  /api/password/verify-token:
+    post:
+      summary: ''
+      operationId: postApiPasswordVerifyToken
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: qkunze@example.com
+                token:
+                  type: string
+                  description: ''
+                  example: consequatur
+              required:
+                - email
+                - token
+  /api/password/forgot:
+    post:
+      summary: ''
+      operationId: postApiPasswordForgot
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Autenticação
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: qkunze@example.com
+              required:
+                - email
+  /api/empresas-admin/empresas-ativas:
+    get:
+      summary: ''
+      operationId: getApiEmpresasAdminEmpresasAtivas
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    nome:
+                      type: string
+                      example: '52.294.657 RAIENE COSTA DOS SANTOS'
+                    identificador:
+                      type: string
+                      example: a068674d-4f61-4d2c-9daa-252415071ec2
+                    status:
+                      type: boolean
+                      example: true
+                example:
+                  -
+                    id: 1
+                    nome: '52.294.657 RAIENE COSTA DOS SANTOS'
+                    identificador: a068674d-4f61-4d2c-9daa-252415071ec2
+                    status: true
+      tags:
+        - 'Admin — Empresas'
+  '/api/empresas-admin/change-status/{idEmpresa}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAdminChangeStatusIdEmpresa
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "SQLSTATE[22P02]: Invalid text representation: 7 ERRO:  sintaxe de entrada é inválida para tipo bigint: \"consequatur\"\nCONTEXT:  parâmetro de portal sem nome $1 = '...' (Connection: pgsql, SQL: select * from \"empresas\" where \"empresas\".\"id\" = consequatur and \"empresas\".\"deleted_at\" is null limit 1)"
+                properties:
+                  message:
+                    type: string
+                    example: "SQLSTATE[22P02]: Invalid text representation: 7 ERRO:  sintaxe de entrada é inválida para tipo bigint: \"consequatur\"\nCONTEXT:  parâmetro de portal sem nome $1 = '...' (Connection: pgsql, SQL: select * from \"empresas\" where \"empresas\".\"id\" = consequatur and \"empresas\".\"deleted_at\" is null limit 1)"
+      tags:
+        - 'Admin — Empresas'
+    parameters:
+      -
+        in: path
+        name: idEmpresa
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas-admin:
+    get:
+      summary: ''
+      operationId: getApiEmpresasAdmin
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                      example: 1
+                    nome:
+                      type: string
+                      example: '52.294.657 RAIENE COSTA DOS SANTOS'
+                    razao_social:
+                      type: string
+                      example: '52.294.657 RAIENE COSTA DOS SANTOS'
+                    cnpj:
+                      type: string
+                      example: '52294657000102'
+                    email:
+                      type: string
+                      example: contato@conectaskills.com.br
+                    telefone:
+                      type: string
+                      example: '2796941607'
+                    cep:
+                      type: string
+                      example: '29703145'
+                    endereco:
+                      type: string
+                      example: 'ANTONIO ENGRACIO'
+                    numero:
+                      type: string
+                      example: '210'
+                    complemento:
+                      type: string
+                      example: 'APT 202'
+                    bairro:
+                      type: string
+                      example: 'SAO SILVANO'
+                    cidade_id:
+                      type: integer
+                      example: 3116
+                    estado_id:
+                      type: integer
+                      example: 18
+                    logo:
+                      type: string
+                      example: null
+                      nullable: true
+                    site:
+                      type: string
+                      example: null
+                      nullable: true
+                    identificador:
+                      type: string
+                      example: a068674d-4f61-4d2c-9daa-252415071ec2
+                    status:
+                      type: boolean
+                      example: true
+                    deleted_at:
+                      type: string
+                      example: null
+                      nullable: true
+                    created_at:
+                      type: string
+                      example: '2025-04-21 17:09:58'
+                    updated_at:
+                      type: string
+                      example: '2025-04-21 17:09:58'
+                example:
+                  -
+                    id: 1
+                    nome: '52.294.657 RAIENE COSTA DOS SANTOS'
+                    razao_social: '52.294.657 RAIENE COSTA DOS SANTOS'
+                    cnpj: '52294657000102'
+                    email: contato@conectaskills.com.br
+                    telefone: '2796941607'
+                    cep: '29703145'
+                    endereco: 'ANTONIO ENGRACIO'
+                    numero: '210'
+                    complemento: 'APT 202'
+                    bairro: 'SAO SILVANO'
+                    cidade_id: 3116
+                    estado_id: 18
+                    logo: null
+                    site: null
+                    identificador: a068674d-4f61-4d2c-9daa-252415071ec2
+                    status: true
+                    deleted_at: null
+                    created_at: '2025-04-21 17:09:58'
+                    updated_at: '2025-04-21 17:09:58'
+      tags:
+        - 'Admin — Empresas'
+    post:
+      summary: ''
+      operationId: postApiEmpresasAdmin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Admin — Empresas'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: vmqeopfuudtdsufvyvddq
+                razao_social:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: amniihfqcoynlazghdtqt
+                cnpj:
+                  type: string
+                  description: 'Must not be greater than 14 characters.'
+                  example: qxbajwbpilpm
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: idubuque@example.org
+                telefone:
+                  type: string
+                  description: 'Must not be greater than 11 characters.'
+                  example: llwloauyd
+                cep:
+                  type: string
+                  description: 'Must not be greater than 8 characters.'
+                  example: lsmsjur
+                endereco:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: yvojcybzvrbyickznkygl
+                numero:
+                  type: string
+                  description: 'Must not be greater than 10 characters.'
+                  example: oigmkwxph
+                bairro:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: lvazjrcnfbaqywuxhgjjm
+                cidade_id:
+                  type: integer
+                  description: ''
+                  example: 17
+                estado_id:
+                  type: integer
+                  description: 'The <code>id</code> of an existing record in the estados table.'
+                  example: 17
+                complemento:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: mqeopfuudtdsufvyvddqa
+                  nullable: true
+                logo:
+                  type: string
+                  description: ''
+                  example: consequatur
+                  nullable: true
+              required:
+                - nome
+                - razao_social
+                - cnpj
+                - email
+                - telefone
+                - cep
+                - endereco
+                - numero
+                - bairro
+                - cidade_id
+                - estado_id
+  '/api/empresas-admin/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAdminId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: "SQLSTATE[22P02]: Invalid text representation: 7 ERRO:  sintaxe de entrada é inválida para tipo bigint: \"consequatur\"\nCONTEXT:  parâmetro de portal sem nome $1 = '...' (Connection: pgsql, SQL: select * from \"empresas\" where \"empresas\".\"id\" = consequatur and \"empresas\".\"deleted_at\" is null limit 1)"
+                properties:
+                  message:
+                    type: string
+                    example: "SQLSTATE[22P02]: Invalid text representation: 7 ERRO:  sintaxe de entrada é inválida para tipo bigint: \"consequatur\"\nCONTEXT:  parâmetro de portal sem nome $1 = '...' (Connection: pgsql, SQL: select * from \"empresas\" where \"empresas\".\"id\" = consequatur and \"empresas\".\"deleted_at\" is null limit 1)"
+      tags:
+        - 'Admin — Empresas'
+    put:
+      summary: ''
+      operationId: putApiEmpresasAdminId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Admin — Empresas'
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasAdminId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Admin — Empresas'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the empresas admin.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/usuarios-admin/change-status/{idUsuario}':
+    get:
+      summary: ''
+      operationId: getApiUsuariosAdminChangeStatusIdUsuario
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Admin — Usuários'
+    parameters:
+      -
+        in: path
+        name: idUsuario
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/usuarios-admin:
+    get:
+      summary: ''
+      operationId: getApiUsuariosAdmin
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Admin — Usuários'
+    post:
+      summary: ''
+      operationId: postApiUsuariosAdmin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Admin — Usuários'
+  '/api/usuarios-admin/{id}':
+    get:
+      summary: ''
+      operationId: getApiUsuariosAdminId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Admin — Usuários'
+    put:
+      summary: ''
+      operationId: putApiUsuariosAdminId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Admin — Usuários'
+    delete:
+      summary: ''
+      operationId: deleteApiUsuariosAdminId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Admin — Usuários'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the usuarios admin.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/cidades:
+    get:
+      summary: ''
+      operationId: getApiCidades
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Localização
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uf:
+                  type: string
+                  description: 'The <code>sigla</code> of an existing record in the estados table. Must be 2 characters.'
+                  example: vm
+              required:
+                - uf
+      security: []
+  /api/estados:
+    get:
+      summary: 'Exibir uma lista de estados ativos.'
+      operationId: exibirUmaListaDeEstadosAtivos
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Localização
+      security: []
+  /api/empresas/cidades:
+    get:
+      summary: ''
+      operationId: getApiEmpresasCidades
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Localização
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uf:
+                  type: string
+                  description: 'The <code>sigla</code> of an existing record in the estados table. Must be 2 characters.'
+                  example: vm
+              required:
+                - uf
+  /api/empresas/estados:
+    get:
+      summary: 'Exibir uma lista de estados ativos.'
+      operationId: exibirUmaListaDeEstadosAtivos
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Localização
+  /api/empresas/empresa-cliente:
+    get:
+      summary: ''
+      operationId: getApiEmpresasEmpresaCliente
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Empresa
+    put:
+      summary: ''
+      operationId: putApiEmpresasEmpresaCliente
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Empresa
+  /api/empresas/setores:
+    get:
+      summary: ''
+      operationId: getApiEmpresasSetores
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Setores'
+    post:
+      summary: ''
+      operationId: postApiEmpresasSetores
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Setores'
+  '/api/empresas/setores/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasSetoresId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Setores'
+    put:
+      summary: ''
+      operationId: putApiEmpresasSetoresId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Setores'
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasSetoresId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Setores'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the setore.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/setores/change-status/{idSetor}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasSetoresChangeStatusIdSetor
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Setores'
+    parameters:
+      -
+        in: path
+        name: idSetor
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/setores-ativos:
+    get:
+      summary: ''
+      operationId: getApiEmpresasSetoresAtivos
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Setores'
+  /api/empresas/cargos:
+    get:
+      summary: ''
+      operationId: getApiEmpresasCargos
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Cargos'
+    post:
+      summary: ''
+      operationId: postApiEmpresasCargos
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Cargos'
+  '/api/empresas/cargos/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasCargosId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Cargos'
+    put:
+      summary: ''
+      operationId: putApiEmpresasCargosId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Cargos'
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasCargosId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Cargos'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the cargo.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/cargos/change-status/{idCargo}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasCargosChangeStatusIdCargo
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Cargos'
+    parameters:
+      -
+        in: path
+        name: idCargo
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/pessoas-ativas:
+    get:
+      summary: ''
+      operationId: getApiEmpresasPessoasAtivas
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Pessoas'
+  /api/empresas/pessoas-responsaveis:
+    get:
+      summary: ''
+      operationId: getApiEmpresasPessoasResponsaveis
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Pessoas'
+  /api/empresas/pessoas:
+    get:
+      summary: ''
+      operationId: getApiEmpresasPessoas
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Pessoas'
+    post:
+      summary: ''
+      operationId: postApiEmpresasPessoas
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Pessoas'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nome:
+                  type: string
+                  description: ''
+                  example: consequatur
+                cpf:
+                  type: string
+                  description: ''
+                  example: consequatur
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: carolyne.luettgen@example.org
+                telefone:
+                  type: string
+                  description: ''
+                  example: consequatur
+                registro_funcional:
+                  type: string
+                  description: ''
+                  example: consequatur
+                cargo_id:
+                  type: integer
+                  description: ''
+                  example: 17
+                status:
+                  type: boolean
+                  description: ''
+                  example: false
+                responsavel:
+                  type: string
+                  description: ''
+                  example: consequatur
+                password:
+                  type: string
+                  description: ''
+                  example: 'O[2UZ5ij-e/dl4m{o,'
+                data_admissao:
+                  type: string
+                  description: 'Must be a valid date.'
+                  example: '2026-04-18T13:32:25'
+              required:
+                - nome
+                - cpf
+                - email
+                - telefone
+                - registro_funcional
+                - cargo_id
+                - status
+                - responsavel
+                - data_admissao
+  '/api/empresas/pessoas/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasPessoasId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Pessoas'
+    put:
+      summary: ''
+      operationId: putApiEmpresasPessoasId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Pessoas'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the pessoa.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/pessoas/change-status/{idPessoa}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasPessoasChangeStatusIdPessoa
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Pessoas'
+    parameters:
+      -
+        in: path
+        name: idPessoa
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/pessoas/importar:
+    post:
+      summary: ''
+      operationId: postApiEmpresasPessoasImportar
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Pessoas'
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                arquivo:
+                  type: string
+                  format: binary
+                  description: 'Must be a file.'
+              required:
+                - arquivo
+  '/api/t/{cnpj}/auth/pessoas/login':
+    post:
+      summary: ''
+      operationId: postApiTCnpjAuthPessoasLogin
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Pessoas'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  description: 'Must be a valid email address.'
+                  example: qkunze@example.com
+                password:
+                  type: string
+                  description: ''
+                  example: consequatur
+              required:
+                - email
+                - password
+    parameters:
+      -
+        in: path
+        name: cnpj
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/t/{cnpj}/colaborador/me':
+    get:
+      summary: ''
+      operationId: getApiTCnpjColaboradorMe
+      description: ''
+      parameters: []
+      responses:
+        400:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  error: 'CNPJ inválido.'
+                properties:
+                  error:
+                    type: string
+                    example: 'CNPJ inválido.'
+      tags:
+        - 'Empresa — Pessoas'
+    put:
+      summary: ''
+      operationId: putApiTCnpjColaboradorMe
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Pessoas'
+    parameters:
+      -
+        in: path
+        name: cnpj
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/t/{cnpj}/colaborador/logout':
+    post:
+      summary: ''
+      operationId: postApiTCnpjColaboradorLogout
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Pessoas'
+    parameters:
+      -
+        in: path
+        name: cnpj
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/niveis:
+    get:
+      summary: ''
+      operationId: getApiEmpresasNiveis
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Níveis e Permissões'
+    post:
+      summary: ''
+      operationId: postApiEmpresasNiveis
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Níveis e Permissões'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                descricao:
+                  type: string
+                  description: 'Must not be greater than 255 characters.'
+                  example: vmqeopfuudtdsufvyvddq
+                status:
+                  type: boolean
+                  description: ''
+                  example: true
+                permissoes:
+                  type: array
+                  description: ''
+                  example:
+                    - consequatur
+                  items:
+                    type: string
+              required:
+                - descricao
+                - status
+  '/api/empresas/niveis/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasNiveisId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Níveis e Permissões'
+    put:
+      summary: ''
+      operationId: putApiEmpresasNiveisId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Níveis e Permissões'
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasNiveisId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'Empresa — Níveis e Permissões'
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the nivei.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/niveis/change-status/{idNivel}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasNiveisChangeStatusIdNivel
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Níveis e Permissões'
+    parameters:
+      -
+        in: path
+        name: idNivel
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/permissoes:
+    get:
+      summary: ''
+      operationId: getApiEmpresasPermissoes
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Níveis e Permissões'
+  /api/empresas/tree-view-permissoes-menu:
+    get:
+      summary: ''
+      operationId: getApiEmpresasTreeViewPermissoesMenu
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'Empresa — Níveis e Permissões'
+  '/api/externo-pesquisas/{slug}':
+    get:
+      summary: ''
+      operationId: getApiExternoPesquisasSlug
+      description: ''
+      parameters: []
+      responses:
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Identificador não informado'
+                properties:
+                  message:
+                    type: string
+                    example: 'Identificador não informado'
+      tags:
+        - Pesquisas
+    parameters:
+      -
+        in: path
+        name: slug
+        description: 'The slug of the externo pesquisa.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/tipos-pesquisas/pesquisas-ativas:
+    get:
+      summary: 'Get tipos pesquisas ativos'
+      operationId: getTiposPesquisasAtivos
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+  /api/empresas/tipos-pesquisas:
+    get:
+      summary: 'Display a listing of the resource.'
+      operationId: displayAListingOfTheResource
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    post:
+      summary: 'Store a newly created resource in storage.'
+      operationId: storeANewlyCreatedResourceInStorage
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Pesquisas
+  '/api/empresas/tipos-pesquisas/{id}':
+    get:
+      summary: 'Display the specified resource.'
+      operationId: displayTheSpecifiedResource
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    put:
+      summary: 'Update the specified resource in storage.'
+      operationId: updateTheSpecifiedResourceInStorage
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Pesquisas
+    delete:
+      summary: 'Remove the specified resource from storage.'
+      operationId: removeTheSpecifiedResourceFromStorage
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Pesquisas
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the tipos pesquisa.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/tipos-pesquisas/change-status/{idTipoPesquisa}':
+    get:
+      summary: 'Change status'
+      operationId: changeStatus
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    parameters:
+      -
+        in: path
+        name: idTipoPesquisa
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/pesquisas:
+    get:
+      summary: ''
+      operationId: getApiEmpresasPesquisas
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    post:
+      summary: ''
+      operationId: postApiEmpresasPesquisas
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Pesquisas
+  '/api/empresas/pesquisas/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasPesquisasId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    put:
+      summary: ''
+      operationId: putApiEmpresasPesquisasId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Pesquisas
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the pesquisa.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/pesquisas-ativas:
+    get:
+      summary: ''
+      operationId: getApiEmpresasPesquisasAtivas
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+  '/api/empresas/pesquisas/slug/{slug}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasPesquisasSlugSlug
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    parameters:
+      -
+        in: path
+        name: slug
+        description: 'The slug of the slug.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/pesquisas/change-status/{idPesquisa}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasPesquisasChangeStatusIdPesquisa
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Pesquisas
+    parameters:
+      -
+        in: path
+        name: idPesquisa
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/externo-formularios/{slug}':
+    get:
+      summary: ''
+      operationId: getApiExternoFormulariosSlug
+      description: ''
+      parameters: []
+      responses:
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Identificador não informado'
+                properties:
+                  message:
+                    type: string
+                    example: 'Identificador não informado'
+      tags:
+        - Formulários
+    parameters:
+      -
+        in: path
+        name: slug
+        description: 'The slug of the externo formulario.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/formularios-ativos:
+    get:
+      summary: ''
+      operationId: getApiEmpresasFormulariosAtivos
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Formulários
+  /api/empresas/formularios:
+    get:
+      summary: 'Display a listing of the resource.'
+      operationId: displayAListingOfTheResource
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Formulários
+    post:
+      summary: 'Store a newly created resource in storage.'
+      operationId: storeANewlyCreatedResourceInStorage
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Formulários
+  '/api/empresas/formularios/{id}':
+    get:
+      summary: 'Display the specified resource.'
+      operationId: displayTheSpecifiedResource
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Formulários
+    put:
+      summary: 'Atualiza um formulário existente, junto com suas perguntas e opções.'
+      operationId: atualizaUmFormulrioExistenteJuntoComSuasPerguntasEOpes
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Formulários
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the formulario.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/formularios/change-status/{idFormulario}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasFormulariosChangeStatusIdFormulario
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Formulários
+    parameters:
+      -
+        in: path
+        name: idFormulario
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/formularios/slug/{slug}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasFormulariosSlugSlug
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Formulários
+    parameters:
+      -
+        in: path
+        name: slug
+        description: 'The slug of the slug.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/respondentes/respondentes-combo:
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespondentesRespondentesCombo
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respondentes
+  '/api/empresas/respondentes/pesquisa/{slug}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespondentesPesquisaSlug
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respondentes
+    parameters:
+      -
+        in: path
+        name: slug
+        description: 'The slug of the pesquisa.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/respondentes:
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespondentes
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respondentes
+    post:
+      summary: ''
+      operationId: postApiEmpresasRespondentes
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respondentes
+  '/api/empresas/respondentes/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespondentesId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respondentes
+    put:
+      summary: ''
+      operationId: putApiEmpresasRespondentesId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respondentes
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasRespondentesId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respondentes
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the respondente.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/respondentes/change-status/{idRespondente}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespondentesChangeStatusIdRespondente
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respondentes
+    parameters:
+      -
+        in: path
+        name: idRespondente
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/respondentes/adicionar-multiplos:
+    post:
+      summary: ''
+      operationId: postApiEmpresasRespondentesAdicionarMultiplos
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respondentes
+  '/api/empresas/respondentes/{respondenteId}/pesquisa/enviar-email':
+    post:
+      summary: ''
+      operationId: postApiEmpresasRespondentesRespondenteIdPesquisaEnviarEmail
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respondentes
+    parameters:
+      -
+        in: path
+        name: respondenteId
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/pesquisas/{pesquisaId}/respondentes/enviar-email':
+    post:
+      summary: ''
+      operationId: postApiEmpresasPesquisasPesquisaIdRespondentesEnviarEmail
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respondentes
+    parameters:
+      -
+        in: path
+        name: pesquisaId
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/externo-respostas:
+    post:
+      summary: 'Store a newly created resource in storage.'
+      operationId: storeANewlyCreatedResourceInStorage
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respostas
+  /api/externo-respostas/status:
+    get:
+      summary: ''
+      operationId: getApiExternoRespostasStatus
+      description: ''
+      parameters: []
+      responses:
+        403:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Identificador não informado'
+                properties:
+                  message:
+                    type: string
+                    example: 'Identificador não informado'
+      tags:
+        - Respostas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pesquisa_id:
+                  type: integer
+                  description: 'The <code>id</code> of an existing record in the pesquisas table.'
+                  example: 17
+                respondente:
+                  type: string
+                  description: ''
+                  example: consequatur
+                tipo_envio:
+                  type: string
+                  description: ''
+                  example: consequatur
+                  nullable: true
+              required:
+                - pesquisa_id
+                - respondente
+  '/api/empresas/respostas/pesquisa/{idFormulario}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespostasPesquisaIdFormulario
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respostas
+    parameters:
+      -
+        in: path
+        name: idFormulario
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/respostas/exportar/{pesquisaSlug}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespostasExportarPesquisaSlug
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respostas
+    parameters:
+      -
+        in: path
+        name: pesquisaSlug
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/respostas/relatorio-envio/{envioId}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasRespostasRelatorioEnvioEnvioId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Respostas
+    parameters:
+      -
+        in: path
+        name: envioId
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/respostas:
+    post:
+      summary: 'Store a newly created resource in storage.'
+      operationId: storeANewlyCreatedResourceInStorage
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Respostas
+  '/api/empresas/dados-dashboard/info-respondentes/{idPesquisa}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasDadosDashboardInfoRespondentesIdPesquisa
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Dashboard
+    parameters:
+      -
+        in: path
+        name: idPesquisa
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/competencias:
+    get:
+      summary: ''
+      operationId: getApiEmpresasCompetencias
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Competências
+    post:
+      summary: ''
+      operationId: postApiEmpresasCompetencias
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Competências
+  '/api/empresas/competencias/{id}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasCompetenciasId
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Competências
+    put:
+      summary: ''
+      operationId: putApiEmpresasCompetenciasId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Competências
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasCompetenciasId
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Competências
+    parameters:
+      -
+        in: path
+        name: id
+        description: 'The ID of the competencia.'
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/competencias/change-status/{idCompetencia}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasCompetenciasChangeStatusIdCompetencia
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Competências
+    parameters:
+      -
+        in: path
+        name: idCompetencia
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  /api/empresas/competencia-recomendacoes:
+    get:
+      summary: ''
+      operationId: getApiEmpresasCompetenciaRecomendacoes
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Competências
+    post:
+      summary: ''
+      operationId: postApiEmpresasCompetenciaRecomendacoes
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Competências
+  '/api/empresas/competencia-recomendacoes/{competenciaRecomendacao}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasCompetenciaRecomendacoesCompetenciaRecomendacao
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Competências
+    parameters:
+      -
+        in: path
+        name: competenciaRecomendacao
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/competencia-recomendacoes/{competenciaRecomendacao_id}':
+    put:
+      summary: ''
+      operationId: putApiEmpresasCompetenciaRecomendacoesCompetenciaRecomendacao_id
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Competências
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasCompetenciaRecomendacoesCompetenciaRecomendacao_id
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Competências
+    parameters:
+      -
+        in: path
+        name: competenciaRecomendacao_id
+        description: 'The ID of the competenciaRecomendacao.'
+        example: 17
+        required: true
+        schema:
+          type: integer
+  /api/empresas/anotacoes-envio:
+    post:
+      summary: ''
+      operationId: postApiEmpresasAnotacoesEnvio
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Anotações
+  /api/empresas/anotacao-avaliacao-lider:
+    post:
+      summary: ''
+      operationId: postApiEmpresasAnotacaoAvaliacaoLider
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - Anotações
+  '/api/empresas/anotacoes-envio/{idEnvio}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAnotacoesEnvioIdEnvio
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Anotações
+    parameters:
+      -
+        in: path
+        name: idEnvio
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/anotacoes-envio-avaliado/{idEnvio}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAnotacoesEnvioAvaliadoIdEnvio
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Anotações
+    parameters:
+      -
+        in: path
+        name: idEnvio
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/anotacoes-envio-avaliador-lider/{idEnvio}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAnotacoesEnvioAvaliadorLiderIdEnvio
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Anotações
+    parameters:
+      -
+        in: path
+        name: idEnvio
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/anotacoes-envio-pdi/{idEnvio}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAnotacoesEnvioPdiIdEnvio
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Anotações
+    parameters:
+      -
+        in: path
+        name: idEnvio
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/anotacoes-slug/{pesquisaSlug}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAnotacoesSlugPesquisaSlug
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Anotações
+    parameters:
+      -
+        in: path
+        name: pesquisaSlug
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/anotacoes-lider/{slugusuar}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasAnotacoesLiderSlugusuar
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Anotações
+    parameters:
+      -
+        in: path
+        name: slugusuar
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/envios/{envioId}/pdi':
+    get:
+      summary: 'Dados consolidados do PDI de um envio'
+      operationId: dadosConsolidadosDoPDIDeUmEnvio
+      description: "Retorna avaliação, competências pontuadas, livros/vídeos recomendados e o PDI gerado (se existir).\nUse `pdi.status` para saber se a geração está em andamento, concluída ou falhou."
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - PDI
+    parameters:
+      -
+        in: path
+        name: envioId
+        description: 'ID do envio.'
+        example: 44
+        required: true
+        schema:
+          type: integer
+  '/api/empresas/envios/{envioId}/pdi/status':
+    get:
+      summary: 'Status do PDI de um envio'
+      operationId: statusDoPDIDeUmEnvio
+      description: "Retorna o status atual da geração do PDI. Valores possíveis: `processando`, `concluido`, `falhou`.\nQuando `status = concluido`, o objeto `pdi` completo é incluído na resposta."
+      parameters: []
+      responses:
+        404:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'PDI não encontrado.'
+                properties:
+                  message:
+                    type: string
+                    example: 'PDI não encontrado.'
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - PDI
+    parameters:
+      -
+        in: path
+        name: envioId
+        description: 'ID do envio.'
+        example: 44
+        required: true
+        schema:
+          type: integer
+  '/api/empresas/envios/{envioId}/pdi/gerar':
+    post:
+      summary: 'Gerar PDI individual com IA (assíncrono)'
+      operationId: gerarPDIIndividualComIAassncrono
+      description: "Despacha um job para a fila e retorna imediatamente com `202`. O PDI é gerado em background via OpenAI.\nFaça polling em `GET /envios/{envioId}/pdi/status` a cada 3–5 s para acompanhar o andamento."
+      parameters: []
+      responses:
+        202:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Geração do PDI iniciada.'
+                  envio_id: 44
+                properties:
+                  message:
+                    type: string
+                    example: 'Geração do PDI iniciada.'
+                  envio_id:
+                    type: integer
+                    example: 44
+      tags:
+        - PDI
+    parameters:
+      -
+        in: path
+        name: envioId
+        description: 'ID do envio.'
+        example: 44
+        required: true
+        schema:
+          type: integer
+  /api/empresas/pdis/gerar-lote:
+    post:
+      summary: 'Gerar PDI em lote com IA (assíncrono)'
+      operationId: gerarPDIEmLoteComIAassncrono
+      description: "Despacha um job de geração de PDI para cada `envio_id` informado. Todos os jobs entram na fila\ne são processados de forma independente. Retorna imediatamente com `202`.\n\nFaça polling via `POST /pdis/status-lote` a cada 3–5 s para acompanhar o andamento de cada PDI."
+      parameters: []
+      responses:
+        202:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Geração em lote iniciada.'
+                  envio_ids:
+                    - 44
+                    - 45
+                    - 46
+                  total: 3
+                properties:
+                  message:
+                    type: string
+                    example: 'Geração em lote iniciada.'
+                  envio_ids:
+                    type: array
+                    example:
+                      - 44
+                      - 45
+                      - 46
+                    items:
+                      type: integer
+                  total:
+                    type: integer
+                    example: 3
+      tags:
+        - 'PDI — Lote'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                envio_ids:
+                  type: array
+                  description: 'IDs dos envios.'
+                  example:
+                    - 44
+                    - 45
+                    - 46
+                  items:
+                    type: integer
+                contexto_adicional:
+                  type: string
+                  description: 'Contexto extra enviado para a IA em todos os PDIs do lote.'
+                  example: '"Foco em liderança e comunicação"'
+                  nullable: true
+              required:
+                - envio_ids
+  /api/empresas/pdis/status-lote:
+    post:
+      summary: 'Status do PDI em lote'
+      operationId: statusDoPDIEmLote
+      description: "Retorna o status atual de cada PDI para os `envio_ids` informados.\nPDIs ainda sem registro no banco (worker não iniciou) retornam `status: null`.\nUse este endpoint para polling após chamar `POST /pdis/gerar-lote`."
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  pdis:
+                    -
+                      envio_id: 44
+                      status: concluido
+                      erro: null
+                    -
+                      envio_id: 45
+                      status: processando
+                      erro: null
+                    -
+                      envio_id: 46
+                      status: null
+                      erro: null
+                properties:
+                  pdis:
+                    type: array
+                    example:
+                      -
+                        envio_id: 44
+                        status: concluido
+                        erro: null
+                      -
+                        envio_id: 45
+                        status: processando
+                        erro: null
+                      -
+                        envio_id: 46
+                        status: null
+                        erro: null
+                    items:
+                      type: object
+                      properties:
+                        envio_id:
+                          type: integer
+                          example: 44
+                        status:
+                          type: string
+                          example: concluido
+                        erro:
+                          type: string
+                          example: null
+                          nullable: true
+      tags:
+        - 'PDI — Lote'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                envio_ids:
+                  type: array
+                  description: 'IDs dos envios a consultar.'
+                  example:
+                    - 44
+                    - 45
+                    - 46
+                  items:
+                    type: integer
+              required:
+                - envio_ids
+  '/api/empresas/envios/{envioId}/pdi/enviar-email':
+    post:
+      summary: 'Enviar PDI por e-mail (individual)'
+      operationId: enviarPDIPorEMailindividual
+      description: "Envia o PDI gerado para o e-mail do respondente vinculado ao envio.\nRequer que o PDI já tenha sido gerado e que o respondente possua e-mail cadastrado."
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'PDI enviado com sucesso.'
+                  destinatario: colaborador@empresa.com
+                properties:
+                  message:
+                    type: string
+                    example: 'PDI enviado com sucesso.'
+                  destinatario:
+                    type: string
+                    example: colaborador@empresa.com
+        400:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Respondente não possui e-mail cadastrado.'
+                properties:
+                  message:
+                    type: string
+                    example: 'Respondente não possui e-mail cadastrado.'
+      tags:
+        - 'PDI — E-mail'
+    parameters:
+      -
+        in: path
+        name: envioId
+        description: 'ID do envio.'
+        example: 44
+        required: true
+        schema:
+          type: integer
+  '/api/empresas/pesquisas/{pesquisaId}/pdi/enviar-email':
+    post:
+      summary: 'Enviar PDI por e-mail (todos da pesquisa)'
+      operationId: enviarPDIPorEMailtodosDaPesquisa
+      description: "Envia o PDI gerado para todos os respondentes com PDI associado à pesquisa.\nRespondentes sem e-mail ou sem respondente vinculado são ignorados e contabilizados no resumo."
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  total_com_pdi: 5
+                  enviados: 4
+                  sem_email: 1
+                  sem_respondente: 0
+                properties:
+                  total_com_pdi:
+                    type: integer
+                    example: 5
+                  enviados:
+                    type: integer
+                    example: 4
+                  sem_email:
+                    type: integer
+                    example: 1
+                  sem_respondente:
+                    type: integer
+                    example: 0
+      tags:
+        - 'PDI — E-mail'
+    parameters:
+      -
+        in: path
+        name: pesquisaId
+        description: 'ID da pesquisa.'
+        example: 10
+        required: true
+        schema:
+          type: integer
+  /api/empresas/livros-pdi:
+    get:
+      summary: ''
+      operationId: getApiEmpresasLivrosPdi
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'PDI — Recursos'
+    post:
+      summary: ''
+      operationId: postApiEmpresasLivrosPdi
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'PDI — Recursos'
+  '/api/empresas/livros-pdi/{livroPdi}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasLivrosPdiLivroPdi
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'PDI — Recursos'
+    parameters:
+      -
+        in: path
+        name: livroPdi
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/livros-pdi/{livroPdi_id}':
+    put:
+      summary: ''
+      operationId: putApiEmpresasLivrosPdiLivroPdi_id
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'PDI — Recursos'
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasLivrosPdiLivroPdi_id
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'PDI — Recursos'
+    parameters:
+      -
+        in: path
+        name: livroPdi_id
+        description: 'The ID of the livroPdi.'
+        example: 17
+        required: true
+        schema:
+          type: integer
+  /api/empresas/videos-pdi:
+    get:
+      summary: ''
+      operationId: getApiEmpresasVideosPdi
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'PDI — Recursos'
+    post:
+      summary: ''
+      operationId: postApiEmpresasVideosPdi
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'PDI — Recursos'
+  '/api/empresas/videos-pdi/{videoPdi}':
+    get:
+      summary: ''
+      operationId: getApiEmpresasVideosPdiVideoPdi
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - 'PDI — Recursos'
+    parameters:
+      -
+        in: path
+        name: videoPdi
+        description: ''
+        example: consequatur
+        required: true
+        schema:
+          type: string
+  '/api/empresas/videos-pdi/{videoPdi_id}':
+    put:
+      summary: ''
+      operationId: putApiEmpresasVideosPdiVideoPdi_id
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'PDI — Recursos'
+    delete:
+      summary: ''
+      operationId: deleteApiEmpresasVideosPdiVideoPdi_id
+      description: ''
+      parameters: []
+      responses: {  }
+      tags:
+        - 'PDI — Recursos'
+    parameters:
+      -
+        in: path
+        name: videoPdi_id
+        description: 'The ID of the videoPdi.'
+        example: 17
+        required: true
+        schema:
+          type: integer
+  /api/greeting:
+    get:
+      summary: ''
+      operationId: getApiGreeting
+      description: ''
+      parameters: []
+      responses:
+        200:
+          description: ''
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: 'Hello World'
+      tags:
+        - Outros
+  /api/user:
+    get:
+      summary: ''
+      operationId: getApiUser
+      description: ''
+      parameters: []
+      responses:
+        500:
+          description: ''
+          content:
+            application/json:
+              schema:
+                type: object
+                example:
+                  message: 'Internal server error.'
+                  error: Unauthenticated.
+                  line: 102
+                  file: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+                properties:
+                  message:
+                    type: string
+                    example: 'Internal server error.'
+                  error:
+                    type: string
+                    example: Unauthenticated.
+                  line:
+                    type: integer
+                    example: 102
+                  file:
+                    type: string
+                    example: /home/paulo/Documentos/desenvolvimento/connecta-back/vendor/laravel/framework/src/Illuminate/Auth/Middleware/Authenticate.php
+      tags:
+        - Outros

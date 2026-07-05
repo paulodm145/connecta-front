@@ -1,0 +1,93 @@
+# Documentação de API — Connecta Back
+
+Índice da documentação de contratos, fluxos e comportamentos de API. Use os links abaixo para navegar entre os tópicos.
+
+> Para a documentação interativa completa (Scribe), acesse `GET /docs` com o servidor rodando.
+
+---
+
+## Tópicos
+
+| Arquivo | O que cobre |
+|---|---|
+| [respostas.md](respostas.md) | Envio de respostas de formulário, status, relatório consolidado, cálculo de notas por competência |
+| [pdi-individual.md](pdi-individual.md) | Geração assíncrona de PDI por envio, consulta de status, dados consolidados, fluxo de polling |
+| [pdi-lote.md](pdi-lote.md) | Geração em lote de PDI, consulta de status em lote, fluxo de polling para múltiplos envios |
+| [emails.md](emails.md) | Envio de PDI por e-mail, link de pesquisa para respondentes, links de avaliação para responsáveis de setor |
+| [competencias.md](competencias.md) | CRUD de competências, recomendações, livros e vídeos de PDI |
+| [formularios-import-export.md](formularios-import-export.md) | Exportação e importação de estrutura de formulários (perguntas e opções), instruções de implementação para o frontend |
+
+---
+
+## Resumo das rotas por arquivo
+
+### respostas.md
+- `POST /api/externo-respostas` — envio público de respostas
+- `GET /api/externo-respostas/status` — status de resposta de um respondente
+- `GET /api/empresas/respostas/relatorio-envio/{envioId}` — relatório consolidado
+
+### pdi-individual.md
+- `POST /api/empresas/envios/{envioId}/pdi/gerar` — iniciar geração (202)
+- `GET /api/empresas/envios/{envioId}/pdi` — dados completos + status do PDI
+- `GET /api/empresas/envios/{envioId}/pdi/status` — status enxuto para polling
+
+### pdi-lote.md
+- `POST /api/empresas/pdis/gerar-lote` — disparar geração para múltiplos envios (202)
+- `POST /api/empresas/pdis/status-lote` — status de todos os PDIs do lote
+
+### emails.md
+- `POST /api/empresas/envios/{envioId}/pdi/enviar-email` — PDI de um envio por e-mail
+- `POST /api/empresas/pesquisas/{pesquisaId}/pdi/enviar-email` — PDI em massa por pesquisa
+- `POST /api/empresas/respondentes/{respondenteId}/pesquisa/enviar-email` — link de pesquisa para um respondente
+- `POST /api/empresas/pesquisas/{pesquisaId}/respondentes/enviar-email` — link de pesquisa para todos os respondentes
+- `POST /api/empresas/pesquisas/{pesquisaId}/setores/{setorId}/responsavel/enviar-email` — links de avaliação para responsável de um setor
+- `POST /api/empresas/pesquisas/{pesquisaId}/setores/responsaveis/enviar-email` — links de avaliação para todos os responsáveis de setores
+
+### competencias.md
+- `GET|POST /api/empresas/competencias` — listar e criar
+- `GET|PUT|DELETE /api/empresas/competencias/{id}` — buscar, atualizar, remover
+- `GET /api/empresas/competencias/change-status/{id}` — alternar ativo/inativo
+- `GET /api/empresas/competencias/exportar` — baixar todas as competências como arquivo JSON (com recomendações, livros e vídeos)
+- `POST /api/empresas/competencias/importar` — importar competências de arquivo JSON (ignora duplicatas por descrição)
+- `GET|POST|PUT|DELETE /api/empresas/competencia-recomendacoes` — CRUD de recomendações
+- `GET|POST|PUT|DELETE /api/empresas/livros-pdi` — CRUD de livros
+- `GET /api/empresas/livros-pdi/exportar` — baixar todos os livros agrupados por competência como arquivo JSON
+- `POST /api/empresas/livros-pdi/importar` — importar livros de arquivo JSON (ignora duplicatas por título + competência; reporta competências não encontradas)
+- `GET|POST|PUT|DELETE /api/empresas/videos-pdi` — CRUD de vídeos
+- `GET /api/empresas/videos-pdi/exportar` — baixar todos os vídeos agrupados por competência como arquivo JSON
+- `POST /api/empresas/videos-pdi/importar` — importar vídeos de arquivo JSON (ignora duplicatas por título + competência; reporta competências não encontradas)
+
+### formularios-import-export.md
+- `GET /api/empresas/formularios/{id}/exportar` — baixar estrutura do formulário como arquivo JSON
+- `POST /api/empresas/formularios/importar` — criar formulário a partir de arquivo JSON exportado
+
+---
+
+## Sistema de Permissões
+
+As permissões são definidas em `config/permissoes.php` e propagadas para o banco de cada tenant via:
+
+```bash
+php artisan app:sincronizar-permissoes
+```
+
+O frontend recebe a lista de permissões do usuário no endpoint de login/me e usa as chaves para controlar visibilidade de menus e botões. **O backend não bloqueia rotas por permissão** — a guarda é inteiramente na UI.
+
+| Grupo | Chaves novas (export/import) |
+|---|---|
+| Formulários | `formularios.formularios.exportar`, `formularios.formularios.importar` |
+| Competências | `competencias.competencias.exportar`, `competencias.competencias.importar` |
+| Livros PDI | `competencias.livros.exportar`, `competencias.livros.importar` |
+| Vídeos PDI | `competencias.videos.exportar`, `competencias.videos.importar` |
+
+Consulte `competencias.md` e `formularios-import-export.md` para a tabela completa de permissões por entidade.
+
+---
+
+## Conceitos-chave
+
+- **Status do PDI**: `null` (não iniciado) → `processando` → `concluido` | `falhou`
+- **Polling recomendado**: 3–5 s; timeout de 3 minutos no front-end
+- **Geração assíncrona**: todas as rotas `/pdi/gerar` retornam `202 Accepted` e processam em background
+- **Autenticação pública**: endpoints `/api/externo-*` usam `AcessoPublicoFormularioMiddleware`
+- **Autenticação interna**: demais rotas usam bearer token via Passport (`auth:api`)

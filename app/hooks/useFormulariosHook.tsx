@@ -91,6 +91,38 @@ export const useFormulariosHook = () => {
         }
     }
 
+    const exportarFormulario = async (id: number) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/formularios/${id}/exportar`, {
+                responseType: "blob",
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao exportar formulário:", error);
+            return null;
+        }
+    }
+
+    const importarFormulario = async (arquivo: File) => {
+        const formData = new FormData();
+        formData.append("arquivo", arquivo);
+        try {
+            const response = await axios.post(`${BASE_URL}/formularios/importar`, formData, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    "Content-Type": "multipart/form-data",
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao importar formulário:", error);
+            return null;
+        }
+    }
+
     const formularioExternoBySlug = async (slug : string, tokenRespondente : string, identificadorEmpresa : string) => {
         try {
             const response = await axios.get(`${URL_EXTERNA}/externo-formularios/${slug}?t=${tokenRespondente}`, {
@@ -113,7 +145,9 @@ export const useFormulariosHook = () => {
             listagemFormularios,
             getBySlug,
             formulariosAtivos,
-            formularioExternoBySlug
+            formularioExternoBySlug,
+            exportarFormulario,
+            importarFormulario
         };     
 };
 
