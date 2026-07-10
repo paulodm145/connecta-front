@@ -248,13 +248,13 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
       acessarSubMenuSetores: temPermissao('cadastros.setor.menu.exibir') || false,
       acessarSubMenuCargos: temPermissao('cadastros.cargos.menu.exibir') || false,
       acessarSubMenuPessoas: temPermissao('cadastros.pessoas.menu.exibir') || false,
-      acessarSubMenuCompetencias: temPermissao('cadastros.competencias.menu.exibir') || false,
-      acessarSubMenuLivrosPdi: temPermissao('cadastros.livros-pdi.menu.exibir') || false,
-      acessarSubMenuVideosPdi: temPermissao('cadastros.videos-pdi.menu.exibir') || false,
-  
+      acessarSubMenuCompetencias: temPermissao('competencias.competencias.exibir.menu') || false,
+      acessarSubMenuLivrosPdi: temPermissao('competencias.livros.exibir.menu') || false,
+      acessarSubMenuVideosPdi: temPermissao('competencias.videos.exibir.menu') || false,
+
       acessarMenuFormularios: temPermissao('formularios.formularios.exibir.menu') || false,
-  
-      acessarMenuPesquisas: temPermissao('pesquisas.tipo.pesquisa.exibir.menu') || false,
+
+      acessarMenuPesquisas: temPermissao('pesquisas.pesquisas.exibir.menu') || false,
       acessarSubMenuListagem: temPermissao('pesquisas.listagem.exibir.menu') || false,
       acessarSubMenuTiposPesquisa: temPermissao('pesquisas.tipo.pesquisa.exibir.menu') || false,
   

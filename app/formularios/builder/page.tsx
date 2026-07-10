@@ -11,6 +11,7 @@ import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
 import { useCompetenciasHook } from "@/app/hooks/useCompetenciasHook"
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'; // Use o roteamento moderno do Next.js
+import ProtecaoPermissao from '@/components/ProtecaoPermissao'
  
 
 export default function PaginaConstrutor() {
@@ -129,6 +130,7 @@ export default function PaginaConstrutor() {
   }
 
   return (
+    <ProtecaoPermissao chaves={['formularios.formularios.adicionar']}>
     <div className="space-y-6 p-4 bg-gray-100 min-h-screen">
       
       <FormBuilder
@@ -218,5 +220,6 @@ export default function PaginaConstrutor() {
         </DialogContent>
       </Dialog>
     </div>
+    </ProtecaoPermissao>
   )
 }

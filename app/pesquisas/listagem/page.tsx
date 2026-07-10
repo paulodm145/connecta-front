@@ -18,6 +18,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook";
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook";
 import { useTiposPesquisaHook } from "@/app/hooks/useTiposPesquisaHook";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 
 type Status = "ABERTA" | "FECHADA";
@@ -223,6 +224,7 @@ export default function PaginaListagem() {
   
 
   return (
+    <ProtecaoPermissao chaves={['pesquisas.listagem.exibir.menu']}>
     <Card>
       <CardHeader>
         <CardTitle>Pesquisas</CardTitle>
@@ -441,5 +443,6 @@ export default function PaginaListagem() {
         )}
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

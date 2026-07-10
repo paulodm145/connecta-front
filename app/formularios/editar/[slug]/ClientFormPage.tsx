@@ -12,6 +12,7 @@ import { useCompetenciasHook } from "@/app/hooks/useCompetenciasHook"
 import { toast } from 'react-toastify'
 import { useRouter } from 'next/navigation'; // Use o roteamento moderno do Next.js
 import { v4 as uuidv4 } from 'uuid';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
  
 
@@ -158,6 +159,7 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
   }
 
   return (
+    <ProtecaoPermissao chaves={['formularios.formularios.editar']}>
     <div className="space-y-6 p-4 bg-gray-100 min-h-screen">
 
       <Button variant="secondary" onClick={() => router.back()}>Voltar</Button>
@@ -249,5 +251,6 @@ export default function ClienteFormPage({ slug }: { slug: string }) {
         </DialogContent>
       </Dialog>
     </div>
+    </ProtecaoPermissao>
   )
 }

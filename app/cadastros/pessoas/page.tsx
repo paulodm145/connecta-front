@@ -23,6 +23,7 @@ import { X, FileText } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 // Modelos de planilha de exemplo
 const exampleTemplates: SpreadsheetTemplate[] = [
@@ -56,6 +57,7 @@ export default function Pessoas() {
     podeEditar: temPermissao('cadastros.pessoas.editar') || false,
     podeExcluir: temPermissao('cadastros.pessoas.excluir') || false,
     podeVisualizar: true ,
+    podeAlterarStatus: temPermissao('cadastros.pessoas.bloquear') || false,
   }
 
   const permissaoImportarPessoas = temPermissao('cadastros.pessoas.importar') || false;
@@ -259,6 +261,7 @@ useEffect(() => {
   }
 
   return (
+    <ProtecaoPermissao chaves={['cadastros.pessoas.menu.exibir']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Pessoas</CardTitle>
@@ -359,11 +362,7 @@ useEffect(() => {
         />
       </CardContent>
     </Card>
-
-
-
-
-    
+    </ProtecaoPermissao>
   );
 }
 

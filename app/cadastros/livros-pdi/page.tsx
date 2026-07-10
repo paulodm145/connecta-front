@@ -16,6 +16,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 import { useCompetenciasHook } from '@/app/hooks/useCompetenciasHook';
 import { useLivrosPdiHook } from '@/app/hooks/useLivrosPdiHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 interface ResultadoImportacaoRecursosPdi {
   message: string;
@@ -50,10 +51,10 @@ export default function LivrosPdi() {
   const [competenciasOptions, setCompetenciasOptions] = useState<{ value: string; label: string }[]>([]);
 
   const permissoesUsuario = {
-    podeCadastrar: temPermissao('cadastros.livros-pdi.adicionar') || false,
-    podeEditar: temPermissao('cadastros.livros-pdi.editar') || false,
-    podeExcluir: temPermissao('cadastros.livros-pdi.excluir') || false,
-    podeVisualizar: temPermissao('cadastros.livros-pdi.visualizar') || true,
+    podeCadastrar: temPermissao('competencias.livros.adicionar') || false,
+    podeEditar: temPermissao('competencias.livros.editar') || false,
+    podeExcluir: temPermissao('competencias.livros.excluir') || false,
+    podeVisualizar: true,
     podeExportar: temPermissao('competencias.livros.exportar') || false,
     podeImportar: temPermissao('competencias.livros.importar') || false,
   };
@@ -198,6 +199,7 @@ export default function LivrosPdi() {
   ];
 
   return (
+    <ProtecaoPermissao chaves={['competencias.livros.exibir.menu']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Livros do PDI</CardTitle>
@@ -247,5 +249,6 @@ export default function LivrosPdi() {
         />
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

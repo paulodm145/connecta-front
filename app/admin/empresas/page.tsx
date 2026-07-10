@@ -25,6 +25,8 @@ import { Switch } from "@/components/ui/switch";
 
 import { useEmpresaAdminHook } from "@/app/hooks/useEmpresasAdminHook";
 import { useEstadosCidadesAdminHook } from "@/app/hooks/useEstadosCidadesAdminHook";
+import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook";
+import ProtecaoPermissao from "@/components/ProtecaoPermissao";
 
 import {
   Dialog,
@@ -87,6 +89,15 @@ export default function PaginaListagem() {
 
   // Hooks para Estados e Cidades
   const { getCidades, getEstados } = useEstadosCidadesAdminHook();
+
+  const { temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('superadmin.empresas.adicionar') || false,
+    podeEditar: temPermissao('superadmin.empresas.editar') || false,
+    podeExcluir: temPermissao('superadmin.empresas.excluir') || false,
+    podeAlterarStatus: temPermissao('superadmin.empresas.bloquear') || false,
+  }
 
   // Estado local para armazenar lista de empresas
   const [empresas, setEmpresas] = useState<Empresa[]>([]);
@@ -347,6 +358,7 @@ export default function PaginaListagem() {
   const currentEmpresas = filteredEmpresas.slice(startIndex, endIndex);
 
   return (
+    <ProtecaoPermissao chaves={['superadmin.menu.empresas']}>
     <Card>
       <CardHeader>
         <CardTitle>Empresas</CardTitle>
@@ -357,11 +369,13 @@ export default function PaginaListagem() {
         <div className="flex items-center justify-between mb-4">
           {/* Botão de nova empresa + Modal */}
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={handleNovaEmpresa}>
-                Nova Empresa
-              </Button>
-            </DialogTrigger>
+            {permissoesUsuario.podeCadastrar && (
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={handleNovaEmpresa}>
+                  Nova Empresa
+                </Button>
+              </DialogTrigger>
+            )}
 
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -675,24 +689,29 @@ export default function PaginaListagem() {
                 <TableCell>
                   <Switch
                     checked={empresa.status == true}
+                    disabled={!permissoesUsuario.podeAlterarStatus}
                     onCheckedChange={() => empresa.id !== undefined && handleToggleStatus(empresa.id)}
                   />
                 </TableCell>
                 <TableCell className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditEmpresa(empresa)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteEmpresa(empresa.id)}
-                  >
-                    Excluir
-                  </Button>
+                  {permissoesUsuario.podeEditar && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditEmpresa(empresa)}
+                    >
+                      Editar
+                    </Button>
+                  )}
+                  {permissoesUsuario.podeExcluir && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteEmpresa(empresa.id)}
+                    >
+                      Excluir
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -715,5 +734,6 @@ export default function PaginaListagem() {
         )}
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

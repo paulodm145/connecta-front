@@ -72,6 +72,7 @@ interface Permissoes {
   podeEditar: boolean;
   podeExcluir: boolean;
   podeVisualizar: boolean;
+  podeAlterarStatus?: boolean;
 }
 
 interface DynamicCrudComponentProps {
@@ -114,6 +115,8 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
   const podeEditar = isSuperAdmin || permissoes.podeEditar;
   const podeExcluir = isSuperAdmin || permissoes.podeExcluir;
   const podeVisualizar = isSuperAdmin || permissoes.podeVisualizar;
+  const podeAlterarStatus = isSuperAdmin || (permissoes.podeAlterarStatus ?? false);
+  const exibirColunaAcoes = podeEditar || podeExcluir;
 
 
   const getValueByPath = (item: DataItem, path: string) =>
@@ -442,7 +445,7 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
               </TableCell>
             ))}
             {exibirStatus && <TableCell>Status</TableCell>}
-            <TableCell>Ações</TableCell>
+            {exibirColunaAcoes && <TableCell>Ações</TableCell>}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -459,16 +462,23 @@ const DynamicCrudComponent: React.FC<DynamicCrudComponentProps> = ({
                 <TableCell>
                   <Switch
                     checked={item.status}
+                    disabled={!podeAlterarStatus}
                     onCheckedChange={() => handleToggleStatus(item.id, item.status)}
                   />
                 </TableCell>
               )}
-              <TableCell>
-                <Button onClick={() => handleOpenModal(item)}>Editar</Button>
-                <Button variant="danger" onClick={() => handleDelete(item.id)}>
-                  Excluir
-                </Button>
-              </TableCell>
+              {exibirColunaAcoes && (
+                <TableCell>
+                  {podeEditar && (
+                    <Button onClick={() => handleOpenModal(item)}>Editar</Button>
+                  )}
+                  {podeExcluir && (
+                    <Button variant="danger" onClick={() => handleDelete(item.id)}>
+                      Excluir
+                    </Button>
+                  )}
+                </TableCell>
+              )}
             </TableRow>
           ))}
         </TableBody>

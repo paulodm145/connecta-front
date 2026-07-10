@@ -16,6 +16,7 @@ import "react-toastify/dist/ReactToastify.css";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 import { useCompetenciasHook } from '@/app/hooks/useCompetenciasHook';
 import { useVideosPdiHook } from '@/app/hooks/useVideosPdiHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 interface ResultadoImportacaoRecursosPdi {
   message: string;
@@ -50,10 +51,10 @@ export default function VideosPdi() {
   const [competenciasOptions, setCompetenciasOptions] = useState<{ value: string; label: string }[]>([]);
 
   const permissoesUsuario = {
-    podeCadastrar: temPermissao('cadastros.videos-pdi.adicionar') || false,
-    podeEditar: temPermissao('cadastros.videos-pdi.editar') || false,
-    podeExcluir: temPermissao('cadastros.videos-pdi.excluir') || false,
-    podeVisualizar: temPermissao('cadastros.videos-pdi.visualizar') || true,
+    podeCadastrar: temPermissao('competencias.videos.adicionar') || false,
+    podeEditar: temPermissao('competencias.videos.editar') || false,
+    podeExcluir: temPermissao('competencias.videos.excluir') || false,
+    podeVisualizar: true,
     podeExportar: temPermissao('competencias.videos.exportar') || false,
     podeImportar: temPermissao('competencias.videos.importar') || false,
   };
@@ -192,6 +193,7 @@ export default function VideosPdi() {
   ];
 
   return (
+    <ProtecaoPermissao chaves={['competencias.videos.exibir.menu']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Vídeos do PDI</CardTitle>
@@ -241,5 +243,6 @@ export default function VideosPdi() {
         />
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

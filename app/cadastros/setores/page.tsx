@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 export default function Setores() {
   const { index: listarSetores, changeStatus, store, update, destroy } = useSetoresHook();
@@ -30,6 +31,7 @@ export default function Setores() {
     podeEditar: temPermissao('cadastros.setores.editar') || false,
     podeExcluir: temPermissao('cadastros.setores.excluir') || false,
     podeVisualizar: true ,
+    podeAlterarStatus: temPermissao('cadastros.setores.bloquear') || false,
   }
 
   // Função para carregar a lista de setores
@@ -178,6 +180,7 @@ export default function Setores() {
   ];
 
   return (
+    <ProtecaoPermissao chaves={['cadastros.setor.menu.exibir']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Setores</CardTitle>
@@ -199,5 +202,6 @@ export default function Setores() {
         />
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }
