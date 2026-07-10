@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, { createContext, useState, useContext, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import api from "../services/api";
 import { ToastContainer, toast } from "react-toastify";
@@ -30,13 +30,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
-  
+  const buscandoUsuario = useRef(false);
 
+  // Roda uma única vez no bootstrap do app. Depender de "router" fazia o
+  // GET /me ser refeito a cada mudança de rota.
   useEffect(() => {
     fetchUser();
-  }, [router]);
+  }, []);
 
   const fetchUser = async () => {
+    // Evita chamadas simultâneas de /me (ex.: remontagem em desenvolvimento)
+    if (buscandoUsuario.current) return;
+    buscandoUsuario.current = true;
     try {
       const token = localStorage.getItem("token");
 
@@ -55,6 +60,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error("Erro ao buscar usuário:", error);
       localStorage.removeItem("token");
     } finally {
+      buscandoUsuario.current = false;
       setLoading(false);
     }
   };
