@@ -21,6 +21,7 @@ import { useAnotacoesHook } from "@/app/hooks/useAnotacoesHook"
 import { LeaderEvaluationModal } from "./leader-evaluation-modal"
 import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook"
 import { usePdiHook } from "@/app/hooks/usePdiHook"
+import ProtecaoPermissao from "@/components/ProtecaoPermissao"
 
 // Enum para tipos de anotação
 enum TipoAnotacao {
@@ -96,6 +97,9 @@ export default function Page() {
     pdiAvaliado: temPermissao("pesquisas.relatorio.anotacoes.pdi") || false,
     exportarXLSX: temPermissao("pesquisas.exportar.xlsx") || false,
     avaliacaoLider: temPermissao("pesquisas.avaliacao.lider") || false,
+    gerarPdi: temPermissao("pesquisas.pdi.gerar") || false,
+    gerarPdiLote: temPermissao("pesquisas.pdi.gerar.lote") || false,
+    enviarPdiEmail: temPermissao("pesquisas.pdi.enviar.email") || false,
   }
 
   const chartRef = useRef(null)
@@ -531,7 +535,7 @@ export default function Page() {
       icon: Sparkles,
       variant: "outline" as const,
       onClick: handleGerarLotePdi,
-      visible: permissoesUsuario.pdiAvaliado,
+      visible: permissoesUsuario.gerarPdiLote,
       disabled: gerandoLotePdi,
     },
     {
@@ -539,7 +543,7 @@ export default function Page() {
       icon: Sparkles,
       variant: "outline" as const,
       onClick: handleEnviarPdiEmMassa,
-      visible: permissoesUsuario.pdiAvaliado,
+      visible: permissoesUsuario.enviarPdiEmail,
       disabled: enviandoPdiPesquisa,
     },
     {
@@ -590,7 +594,7 @@ export default function Page() {
       onClick: handleEnviarPdiIndividual,
       variant: "ghost" as const,
       className: "text-blue-600 hover:text-blue-700",
-      visible: permissoesUsuario.pdiAvaliado,
+      visible: permissoesUsuario.enviarPdiEmail,
       disabled: (row) => enviandoPdiEnvioId === row.envio_id,
     },
     {
@@ -599,11 +603,13 @@ export default function Page() {
       onClick: handleGerarPdi,
       variant: "ghost" as const,
       className: "text-amber-600 hover:text-amber-700",
+      visible: permissoesUsuario.gerarPdi,
       disabled: (row) => gerandoPdiEnvioId === row.envio_id,
     },
   ]
 
   return (
+    <ProtecaoPermissao chaves={['pesquisas.pesquisas.ver.relatorio']}>
     <div className="w-100 p-4 space-y-6">
       <h1 className="text-2xl font-bold">DashBoard - Pesquisa: {pesquisa ? pesquisa.titulo : "Carregando..."}</h1>
 
@@ -762,5 +768,6 @@ export default function Page() {
         initialValue={avaliacaoAtual}
       />
     </div>
+    </ProtecaoPermissao>
   )
 }

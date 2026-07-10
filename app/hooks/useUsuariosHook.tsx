@@ -81,6 +81,23 @@ export const useUsuariosHook = () => {
         }
     }
     
+    // Lista os níveis ativos do tenant da empresa informada.
+    // Não usar /empresas/niveis aqui: aquele endpoint retorna os níveis do tenant
+    // do usuário logado, não da empresa selecionada no formulário.
+    const niveisPorEmpresa = async (identificadorEmpresa: string) => {
+        try {
+            const response = await axios.get(`${BASE_URL}/usuarios-admin/niveis-empresa/${identificadorEmpresa}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error) {
+            console.error("Erro ao buscar níveis da empresa:", error);
+            return null;
+        }
+    }
+
     const changeStatusUsuario = async (id: number) => {
         try {
             const response = await axios.get(`${BASE_URL}/usuarios-admin/change-status/${id}`, {
@@ -95,14 +112,15 @@ export const useUsuariosHook = () => {
         }
     }
 
-return { 
+return {
     indexUsuario,
     showUsuario,
     storeUsuario,
     updateUsuario,
     destroyUsuario,
-    changeStatusUsuario
-    };     
+    changeStatusUsuario,
+    niveisPorEmpresa
+    };
 };
 
 

@@ -10,6 +10,7 @@ import { Separator } from "@/components/ui/separator"
 import { Loader2, Sparkles, ArrowLeft } from "lucide-react"
 import { usePdiHook } from "@/app/hooks/usePdiHook"
 import { toast } from "react-toastify"
+import ProtecaoPermissao from "@/components/ProtecaoPermissao"
 
 const POLLING_INTERVALO_MS = 4000
 const POLLING_TIMEOUT_MS = 3 * 60 * 1000
@@ -240,6 +241,7 @@ export default function VisualizarPdiPage() {
   }
 
   return (
+    <ProtecaoPermissao chaves={['pesquisas.relatorio.anotacoes.pdi']}>
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div>
@@ -544,5 +546,6 @@ export default function VisualizarPdiPage() {
         </Card>
       )}
     </div>
+    </ProtecaoPermissao>
   )
 }

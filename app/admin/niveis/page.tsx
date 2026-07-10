@@ -30,6 +30,7 @@ import { AccessLevelForm } from "./access-level-form"
 import { toast } from "react-toastify";
 
 import { useNiveisPermissoesHook } from "@/app/hooks/useNiveisPermissoesHook"
+import ProtecaoPermissao from "@/components/ProtecaoPermissao"
 
 
 interface AccessLevel {
@@ -157,6 +158,7 @@ export default function AccessLevelsPage() {
   }
 
   return (
+      <ProtecaoPermissao chaves={['superadmin.menu.usuarios.niveis']}>
       <Card>
         <CardHeader>
           <CardTitle>Níveis Cadastrados</CardTitle>
@@ -261,6 +263,6 @@ export default function AccessLevelsPage() {
           </Table>
         </CardContent>
       </Card>
-    
+      </ProtecaoPermissao>
   )
 }

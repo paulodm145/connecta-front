@@ -12,6 +12,7 @@ import {
 import { useSetoresHook } from '@/app/hooks/useSetoresHook';
 import { useTiposPesquisaHook } from '@/app/hooks/useTiposPesquisaHook';
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -24,8 +25,9 @@ export default function Setores() {
   const permissoesUsuario = {
     podeCadastrar: temPermissao('pesquisas.tipo.pesquisa.adicionar') || false,
     podeEditar: temPermissao('pesquisas.tipo.pesquisa.editar') || false,
-    podeExcluir: temPermissao('pesquisas.tipo.pesquisa.esxcluir.respondentes') || false,
+    podeExcluir: temPermissao('pesquisas.tipo.pesquisa.excluir') || false,
     podeVisualizar: true ,
+    podeAlterarStatus: temPermissao('pesquisas.tipo.pesquisa.ativar.inativar') || false,
   }
 
 
@@ -145,6 +147,7 @@ export default function Setores() {
   ];
 
   return (
+    <ProtecaoPermissao chaves={['pesquisas.tipo.pesquisa.exibir.menu']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Tipo de Pesquisa</CardTitle>
@@ -165,5 +168,6 @@ export default function Setores() {
         />
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

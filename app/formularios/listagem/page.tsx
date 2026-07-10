@@ -29,6 +29,7 @@ import { toast } from "react-toastify";
 
 import { useFormulariosHook } from "@/app/hooks/useFormulariosHook"
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 interface Formulario {
   id: number
@@ -151,6 +152,7 @@ export default function PaginaListagem() {
   }
 
   return (
+    <ProtecaoPermissao chaves={['formularios.formularios.exibir.menu']}>
     <Card>
       <CardHeader>
         <CardTitle>Formulários</CardTitle>
@@ -287,5 +289,6 @@ export default function PaginaListagem() {
         )}
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   )
 }

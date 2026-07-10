@@ -15,6 +15,7 @@ import { toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
 import { useCompetenciasHook } from '@/app/hooks/useCompetenciasHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 interface ResultadoImportacaoCompetencias {
   message: string;
@@ -42,10 +43,11 @@ export default function Competencias() {
   const [resultadoImportacao, setResultadoImportacao] = useState<ResultadoImportacaoCompetencias | null>(null);
 
   const permissoesUsuario = {
-    podeCadastrar: temPermissao('cadastros.competencias.adicionar') || false,
-    podeEditar: temPermissao('cadastros.competencias.editar') || false,
-    podeExcluir: temPermissao('cadastros.competencias.excluir') || false,
-    podeVisualizar: temPermissao('cadastros.competencias.visualizar') || true,
+    podeCadastrar: temPermissao('competencias.competencias.adicionar') || false,
+    podeEditar: temPermissao('competencias.competencias.editar') || false,
+    podeExcluir: temPermissao('competencias.competencias.excluir') || false,
+    podeVisualizar: true,
+    podeAlterarStatus: temPermissao('competencias.competencias.ativar.inativar') || false,
     podeExportar: temPermissao('competencias.competencias.exportar') || false,
     podeImportar: temPermissao('competencias.competencias.importar') || false,
   };
@@ -168,6 +170,7 @@ export default function Competencias() {
   ];
 
   return (
+    <ProtecaoPermissao chaves={['competencias.competencias.exibir.menu']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Competências</CardTitle>
@@ -216,5 +219,6 @@ export default function Competencias() {
         />
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

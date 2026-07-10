@@ -36,7 +36,8 @@ import {
 // Hooks
 import { useEmpresaAdminHook } from "@/app/hooks/useEmpresasAdminHook";
 import { useUsuariosHook } from "@/app/hooks/useUsuariosHook";
-import { useNiveisPermissoesHook } from "@/app/hooks/useNiveisPermissoesHook";
+import { useInformacoesUsuarioHook } from "@/app/hooks/useInformacosUsuarioHook";
+import ProtecaoPermissao from "@/components/ProtecaoPermissao";
 
 // Utils
 import { isValidEmail } from "@/app/utils/Helpers";
@@ -71,7 +72,6 @@ interface Nivel {
 export default function PaginaListagem() {
   // Hooks para as ações das empresas (para popular o select)
   const { getEmpresasAtivas } = useEmpresaAdminHook();
-  const { indexNiveis } = useNiveisPermissoesHook();
 
   // Hooks para as ações do usuário
   const {
@@ -80,7 +80,17 @@ export default function PaginaListagem() {
     updateUsuario,
     destroyUsuario,
     changeStatusUsuario,
+    niveisPorEmpresa,
   } = useUsuariosHook();
+
+  const { temPermissao } = useInformacoesUsuarioHook();
+
+  const permissoesUsuario = {
+    podeCadastrar: temPermissao('superadmin.usuarios.adicionar') || false,
+    podeEditar: temPermissao('superadmin.usuarios.editar') || false,
+    podeExcluir: temPermissao('superadmin.usuarios.excluir') || false,
+    podeAlterarStatus: temPermissao('superadmin.usuarios.bloquear') || false,
+  }
 
   // Controle de modal e de edição
   const [modalOpen, setModalOpen] = useState(false);
@@ -102,6 +112,7 @@ export default function PaginaListagem() {
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors },
   } = useForm<Usuarios>({
     defaultValues: {
@@ -120,15 +131,13 @@ export default function PaginaListagem() {
   useEffect(() => {
     const carregarDados = async () => {
       try {
-        const [respUsuarios, respEmpresas, respNiveis] = await Promise.all([
+        const [respUsuarios, respEmpresas] = await Promise.all([
           indexUsuario(),
           getEmpresasAtivas(),
-          indexNiveis()
         ]);
 
         setUsuarios(respUsuarios ?? []);
         setEmpresas(respEmpresas ?? []);
-        setNiveisList((respNiveis ?? []).filter((n: { status: any; }) => n.status));
       } catch (error) {
         toast.error("Erro ao carregar dados");
         console.error(error);
@@ -136,6 +145,21 @@ export default function PaginaListagem() {
     };
     carregarDados();
   }, []);
+
+  // Os níveis pertencem ao tenant da empresa selecionada no formulário
+  const identificadorEmpresaSelecionada = watch("identificador_empresa");
+
+  useEffect(() => {
+    const carregarNiveisDaEmpresa = async () => {
+      if (!identificadorEmpresaSelecionada) {
+        setNiveisList([]);
+        return;
+      }
+      const respNiveis = await niveisPorEmpresa(identificadorEmpresaSelecionada);
+      setNiveisList(respNiveis ?? []);
+    };
+    carregarNiveisDaEmpresa();
+  }, [identificadorEmpresaSelecionada]);
 
   // Ao enviar o formulário (criar ou atualizar)
   async function onSubmit(data: Usuarios) {
@@ -242,6 +266,7 @@ export default function PaginaListagem() {
   const current = filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
   return (
+    <ProtecaoPermissao chaves={['superadmin.menu.usuarios']}>
     <Card>
       <CardHeader>
         <CardTitle>Usuários</CardTitle>
@@ -255,11 +280,13 @@ export default function PaginaListagem() {
         <div className="flex items-center justify-between mb-4">
           {/* Botão de novo usuário + Modal */}
           <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" onClick={handleNovoUsuario}>
-                Novo Usuário
-              </Button>
-            </DialogTrigger>
+            {permissoesUsuario.podeCadastrar && (
+              <DialogTrigger asChild>
+                <Button variant="outline" onClick={handleNovoUsuario}>
+                  Novo Usuário
+                </Button>
+              </DialogTrigger>
+            )}
 
             <DialogContent className="max-w-2xl">
               <DialogHeader>
@@ -466,26 +493,31 @@ export default function PaginaListagem() {
                 <TableCell>
                   <Switch
                     checked={usuario.status === true}
+                    disabled={!permissoesUsuario.podeAlterarStatus}
                     onCheckedChange={() =>
                       usuario.id && handleToggleStatus(usuario.id)
                     }
                   />
                 </TableCell>
                 <TableCell className="space-x-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEditUsuario(usuario)}
-                  >
-                    Editar
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleDeleteUsuario(usuario.id)}
-                  >
-                    Excluir
-                  </Button>
+                  {permissoesUsuario.podeEditar && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEditUsuario(usuario)}
+                    >
+                      Editar
+                    </Button>
+                  )}
+                  {permissoesUsuario.podeExcluir && (
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDeleteUsuario(usuario.id)}
+                    >
+                      Excluir
+                    </Button>
+                  )}
                 </TableCell>
               </TableRow>
             ))}
@@ -508,5 +540,6 @@ export default function PaginaListagem() {
         )}
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

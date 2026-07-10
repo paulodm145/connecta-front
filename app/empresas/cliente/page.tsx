@@ -13,6 +13,7 @@ import { toast } from "react-toastify";
 
 import { useUserStore } from "@/app/store/userStore";
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 
 const EmpresaForm: React.FC = () => {
@@ -229,6 +230,7 @@ const {
 
 
   return (
+<ProtecaoPermissao chaves={['minha.empresa.exibir.menu']}>
 <form
   onSubmit={handleSubmit(onSubmit)}
   className="space-y-6 bg-white p-6 shadow-lg rounded-lg"
@@ -450,6 +452,7 @@ const {
     Salvar Dados
   </Button>)}
 </form>
+</ProtecaoPermissao>
   );
 };
 

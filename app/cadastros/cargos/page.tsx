@@ -16,6 +16,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 export default function Setores() {
   const { setoresAtivos} = useSetoresHook();
@@ -27,6 +28,7 @@ export default function Setores() {
     podeEditar: temPermissao('cadastros.cargos.editar') || false,
     podeExcluir: temPermissao('cadastros.cargos.excluir') || false,
     podeVisualizar: true ,
+    podeAlterarStatus: temPermissao('cadastros.cargos.bloquear') || false,
   }
 
   const [data, setData] = useState([]);
@@ -177,6 +179,7 @@ export default function Setores() {
   ];
 
   return (
+    <ProtecaoPermissao chaves={['cadastros.cargos.menu.exibir']}>
     <Card>
       <CardHeader>
         <CardTitle>Cadastro de Cargos</CardTitle>
@@ -197,5 +200,6 @@ export default function Setores() {
         />
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

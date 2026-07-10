@@ -11,6 +11,7 @@ import { usePessoasHook } from "@/app/hooks/usePessoasHook";
 import { useSetoresHook } from "@/app/hooks/useSetoresHook";
 import { useClipboard } from '@/app/hooks/useClipBoard'; // ajuste o caminho se necessário
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
+import ProtecaoPermissao from '@/components/ProtecaoPermissao';
 
 
 import { Input } from "@/components/ui/input";
@@ -88,10 +89,12 @@ export default function PesquisasRespondentes() {
   const permissoesUsuario = {
     podeCadastrar: temPermissao('pesquisas.pesquisas.adicionar.respondentes.tela') || false,
     podeCadastrarEmLote: temPermissao('pesquisas.pesquisas.adicionar.respondentes.lote') || false,
-    podeEditar: temPermissao('pesquisas.pesquisas.adicionar.respondentes.lote') || false,
+    podeEditar: temPermissao('pesquisas.pesquisas.editar.respondentes') || false,
     podeExcluir: temPermissao('pesquisas.pesquisas.excluir.respondentes') || false,
     podeAlterarStatus: temPermissao('pesquisas.pesquisas.bloquear.respondentes') || false,
     podeCopiarLink: temPermissao('pesquisas.pesquisas.copiar.link.pesquisa') || false,
+    podeEnviarLinkEmail: temPermissao('pesquisas.pesquisas.enviar.link.email') || false,
+    podeEnviarLinkSetores: temPermissao('pesquisas.pesquisas.enviar.link.setores') || false,
   }
 
   const [pesquisa, setPesquisa] = useState<{ id: number; titulo: string; formulario_slug: string } | null>(
@@ -378,6 +381,7 @@ export default function PesquisasRespondentes() {
   };
 
   return (
+    <ProtecaoPermissao chaves={['pesquisas.pesquisas.adicionar.respondentes']}>
     <Card>
       <CardHeader>
         <CardTitle>
@@ -454,7 +458,7 @@ export default function PesquisasRespondentes() {
             </DialogContent>
           </Dialog>
 
-          {permissoesUsuario.podeCopiarLink && (
+          {permissoesUsuario.podeEnviarLinkEmail && (
             <Button
               variant="outline"
               onClick={handleEnviarLinksEmMassa}
@@ -464,7 +468,7 @@ export default function PesquisasRespondentes() {
             </Button>
           )}
 
-          {permissoesUsuario.podeCopiarLink && (
+          {permissoesUsuario.podeEnviarLinkSetores && (
             <Button
               variant="outline"
               onClick={handleEnviarEmailTodosResponsaveis}
@@ -474,7 +478,7 @@ export default function PesquisasRespondentes() {
             </Button>
           )}
 
-          {permissoesUsuario.podeCopiarLink && setorSelecionadoId && (
+          {permissoesUsuario.podeEnviarLinkSetores && setorSelecionadoId && (
             <Button
               variant="outline"
               onClick={handleEnviarEmailResponsavelSetor}
@@ -607,7 +611,7 @@ export default function PesquisasRespondentes() {
                     Av. Líder
                   </Button>)}     
 
-                  {permissoesUsuario.podeCopiarLink && (
+                  {permissoesUsuario.podeEnviarLinkEmail && (
                     <Button
                       variant="outline"
                       size="sm"
@@ -663,5 +667,6 @@ export default function PesquisasRespondentes() {
         </div>
       </CardContent>
     </Card>
+    </ProtecaoPermissao>
   );
 }

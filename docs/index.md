@@ -16,6 +16,7 @@
 | [emails.md](emails.md) | Envio de PDI por e-mail, link de pesquisa para respondentes, links de avaliação para responsáveis de setor |
 | [competencias.md](competencias.md) | CRUD de competências, recomendações, livros e vídeos de PDI |
 | [formularios-import-export.md](formularios-import-export.md) | Exportação e importação de estrutura de formulários (perguntas e opções), instruções de implementação para o frontend |
+| [permissoes.md](permissoes.md) | Sistema de níveis e permissões multi-tenant: arquitetura, endpoints, catálogo completo de chaves e orientações de aplicação por tela/ação para o frontend |
 
 ---
 
@@ -65,22 +66,14 @@
 
 ## Sistema de Permissões
 
-As permissões são definidas em `config/permissoes.php` e propagadas para o banco de cada tenant via:
+> **Documentação completa: [permissoes.md](permissoes.md)** — arquitetura multi-tenant, endpoints, catálogo completo de chaves e a orientação de qual permissão aplicar em cada tela/menu/ação do frontend.
 
-```bash
-php artisan app:sincronizar-permissoes
-```
+Resumo:
 
-O frontend recebe a lista de permissões do usuário no endpoint de login/me e usa as chaves para controlar visibilidade de menus e botões. **O backend não bloqueia rotas por permissão** — a guarda é inteiramente na UI.
-
-| Grupo | Chaves novas (export/import) |
-|---|---|
-| Formulários | `formularios.formularios.exportar`, `formularios.formularios.importar` |
-| Competências | `competencias.competencias.exportar`, `competencias.competencias.importar` |
-| Livros PDI | `competencias.livros.exportar`, `competencias.livros.importar` |
-| Vídeos PDI | `competencias.videos.exportar`, `competencias.videos.importar` |
-
-Consulte `competencias.md` e `formularios-import-export.md` para a tabela completa de permissões por entidade.
+- Catálogo canônico em `config/permissoes.php`, propagado para o banco de cada tenant via `php artisan app:sincronizar-permissoes` (use `--empresa={id}` para um tenant específico). Tenants novos (`empresa:criar`) já nascem com o catálogo sincronizado.
+- Níveis (`nivel`, `nivel_permissao`) são **por tenant** e totalmente independentes entre empresas; o vínculo do usuário está em `informacoes_usuario.nivel_id` (banco principal) e é validado contra o tenant da empresa do usuário.
+- O frontend recebe a lista de chaves do usuário em `GET /api/me` (`data.permissoes`) e controla menus, rotas e botões.
+- Existe o middleware `permissao:<chave>` para bloqueio de rotas no backend (403), ainda não aplicado às rotas de negócio — rollout gradual descrito em `permissoes.md`.
 
 ---
 
