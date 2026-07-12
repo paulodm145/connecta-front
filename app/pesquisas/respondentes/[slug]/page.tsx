@@ -67,7 +67,7 @@ interface Respondente {
   deleted_at: string | null;
   pesquisa_slug: string;
   pessoa_nome: string;
-  pessoa_email: string;
+  pessoa_email: string | null;
   pessoa_cpf: string;
   pessoa_telefone?: string;
   setor_descricao?: string;
@@ -540,7 +540,7 @@ export default function PesquisasRespondentes() {
                 <TableCell>{respondente.pessoa_nome}</TableCell>
                 <TableCell>{respondente.cargo_descricao}</TableCell>
                 <TableCell>{respondente.setor_descricao}</TableCell>
-                <TableCell>{respondente.pessoa_email}</TableCell>
+                <TableCell>{respondente.pessoa_email || '—'}</TableCell>
                 <TableCell>{respondente.pessoa_cpf}</TableCell>
                 {permissoesUsuario.podeAlterarStatus && (<TableCell>
                   <Switch
@@ -617,7 +617,8 @@ export default function PesquisasRespondentes() {
                       size="sm"
                       className="ml-2"
                       onClick={() => handleEnviarLinkRespondente(respondente.id)}
-                      disabled={respondenteEnviandoId === respondente.id}
+                      disabled={respondenteEnviandoId === respondente.id || !respondente.pessoa_email}
+                      title={!respondente.pessoa_email ? "Pessoa sem e-mail cadastrado não recebe o link" : undefined}
                     >
                       {respondenteEnviandoId === respondente.id
                         ? "Enviando..."

@@ -108,7 +108,7 @@ useEffect(() => {
   const fields = [
     { name: 'nome', label: 'Nome', type: 'text', required: true },
     { name: "cpf", label: "CPF", type: "mask", required: true, maskPattern: "999.999.999-99" },
-    { name: 'email', label: 'Email', type: 'text', required: true },
+    { name: 'email', label: 'Email', type: 'email', required: false },
     { name: 'telefone', label: 'Telefone', type: 'text' },
     { name: 'registro_funcional', label: 'Registro Funcional', type: 'text' },
     { 
@@ -152,7 +152,7 @@ useEffect(() => {
     { label: "Nome", dataField: "nome" },  
     { label: "CPF", dataField: "cpf" },
     { label: "Data de Admissão", dataField: "data_admissao_formatada" },
-    { label: "Email", dataField: "email" },
+    { label: "Email", dataField: "email", render: (value: string | null) => value || '—' },
     { label: "Telefone", dataField: "telefone" },
     { label: "Registro Funcional", dataField: "registro_funcional" },
     { dataField: 'cargos.descricao', 
@@ -171,6 +171,14 @@ useEffect(() => {
     
     formData.cpf = formData.cpf.replace(/\D/g, '');
     formData.telefone = formData.telefone ? formData.telefone.replace(/\D/g, '') : '';
+
+    // E-mail é opcional; o backend rejeita string vazia, então envia null quando não preenchido
+    const emailPreenchido = formData.email ? formData.email.trim() : '';
+    if (emailPreenchido && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailPreenchido)) {
+      toast.error('Informe um e-mail em formato válido.');
+      return { success: false };
+    }
+    formData.email = emailPreenchido || null;
 
     if (!formData.data_admissao || formData.data_admissao.includes('_')) {
       toast.error('Data de Admissão é obrigatória e deve estar completa.');
@@ -276,7 +284,7 @@ useEffect(() => {
         {permissaoImportarPessoas && (<ExcelImportModal
             buttonText="Importar"
             title="Importação de Pessoas"
-            description="Selecione uma planilha Excel para importar dados para o sistema"
+            description="Selecione uma planilha Excel para importar dados para o sistema. A coluna de e-mail é opcional: linhas sem e-mail são importadas normalmente e atualizadas pelo CPF."
             maxSizeInMB={15}
             templates={exampleTemplates}
             messages={{
