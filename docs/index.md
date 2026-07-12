@@ -17,6 +17,7 @@
 | [competencias.md](competencias.md) | CRUD de competências, recomendações, livros e vídeos de PDI |
 | [formularios-import-export.md](formularios-import-export.md) | Exportação e importação de estrutura de formulários (perguntas e opções), instruções de implementação para o frontend |
 | [permissoes.md](permissoes.md) | Sistema de níveis e permissões multi-tenant: arquitetura, endpoints, catálogo completo de chaves e orientações de aplicação por tela/ação para o frontend |
+| [pessoas.md](pessoas.md) | CRUD de colaboradores e importação por planilha, regra de e-mail opcional e instruções de adequação do frontend |
 
 ---
 
@@ -61,6 +62,14 @@
 ### formularios-import-export.md
 - `GET /api/empresas/formularios/{id}/exportar` — baixar estrutura do formulário como arquivo JSON
 - `POST /api/empresas/formularios/importar` — criar formulário a partir de arquivo JSON exportado
+
+### pessoas.md
+- `GET|POST /api/empresas/pessoas` — listar e criar colaboradores (e-mail **opcional**)
+- `GET|PUT|DELETE /api/empresas/pessoas/{id}` — buscar, atualizar, remover
+- `GET /api/empresas/pessoas/change-status/{id}` — alternar ativo/inativo
+- `GET /api/empresas/pessoas-ativas` — listar apenas ativos
+- `GET /api/empresas/pessoas-responsaveis` — listar responsáveis ativos
+- `POST /api/empresas/pessoas/importar` — importar planilha `.xlsx`/`.xls` (sem e-mail, o upsert usa o CPF como chave)
 
 ---
 
