@@ -80,7 +80,7 @@ export default function PesquisasRespondentes() {
   const BASE_URL = process.env.NEXT_PUBLIC_URL_INICIAL;
 
   const { getBySlug } = usePesquisasHook();
-  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa, enviarEmailResponsavelSetor, enviarEmailTodosResponsaveis } = useRespondentesHook();
+  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa, enviarEmailResponsavelSetor, enviarEmailTodosResponsaveis, enviarLinkPesquisaRespondenteWhatsapp, enviarLinksPesquisaEmMassaWhatsapp } = useRespondentesHook();
   const { getPessoasAtivas } = usePessoasHook();
   const { copyToClipboard } = useClipboard();
   const { setoresAtivos } = useSetoresHook();
@@ -113,6 +113,8 @@ export default function PesquisasRespondentes() {
   const [setores, setSetores] = useState<any[]>([]);
   const [respondenteEnviandoId, setRespondenteEnviandoId] = useState<number | null>(null);
   const [enviandoLinksEmMassa, setEnviandoLinksEmMassa] = useState(false);
+  const [respondenteEnviandoWhatsappId, setRespondenteEnviandoWhatsappId] = useState<number | null>(null);
+  const [enviandoLinksWhatsappEmMassa, setEnviandoLinksWhatsappEmMassa] = useState(false);
   const [setorSelecionadoId, setSetorSelecionadoId] = useState<number | null>(null);
   const [enviandoEmailResponsavelSetorId, setEnviandoEmailResponsavelSetorId] = useState<number | null>(null);
   const [enviandoEmailTodosResponsaveis, setEnviandoEmailTodosResponsaveis] = useState(false);
@@ -380,6 +382,51 @@ export default function PesquisasRespondentes() {
     }
   };
 
+  const handleEnviarLinkWhatsappRespondente = async (respondenteId: number) => {
+    try {
+      setRespondenteEnviandoWhatsappId(respondenteId);
+      const retorno = await enviarLinkPesquisaRespondenteWhatsapp(respondenteId);
+      toast.success(retorno?.message || `WhatsApp enviado para ${retorno?.destinatario ?? "o respondente"}`);
+    } catch (error) {
+      toast.error((error as Error).message || "Erro ao enviar WhatsApp da pesquisa.");
+    } finally {
+      setRespondenteEnviandoWhatsappId(null);
+    }
+  };
+
+  const handleEnviarLinksWhatsappEmMassa = async () => {
+    if (!pesquisa?.id) {
+      toast.error("Pesquisa não encontrada para envio em massa");
+      return;
+    }
+
+    if (!window.confirm(`Enviar WhatsApp para os respondentes desta pesquisa?`)) {
+      return;
+    }
+
+    try {
+      setEnviandoLinksWhatsappEmMassa(true);
+      const retorno = await enviarLinksPesquisaEmMassaWhatsapp(pesquisa.id);
+      if (retorno) {
+        const resumo = [
+          `Total: ${retorno.total_respondentes ?? 0}`,
+          `Enfileirados: ${retorno.enfileirados ?? 0}`,
+          `Sem telefone: ${retorno.sem_telefone ?? 0}`,
+          `Sem pessoa: ${retorno.sem_pessoa ?? 0}`,
+        ].join(" | ");
+
+        toast.success(`Envio de WhatsApp enfileirado. ${resumo}`);
+        return;
+      }
+
+      toast.success("Envio de WhatsApp enfileirado");
+    } catch (error) {
+      toast.error((error as Error).message || "Erro ao enviar WhatsApp em massa.");
+    } finally {
+      setEnviandoLinksWhatsappEmMassa(false);
+    }
+  };
+
   return (
     <ProtecaoPermissao chaves={['pesquisas.pesquisas.adicionar.respondentes']}>
     <Card>
@@ -465,6 +512,16 @@ export default function PesquisasRespondentes() {
               disabled={enviandoLinksEmMassa}
             >
               {enviandoLinksEmMassa ? "Enviando links..." : "Enviar links em massa"}
+            </Button>
+          )}
+
+          {permissoesUsuario.podeEnviarLinkEmail && (
+            <Button
+              variant="outline"
+              onClick={handleEnviarLinksWhatsappEmMassa}
+              disabled={enviandoLinksWhatsappEmMassa}
+            >
+              {enviandoLinksWhatsappEmMassa ? "Enviando WhatsApp..." : "Enviar WhatsApp em massa"}
             </Button>
           )}
 
@@ -626,21 +683,18 @@ export default function PesquisasRespondentes() {
                     </Button>
                   )}
 
-                  {permissoesUsuario.podeCopiarLink && (
+                  {permissoesUsuario.podeEnviarLinkEmail && (
                     <Button
                       variant="outline"
                       size="sm"
                       className="ml-2"
-                      disabled={!respondente.pessoa_telefone}
-                      onClick={() => {
-                        const linkPesquisa = `${BASE_URL}/respostas/formulario/${pesquisa?.formulario_slug}?t=${respondente.token}&p=${respondente.pesquisa_slug}&e=${user?.informacoes_usuario?.identificador_empresa}&tpo=1`;
-                        const telefoneFormatado = respondente.pessoa_telefone?.replace(/\D/g, '') || '';
-                        const telefoneComDDI = telefoneFormatado.startsWith('55') ? telefoneFormatado : `55${telefoneFormatado}`;
-                        const mensagem = encodeURIComponent(`Olá! Segue o link para responder a pesquisa: ${linkPesquisa}`);
-                        window.open(`https://wa.me/${telefoneComDDI}?text=${mensagem}`, '_blank');
-                      }}
+                      onClick={() => handleEnviarLinkWhatsappRespondente(respondente.id)}
+                      disabled={respondenteEnviandoWhatsappId === respondente.id || !respondente.pessoa_telefone}
+                      title={!respondente.pessoa_telefone ? "Pessoa sem telefone cadastrado não recebe o link" : undefined}
                     >
-                      WhatsApp
+                      {respondenteEnviandoWhatsappId === respondente.id
+                        ? "Enviando..."
+                        : "Enviar WhatsApp"}
                     </Button>
                   )}
 

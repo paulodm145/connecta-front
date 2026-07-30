@@ -14,6 +14,8 @@
 | [pdi-individual.md](pdi-individual.md) | Geração assíncrona de PDI por envio, consulta de status, dados consolidados, fluxo de polling |
 | [pdi-lote.md](pdi-lote.md) | Geração em lote de PDI, consulta de status em lote, fluxo de polling para múltiplos envios |
 | [emails.md](emails.md) | Envio de PDI por e-mail, link de pesquisa para respondentes, links de avaliação para responsáveis de setor |
+| [whatsapp.md](whatsapp.md) | Envio de link de pesquisa via WhatsApp (Twilio) — individual e em massa |
+| [respondentes.md](respondentes.md) | CRUD de respondentes, listagem por pesquisa, adição em massa |
 | [competencias.md](competencias.md) | CRUD de competências, recomendações, livros e vídeos de PDI |
 | [formularios-import-export.md](formularios-import-export.md) | Exportação e importação de estrutura de formulários (perguntas e opções), instruções de implementação para o frontend |
 | [permissoes.md](permissoes.md) | Sistema de níveis e permissões multi-tenant: arquitetura, endpoints, catálogo completo de chaves e orientações de aplicação por tela/ação para o frontend |
@@ -37,6 +39,17 @@
 - `POST /api/empresas/pdis/gerar-lote` — disparar geração para múltiplos envios (202)
 - `POST /api/empresas/pdis/status-lote` — status de todos os PDIs do lote
 
+### respondentes.md
+- `GET /api/empresas/respondentes` — listar todos
+- `POST /api/empresas/respondentes` — criar respondente
+- `GET /api/empresas/respondentes/{id}` — buscar por ID
+- `PUT /api/empresas/respondentes/{id}` — atualizar respondente
+- `DELETE /api/empresas/respondentes/{id}` — remover respondente
+- `GET /api/empresas/respondentes/pesquisa/{slug}` — listar por pesquisa (com telefone, cargo, setor)
+- `GET /api/empresas/respondentes/change-status/{id}` — alternar status
+- `POST /api/empresas/respondentes/adicionar-multiplos` — adicionar em massa
+- `GET /api/empresas/respondentes/respondentes-combo` — combo para seleção
+
 ### emails.md
 - `POST /api/empresas/envios/{envioId}/pdi/enviar-email` — PDI de um envio por e-mail
 - `POST /api/empresas/pesquisas/{pesquisaId}/pdi/enviar-email` — PDI em massa por pesquisa
@@ -44,6 +57,10 @@
 - `POST /api/empresas/pesquisas/{pesquisaId}/respondentes/enviar-email` — link de pesquisa para todos os respondentes
 - `POST /api/empresas/pesquisas/{pesquisaId}/setores/{setorId}/responsavel/enviar-email` — links de avaliação para responsável de um setor
 - `POST /api/empresas/pesquisas/{pesquisaId}/setores/responsaveis/enviar-email` — links de avaliação para todos os responsáveis de setores
+
+### whatsapp.md
+- `POST /api/empresas/respondentes/{respondenteId}/pesquisa/enviar-whatsapp` — link de pesquisa via WhatsApp para um respondente
+- `POST /api/empresas/pesquisas/{pesquisaId}/respondentes/enviar-whatsapp` — link de pesquisa via WhatsApp para todos os respondentes
 
 ### competencias.md
 - `GET|POST /api/empresas/competencias` — listar e criar

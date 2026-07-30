@@ -167,6 +167,42 @@ export const useRespondentesHook = () => {
         }
     }
 
+    const enviarLinkPesquisaRespondenteWhatsapp = async (respondenteId: number) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/respondentes/${respondenteId}/pesquisa/enviar-whatsapp`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao enviar WhatsApp da pesquisa.");
+        }
+    }
+
+    const enviarLinksPesquisaEmMassaWhatsapp = async (pesquisaId: number) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/pesquisas/${pesquisaId}/respondentes/enviar-whatsapp`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao enviar WhatsApp da pesquisa em massa.");
+        }
+    }
+
     const enviarEmailResponsavelSetor = async (pesquisaId: number, setorId: number) => {
         try {
             const response = await axios.post(
@@ -215,6 +251,8 @@ return {
     enviarRespondentesMultiplos,
     enviarLinkPesquisaRespondente,
     enviarLinksPesquisaEmMassa,
+    enviarLinkPesquisaRespondenteWhatsapp,
+    enviarLinksPesquisaEmMassaWhatsapp,
     enviarEmailResponsavelSetor,
     enviarEmailTodosResponsaveis,
     };
