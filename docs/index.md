@@ -19,7 +19,10 @@
 | [competencias.md](competencias.md) | CRUD de competências, recomendações, livros e vídeos de PDI |
 | [formularios-import-export.md](formularios-import-export.md) | Exportação e importação de estrutura de formulários (perguntas e opções), instruções de implementação para o frontend |
 | [permissoes.md](permissoes.md) | Sistema de níveis e permissões multi-tenant: arquitetura, endpoints, catálogo completo de chaves e orientações de aplicação por tela/ação para o frontend |
-| [pessoas.md](pessoas.md) | CRUD de colaboradores e importação por planilha, regra de e-mail opcional e instruções de adequação do frontend |
+| [pessoas.md](pessoas.md) | CRUD de colaboradores e importação por planilha, regra de e-mail opcional, ordenação alfabética padrão e instruções de adequação do frontend |
+| [setores-cargos.md](setores-cargos.md) | CRUD de setores e cargos, ordenação alfabética padrão nas listagens |
+| [formularios.md](formularios.md) | CRUD de formulários, com foco no novo endpoint de exclusão segura (bloqueado quando há pesquisas/envios vinculados) |
+| [tipos-pesquisa.md](tipos-pesquisa.md) | CRUD de tipos de pesquisa e os 8 tipos padrão (incluindo Avaliação de Desempenho A–D) criados automaticamente para todo tenant novo |
 
 ---
 
@@ -80,13 +83,36 @@
 - `GET /api/empresas/formularios/{id}/exportar` — baixar estrutura do formulário como arquivo JSON
 - `POST /api/empresas/formularios/importar` — criar formulário a partir de arquivo JSON exportado
 
+### formularios.md
+- `GET|POST /api/empresas/formularios` — listar e criar formulários
+- `GET|PUT /api/empresas/formularios/{id}` — buscar, atualizar
+- `DELETE /api/empresas/formularios/{id}` — **novo** — excluir (soft delete; bloqueado se houver pesquisas/envios vinculados — usar inativação nesse caso)
+- `GET /api/empresas/formularios/change-status/{id}` — alternar `RASCUNHO`/`PUBLICADO`
+- `GET /api/empresas/formularios-ativos` — listar apenas publicados
+
 ### pessoas.md
-- `GET|POST /api/empresas/pessoas` — listar e criar colaboradores (e-mail **opcional**)
+- `GET|POST /api/empresas/pessoas` — listar (ordem alfabética por `nome`) e criar colaboradores (e-mail **opcional**)
 - `GET|PUT|DELETE /api/empresas/pessoas/{id}` — buscar, atualizar, remover
 - `GET /api/empresas/pessoas/change-status/{id}` — alternar ativo/inativo
-- `GET /api/empresas/pessoas-ativas` — listar apenas ativos
-- `GET /api/empresas/pessoas-responsaveis` — listar responsáveis ativos
+- `GET /api/empresas/pessoas-ativas` — listar apenas ativos (ordem alfabética por `nome`)
+- `GET /api/empresas/pessoas-responsaveis` — listar responsáveis ativos (ordem alfabética por `nome`)
 - `POST /api/empresas/pessoas/importar` — importar planilha `.xlsx`/`.xls` (sem e-mail, o upsert usa o CPF como chave)
+
+### setores-cargos.md
+- `GET|POST /api/empresas/setores` — listar (ordem alfabética por `descricao`) e criar setores
+- `GET|PUT|DELETE /api/empresas/setores/{id}` — buscar, atualizar, remover
+- `GET /api/empresas/setores/change-status/{id}` — alternar ativo/inativo
+- `GET /api/empresas/setores-ativos` — listar apenas ativos (ordem alfabética por `descricao`)
+- `GET|POST /api/empresas/cargos` — listar (ordem alfabética por `descricao`) e criar cargos
+- `GET|PUT|DELETE /api/empresas/cargos/{id}` — buscar, atualizar, remover (bloqueado se houver pessoas vinculadas)
+- `GET /api/empresas/cargos/change-status/{id}` — alternar ativo/inativo
+
+### tipos-pesquisa.md
+- `GET|POST /api/empresas/tipos-pesquisas` — listar e criar tipos de pesquisa
+- `GET|PUT|DELETE /api/empresas/tipos-pesquisas/{id}` — buscar, atualizar, remover
+- `GET /api/empresas/tipos-pesquisas/change-status/{id}` — alternar ativo/inativo
+- `GET /api/empresas/tipos-pesquisas/pesquisas-ativas` — listar apenas ativos
+- Todo tenant novo já nasce com 8 tipos padrão, incluindo Avaliação de Desempenho A–D
 
 ---
 

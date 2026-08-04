@@ -42,12 +42,15 @@ interface Formulario {
 }
 
 export default function PaginaListagem() {
-  const { listagemFormularios, changeStatus, exportarFormulario, importarFormulario } = useFormulariosHook()
+  const { listagemFormularios, changeStatus, exportarFormulario, importarFormulario, deletarFormulario } = useFormulariosHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
 
   const permissoesUsuario = {
     podeCadastrar: temPermissao('formularios.formularios.adicionar') || false,
     podeEditar: temPermissao('formularios.formularios.editar') || false,
+    // Não há chave de permissão dedicada para exclusão de formulário no catálogo;
+    // reutiliza a permissão de edição, que já governa a modificação do registro.
+    podeExcluir: temPermissao('formularios.formularios.editar') || false,
     alterarStatus: temPermissao('formularios.formularios.alterar.status') || false,
     podeExportar: temPermissao('formularios.formularios.exportar') || false,
     podeImportar: temPermissao('formularios.formularios.importar') || false,
@@ -115,6 +118,35 @@ export default function PaginaListagem() {
       console.error("Erro ao atualizar status do formulário:", error)  
       toast.error("Erro ao atualizar status do formulário.")
     }
+  }
+
+  async function handleExcluir(form: Formulario) {
+    if (!confirm(`Tem certeza que deseja excluir o formulário "${form.titulo}"?`)) return
+
+    const response = await deletarFormulario(form.id)
+
+    if (!response) {
+      toast.error("Erro ao excluir formulário.")
+      return
+    }
+
+    if (response.status === 200) {
+      toast.success(response.message ?? "Formulário excluído com sucesso!")
+      setForms((prev) => prev.filter((f) => f.id !== form.id))
+      return
+    }
+
+    if (response.status === 400) {
+      // Formulário em uso (pesquisas/envios vinculados) — oferece inativação como alternativa
+      if (confirm(`${response.message}\n\nDeseja inativar o formulário agora?`)) {
+        await changeStatus(form.id)
+        toast.success("Formulário inativado com sucesso!")
+        await carregarFormularios()
+      }
+      return
+    }
+
+    toast.error(response.message ?? "Erro ao excluir formulário.")
   }
 
   async function handleExportar(form: Formulario) {
@@ -216,6 +248,7 @@ export default function PaginaListagem() {
               <TableHead>Última Atualização</TableHead>
               {permissoesUsuario.podeExportar && (<TableHead>Exportar</TableHead>)}
               {permissoesUsuario.podeEditar && (<TableHead>Editar</TableHead>)}
+              {permissoesUsuario.podeExcluir && (<TableHead>Excluir</TableHead>)}
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -249,13 +282,22 @@ export default function PaginaListagem() {
                     </Button>
                   </Link>
                 </TableCell>)}
+                {permissoesUsuario.podeExcluir && (<TableCell>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => handleExcluir(form)}
+                  >
+                    Excluir
+                  </Button>
+                </TableCell>)}
               </TableRow>
             ))}
 
             {/* Caso não haja resultados */}
             {currentForms.length === 0 && (
               <TableRow>
-                <TableCell colSpan={8} className="text-center">
+                <TableCell colSpan={9} className="text-center">
                   Nenhum formulário encontrado.
                 </TableCell>
               </TableRow>

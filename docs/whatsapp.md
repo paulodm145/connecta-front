@@ -134,6 +134,8 @@ O link segue o mesmo formato usado no envio por e-mail:
 {PESQUISA_RESPONDER_URL}/respostas/formulario/{formulario-slug}?t={token}&p={pesquisa-slug}&e={empresa_id}&tpo=1
 ```
 
+> **Atenção — `PESQUISA_RESPONDER_URL` precisa ter esquema (`https://`):** o WhatsApp só transforma um trecho de texto em link clicável se ele começar com `http://`/`https://` (ou tiver um domínio com TLD reconhecido). Um valor como `PESQUISA_RESPONDER_URL="localhost:3000/"` (sem esquema) gera um link que chega como **texto puro, não clicável**, no WhatsApp. Configure sempre com o esquema completo, ex.: `PESQUISA_RESPONDER_URL=https://app.suaempresa.com.br`. Essa mesma variável também é usada no link enviado por e-mail (`PesquisaEmailService`) — a correção vale para os dois canais.
+
 ---
 
 ## 3. Formato do telefone

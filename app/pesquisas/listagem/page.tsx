@@ -306,11 +306,18 @@ export default function PaginaListagem() {
                     <label className="block mb-1">Tipo de Pesquisa</label>
                     <select
                       {...register("tipo_pesquisa_id", { required: true })}
-                      className="w-full p-2 border rounded"
+                      className="w-full p-2 border rounded truncate"
+                      title={
+                        tiposPesquisa.find(
+                          (t) => String(t.id) === String(watch("tipo_pesquisa_id"))
+                        )?.descricao ?? ""
+                      }
                     >
                       <option value="">Selecione</option>
                       {tiposPesquisa.map((t) => (
-                        <option key={t.id} value={t.id}>
+                        // Alguns tipos padrão (Avaliação de Desempenho A-D) têm descrição
+                        // longa — o title exibe o texto completo no tooltip do item.
+                        <option key={t.id} value={t.id} title={t.descricao}>
                           {t.descricao}
                         </option>
                       ))}
@@ -385,7 +392,11 @@ export default function PaginaListagem() {
                 <TableCell>{pesquisa.id}</TableCell>
                 <TableCell>{pesquisa.titulo}</TableCell>
                 <TableCell>{pesquisa.formulario}</TableCell>
-                <TableCell>{pesquisa.tipo_pesquisa}</TableCell>
+                <TableCell>
+                  <span className="block max-w-xs truncate" title={pesquisa.tipo_pesquisa}>
+                    {pesquisa.tipo_pesquisa}
+                  </span>
+                </TableCell>
                 {permissoesUsuario.podeAlterarStatus && (<TableCell>
                   <Switch
                     checked={pesquisa.status === "ABERTA"}
