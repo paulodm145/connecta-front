@@ -105,6 +105,8 @@ export default function PesquisasRespondentes() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [sortField, setSortField] = useState<string>("pessoa_nome");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRespondente, setEditingRespondente] = useState<Respondente | null>(
     null
@@ -154,10 +156,47 @@ export default function PesquisasRespondentes() {
   const filteredRespondentes = respondentes.filter((respondente) =>
     respondente.pessoa_nome?.toLowerCase().includes(searchTerm.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredRespondentes.length / itemsPerPage);
+
+  const sortedRespondentes = [...filteredRespondentes].sort((a, b) => {
+    const aValue = a[sortField as keyof Respondente];
+    const bValue = b[sortField as keyof Respondente];
+
+    if (aValue == null && bValue == null) return 0;
+    if (aValue == null) return sortDirection === "asc" ? 1 : -1;
+    if (bValue == null) return sortDirection === "asc" ? -1 : 1;
+
+    const aText = String(aValue).toLowerCase();
+    const bText = String(bValue).toLowerCase();
+
+    return sortDirection === "asc"
+      ? aText.localeCompare(bText, "pt-BR", { numeric: true })
+      : bText.localeCompare(aText, "pt-BR", { numeric: true });
+  });
+
+  const totalPages = Math.ceil(sortedRespondentes.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentRespondentes = filteredRespondentes.slice(startIndex, endIndex);
+  const currentRespondentes = sortedRespondentes.slice(startIndex, endIndex);
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection((prev) => (prev === "asc" ? "desc" : "asc"));
+      return;
+    }
+    setSortField(field);
+    setSortDirection("asc");
+  };
+
+  const renderSortIndicator = (field: string) => {
+    if (sortField !== field) {
+      return <span className="ml-1 text-xs text-muted-foreground">↕</span>;
+    }
+    return (
+      <span className="ml-1 text-xs text-muted-foreground">
+        {sortDirection === "asc" ? "↑" : "↓"}
+      </span>
+    );
+  };
 
   /**
    * Alternar status (ativo/inativo) de um respondente
@@ -582,11 +621,21 @@ export default function PesquisasRespondentes() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Cargo</TableHead>
-              <TableHead>Setor</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>CPF</TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("pessoa_nome")}>
+                <span className="inline-flex items-center">Nome{renderSortIndicator("pessoa_nome")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("cargo_descricao")}>
+                <span className="inline-flex items-center">Cargo{renderSortIndicator("cargo_descricao")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("setor_descricao")}>
+                <span className="inline-flex items-center">Setor{renderSortIndicator("setor_descricao")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("pessoa_email")}>
+                <span className="inline-flex items-center">Email{renderSortIndicator("pessoa_email")}</span>
+              </TableHead>
+              <TableHead className="cursor-pointer select-none" onClick={() => handleSort("pessoa_cpf")}>
+                <span className="inline-flex items-center">CPF{renderSortIndicator("pessoa_cpf")}</span>
+              </TableHead>
               {permissoesUsuario.podeAlterarStatus && (<TableHead>Status</TableHead>)}
               <TableHead>Ações</TableHead>
             </TableRow>

@@ -23,6 +23,23 @@ Documentação do CRUD de colaboradores e da importação por planilha, com foco
 
 ---
 
+## Ordenação padrão alfabética
+
+As listagens abaixo passaram a ordenar por **nome, em ordem alfabética** (`ASC`) em vez de retornar sem ordenação explícita (ordem de inserção no banco):
+
+| Endpoint | Campo de ordenação | Antes |
+|---|---|---|
+| `GET /api/empresas/pessoas` | `nome ASC` | sem ordenação |
+| `GET /api/empresas/pessoas-ativas` | `nome ASC` | sem ordenação |
+
+`GET /api/empresas/pessoas-responsaveis` já ordenava por `nome ASC` e não foi alterado.
+
+A ordenação é feita no backend — **o frontend não precisa mais ordenar a lista localmente** para exibir em ordem alfabética. Nenhuma mudança de contrato (nenhum campo novo, nenhum campo removido) — apenas a ordem dos itens no array retornado muda.
+
+> A mesma mudança foi aplicada às listagens de **Setores** e **Cargos** — veja [setores-cargos.md](setores-cargos.md#ordenação-padrão-alfabética).
+
+---
+
 ## Regra: e-mail é opcional
 
 O campo `email` **não é mais obrigatório** no cadastro nem na importação de pessoas. Alguns colaboradores não possuem e-mail, e isso não pode impedir o cadastro.

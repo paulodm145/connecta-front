@@ -51,8 +51,10 @@ export default function Setores() {
   }, []);
 
   // Campos do formulário
+  // Alguns tipos padrão (Avaliação de Desempenho A-D) têm descrição longa (até ~237
+  // caracteres, limite do backend é 255) — usa textarea em vez de input de uma linha.
   const formCargos = [
-    { name: 'descricao', label: 'Descrição', type: 'text', required: true },
+    { name: 'descricao', label: 'Descrição', type: 'textarea', required: true },
     {
       name: 'status',
       label: 'Status',
@@ -143,7 +145,17 @@ export default function Setores() {
 
   const columns = [
     { dataField: 'id', label: 'ID', render: (value) => value.toString().padStart(5, '0') },
-    { dataField: 'descricao', label: 'Descrição' }
+    {
+      dataField: 'descricao',
+      label: 'Descrição',
+      // Descrições longas (tipos de Avaliação de Desempenho) são truncadas na listagem;
+      // o texto completo fica disponível no tooltip (title) ao passar o mouse.
+      render: (value: string) => (
+        <span className="block max-w-md truncate" title={value}>
+          {value}
+        </span>
+      ),
+    },
   ];
 
   return (

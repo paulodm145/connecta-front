@@ -48,6 +48,26 @@ export const useFormulariosHook = () => {
         }
     }
 
+    const deletarFormulario = async (id: number) => {
+        try {
+            const response = await axios.delete(`${BASE_URL}/formularios/${id}`, {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("token")}`,
+                },
+            });
+            return response.data;
+        } catch (error: any) {
+            // A API responde 400 (em uso) e 404 (não encontrado) com o mesmo
+            // formato { status, message, data } do sucesso — repassamos o corpo
+            // para o chamador tratar pelo campo `status`.
+            if (error.response?.data) {
+                return error.response.data;
+            }
+            console.error("Erro ao excluir formulário:", error);
+            return null;
+        }
+    }
+
     const changeStatus = async (id: number) => {
             try {
                 const response = await axios.get(`${BASE_URL}/formularios/change-status/${id}`, {
@@ -138,9 +158,10 @@ export const useFormulariosHook = () => {
         }
     };
 
-    return { 
+    return {
             novoFormulario,
             editarFormulario,
+            deletarFormulario,
             changeStatus,
             listagemFormularios,
             getBySlug,
