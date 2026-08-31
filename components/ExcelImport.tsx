@@ -321,7 +321,7 @@ export default function ExcelImportModal({
             {templates.length > 0 ? (
               <div className="space-y-4">
                 <p className="text-sm text-muted-foreground">Selecione um modelo de planilha para download:</p>
-                <div className="border rounded-md">
+                <div className="border rounded-md overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>

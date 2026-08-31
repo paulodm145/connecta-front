@@ -667,6 +667,7 @@ export default function PaginaListagem() {
         </div>
 
         {/* Tabela de empresas */}
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -717,6 +718,7 @@ export default function PaginaListagem() {
             ))}
           </TableBody>
         </Table>
+        </div>
 
         {/* Paginação simples */}
         {totalPages > 1 && (
