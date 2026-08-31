@@ -47,7 +47,6 @@ export default function VisualizarPdiPage() {
   const [erro, setErro] = useState<string | null>(null)
   const [avaliacao, setAvaliacao] = useState<any>(null)
   const [planoPdi, setPlanoPdi] = useState<PlanoPdi | null>(null)
-  const [promptPdi, setPromptPdi] = useState<string | null>(null)
   const [competenciasResumo, setCompetenciasResumo] = useState<any[]>([])
   const [enviandoEmail, setEnviandoEmail] = useState(false)
   const [emailEnviadoPara, setEmailEnviadoPara] = useState<string | null>(null)
@@ -89,12 +88,10 @@ export default function VisualizarPdiPage() {
             }
           })
         : competenciasOrigem
-    const prompt = dados.pdi?.prompt || respostaPdi?.prompt || dados.prompt || null
 
     setAvaliacao(avaliacaoDados)
     setPlanoPdi(plano)
     setCompetenciasResumo(competencias)
-    setPromptPdi(prompt)
     setPdiDetalhes(dados.pdi || null)
     setStatusPdi(dados.pdi?.status ?? null)
   }, [])
@@ -336,17 +333,6 @@ export default function VisualizarPdiPage() {
         </Card>
       )}
 
-      {promptPdi && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Prompt utilizado</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="whitespace-pre-wrap text-sm text-muted-foreground">{promptPdi}</p>
-          </CardContent>
-        </Card>
-      )}
-
       {pollingAtivo && (
         <Alert>
           <Loader2 className="h-4 w-4 animate-spin" />
@@ -410,13 +396,6 @@ export default function VisualizarPdiPage() {
                       <Badge variant="secondary">Nota: {Number(item.nota).toFixed(2)}</Badge>
                     )}
                   </div>
-
-                  {item.prompt_pdi && (
-                    <div>
-                      <p className="text-xs uppercase text-muted-foreground">Prompt da competência</p>
-                      <p className="text-sm text-muted-foreground whitespace-pre-wrap">{item.prompt_pdi}</p>
-                    </div>
-                  )}
 
                   {item.acoes_recomendadas && item.acoes_recomendadas.length > 0 && (
                     <div>
@@ -531,14 +510,6 @@ export default function VisualizarPdiPage() {
                     <Badge variant="secondary">Nota: {Number(competencia.nota).toFixed(2)}</Badge>
                   )}
                 </div>
-                {competencia.prompt_pdi && (
-                  <>
-                    <p className="text-xs uppercase text-muted-foreground">Prompt sugerido</p>
-                    <p className="text-sm text-muted-foreground whitespace-pre-wrap">
-                      {competencia.prompt_pdi}
-                    </p>
-                  </>
-                )}
                 {index < competenciasResumo.length - 1 && <Separator className="mt-2" />}
               </div>
             ))}

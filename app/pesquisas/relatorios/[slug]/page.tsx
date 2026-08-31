@@ -8,7 +8,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye, Mail } from "lucide-react"
+import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye, Mail, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -55,7 +55,16 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
-  const { gerarPdiEnvio, consultarStatusPdi, enviarEmailPdiPesquisa, enviarEmailPdiEnvio, gerarLotePdi, consultarStatusLotePdi } = usePdiHook()
+  const {
+    gerarPdiEnvio,
+    consultarStatusPdi,
+    enviarEmailPdiPesquisa,
+    enviarEmailPdiEnvio,
+    enviarWhatsappPdiPesquisa,
+    enviarWhatsappPdiEnvio,
+    gerarLotePdi,
+    consultarStatusLotePdi,
+  } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -78,6 +87,8 @@ export default function Page() {
   const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
   const [enviandoPdiPesquisa, setEnviandoPdiPesquisa] = useState(false)
   const [enviandoPdiEnvioId, setEnviandoPdiEnvioId] = useState<number | null>(null)
+  const [enviandoPdiWhatsappPesquisa, setEnviandoPdiWhatsappPesquisa] = useState(false)
+  const [enviandoPdiWhatsappEnvioId, setEnviandoPdiWhatsappEnvioId] = useState<number | null>(null)
   const [gerandoLotePdi, setGerandoLotePdi] = useState(false)
   const [progressoLotePdi, setProgressoLotePdi] = useState<{ concluidos: number; total: number } | null>(null)
 
@@ -187,7 +198,7 @@ export default function Page() {
       return anotacao && anotacao.length > 0 ? anotacao[0].anotacao : ""
     } catch (error) {
       console.error(`Erro ao buscar anotação do tipo ${tipo}:`, error)
-      toast.error(`Erro ao buscar anotação do tipo ${tipo}.`)
+      toast.error(`Erro ao buscar observação do tipo ${tipo}.`)
       return ""
     }
   }
@@ -201,11 +212,11 @@ export default function Page() {
 
     const tipoTexto = {
       [TipoAnotacao.AVALIADO]: "Avaliado",
-      [TipoAnotacao.AVALIADOR_LIDER]: "Avaliador/Líder",
+      [TipoAnotacao.AVALIADOR_LIDER]: "Avaliador",
       [TipoAnotacao.PDI_AVALIADO]: "PDI do Avaliado",
     }
 
-    setModalTitle(`Anotações ${tipoTexto[tipo]}: ${row.respondente || "Usuário"}`)
+    setModalTitle(`Observações ${tipoTexto[tipo]}: ${row.respondente || "Usuário"}`)
     setIsModalOpen(true)
   }
 
@@ -371,6 +382,53 @@ export default function Page() {
     }
   }
 
+  const handleEnviarPdiWhatsappIndividual = async (row: any) => {
+    const envioId = Number(row.envio_id)
+
+    if (!envioId) {
+      toast.error("Envio não encontrado para envio do PDI.")
+      return
+    }
+
+    setEnviandoPdiWhatsappEnvioId(envioId)
+
+    try {
+      const retorno = await enviarWhatsappPdiEnvio(envioId)
+      toast.success(
+        retorno?.message
+          ? `${retorno.message}${retorno.destinatario ? ` (${retorno.destinatario})` : ""}`
+          : "Envio de PDI via WhatsApp enfileirado."
+      )
+    } catch (error) {
+      const mensagem = (error as any)?.response?.data?.message
+      console.error("Erro ao enviar PDI individual por WhatsApp:", error)
+      toast.error(mensagem || "Não foi possível enviar o PDI por WhatsApp.")
+    } finally {
+      setEnviandoPdiWhatsappEnvioId(null)
+    }
+  }
+
+  const handleEnviarPdiWhatsappEmMassa = async () => {
+    if (!pesquisa?.id) {
+      toast.error("Pesquisa não encontrada para envio em massa.")
+      return
+    }
+
+    setEnviandoPdiWhatsappPesquisa(true)
+
+    try {
+      const retorno = await enviarWhatsappPdiPesquisa(pesquisa.id)
+      const resumo = `Total com PDI: ${retorno?.total_com_pdi ?? 0} • Enfileirados: ${retorno?.enfileirados ?? 0} • Sem telefone: ${retorno?.sem_telefone ?? 0} • Sem respondente: ${retorno?.sem_respondente ?? 0}`
+      toast.success(resumo)
+    } catch (error) {
+      const mensagem = (error as any)?.response?.data?.message
+      console.error("Erro ao enviar PDIs em massa por WhatsApp:", error)
+      toast.error(mensagem || "Não foi possível enviar os PDIs em massa por WhatsApp.")
+    } finally {
+      setEnviandoPdiWhatsappPesquisa(false)
+    }
+  }
+
   const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
@@ -386,16 +444,16 @@ export default function Page() {
       if (response) {
         const tipoTexto = {
           [TipoAnotacao.AVALIADO]: "do Avaliado",
-          [TipoAnotacao.AVALIADOR_LIDER]: "do Avaliador/Líder",
+          [TipoAnotacao.AVALIADOR_LIDER]: "do Avaliador",
           [TipoAnotacao.PDI_AVALIADO]: "do PDI",
         }
-        toast.success(`Anotações ${tipoTexto[currentAnnotationType]} salvas com sucesso!`)
+        toast.success(`Observações ${tipoTexto[currentAnnotationType]} salvas com sucesso!`)
       } else {
-        toast.error("Erro ao salvar anotações.")
+        toast.error("Erro ao salvar observações.")
       }
     } catch (error) {
-      console.error("Erro ao salvar anotações:", error)
-      toast.error("Erro ao salvar anotações.")
+      console.error("Erro ao salvar observações:", error)
+      toast.error("Erro ao salvar observações.")
     }
   }
 
@@ -531,7 +589,7 @@ export default function Page() {
         ? progressoLotePdi
           ? `Gerando... ${progressoLotePdi.concluidos}/${progressoLotePdi.total}`
           : "Iniciando..."
-        : "Gerar todos os PDIs",
+        : "Enviar Link do PDI",
       icon: Sparkles,
       variant: "outline" as const,
       onClick: handleGerarLotePdi,
@@ -547,6 +605,14 @@ export default function Page() {
       disabled: enviandoPdiPesquisa,
     },
     {
+      label: enviandoPdiWhatsappPesquisa ? "Enviando PDI..." : "Enviar PDI por WhatsApp",
+      icon: Phone,
+      variant: "outline" as const,
+      onClick: handleEnviarPdiWhatsappEmMassa,
+      visible: permissoesUsuario.enviarPdiEmail,
+      disabled: enviandoPdiWhatsappPesquisa,
+    },
+    {
       label: "Avaliação do líder",
       icon: UserCheckIcon,
       variant: "outline" as const,
@@ -557,7 +623,7 @@ export default function Page() {
 
   const actionsColumn = [
     {
-      label: "Anotações do Avaliado",
+      label: "Observações do Avaliado",
       icon: MessageSquare,
       onClick: handleOpenNotesAvaliadoModal,
       variant: "ghost" as const,
@@ -565,7 +631,7 @@ export default function Page() {
       visible: permissoesUsuario.anotacoesAvaliado,
     },
     {
-      label: "Anotações do Avaliador/Líder",
+      label: "Observações do Avaliador",
       icon: MessageSquare,
       onClick: handleOpenNotesAvaliadorLiderModal,
       variant: "ghost" as const,
@@ -598,6 +664,15 @@ export default function Page() {
       disabled: (row) => enviandoPdiEnvioId === row.envio_id,
     },
     {
+      label: "Enviar PDI por WhatsApp",
+      icon: Phone,
+      onClick: handleEnviarPdiWhatsappIndividual,
+      variant: "ghost" as const,
+      className: "text-emerald-600 hover:text-emerald-700",
+      visible: permissoesUsuario.enviarPdiEmail,
+      disabled: (row) => enviandoPdiWhatsappEnvioId === row.envio_id,
+    },
+    {
       label: "Gerar PDI",
       icon: Sparkles,
       onClick: handleGerarPdi,
@@ -619,129 +694,131 @@ export default function Page() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <Card className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <Card className="border border-gray-200 bg-gray-50 shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <UserIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
-              <CardTitle className="text-sm font-medium">Total de Respondentes</CardTitle>
+              <p className="text-sm font-medium text-muted-foreground">Total de Respondentes</p>
+              <p className="text-2xl font-bold leading-none">{totalRespondentes}</p>
             </div>
-            <UserIcon className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold mb-4">{totalRespondentes}</div>
-            <Progress value={responseRate} className="h-2" />
-            <p className="mt-2 text-xs text-muted-foreground">
-              Taxa de resposta: <span className="font-medium">{responseRate}%</span>
-            </p>
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Respondidos</Badge>
-                <span className="text-sm font-medium">{numRespondidos}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="destructive">Ainda não responderam</Badge>
-                <span className="text-sm font-medium">{numNaoResponderam}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="col-span-1 md:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium">Top 10 Maiores Pontuações</CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  <span>Exportar</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportChart(chartRef, "png", "pontuacoes")}>
-                  Exportar como PNG
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportChart(chartRef, "svg", "pontuacoes")}>
-                  Exportar como SVG
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportChart(chartRef, "pdf", "pontuacoes")}>
-                  Exportar como PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="w-full overflow-x-auto">
-              <div ref={chartRef} id="chart-container" className="relative h-[300px] min-w-[500px]">
-                <ResponsiveBar
-                  data={topScorers}
-                  indexBy="first_name"
-                  keys={["score", "percentual_av_lider"]}
-                  colors={({ id, data }) => {
-                    if (id === "score") return data.color || "#ccc"
-                    return "#3b82f6"
-                  }}
-                  margin={{ top: 40, right: 130, bottom: 60, left: 60 }}
-                  padding={0.3}
-                  groupMode="grouped"
-                  valueScale={{ type: "linear" }}
-                  axisBottom={{
-                    tickSize: 5,
-                    tickPadding: 5,
-                    tickRotation: -45,
-                  }}
-                  axisLeft={{
-                    tickSize: 5,
-                    tickPadding: 5,
-                  }}
-                  enableGridX={false}
-                  enableGridY
-                  labelSkipWidth={12}
-                  labelSkipHeight={12}
-                  label={(d) => `${d.value}`}
-                  legends={[
-                    {
-                      dataFrom: "keys",
-                      anchor: "top-right",
-                      direction: "column",
-                      justify: false,
-                      translateX: 120,
-                      translateY: 0,
-                      itemsSpacing: 2,
-                      itemWidth: 100,
-                      itemHeight: 20,
-                      itemDirection: "left-to-right",
-                      symbolSize: 12,
-                      symbolShape: "square",
-                      effects: [
-                        {
-                          on: "hover",
-                          style: {
-                            itemOpacity: 1,
-                          },
-                        },
-                      ],
-                    },
-                  ]}
-                  theme={{
-                    tooltip: {
-                      container: {
-                        fontSize: "12px",
-                      },
-                    },
-                    grid: {
-                      line: {
-                        stroke: "hsl(var(--border))",
-                        strokeWidth: 1,
-                      },
-                    },
-                  }}
-                  role="application"
-                />
-              </div>
+          <div className="flex min-w-[160px] flex-1 items-center gap-3 sm:max-w-xs">
+            <Progress value={responseRate} className="h-2 flex-1" />
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              Taxa de resposta: <span className="font-medium">{responseRate}%</span>
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">Respondidos</Badge>
+              <span className="text-sm font-medium">{numRespondidos}</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="destructive">Ainda não responderam</Badge>
+              <span className="text-sm font-medium">{numNaoResponderam}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-sm font-medium">Top 10 Maiores Pontuações</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
+                <Download className="h-4 w-4" />
+                <span>Exportar</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportChart(chartRef, "png", "pontuacoes")}>
+                Exportar como PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportChart(chartRef, "svg", "pontuacoes")}>
+                Exportar como SVG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportChart(chartRef, "pdf", "pontuacoes")}>
+                Exportar como PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <div className="w-full overflow-x-auto">
+            <div ref={chartRef} id="chart-container" className="relative h-[340px] min-w-[320px] sm:min-w-[500px]">
+              <ResponsiveBar
+                data={topScorers}
+                indexBy="first_name"
+                keys={["score", "percentual_av_lider"]}
+                colors={({ id, data }) => {
+                  if (id === "score") return data.color || "#ccc"
+                  return "#3b82f6"
+                }}
+                margin={{ top: 40, right: 130, bottom: 60, left: 60 }}
+                padding={0.3}
+                groupMode="grouped"
+                valueScale={{ type: "linear" }}
+                axisBottom={{
+                  tickSize: 5,
+                  tickPadding: 5,
+                  tickRotation: -45,
+                }}
+                axisLeft={{
+                  tickSize: 5,
+                  tickPadding: 5,
+                }}
+                enableGridX={false}
+                enableGridY
+                labelSkipWidth={12}
+                labelSkipHeight={12}
+                label={(d) => `${d.value}`}
+                legends={[
+                  {
+                    dataFrom: "keys",
+                    anchor: "top-right",
+                    direction: "column",
+                    justify: false,
+                    translateX: 120,
+                    translateY: 0,
+                    itemsSpacing: 2,
+                    itemWidth: 100,
+                    itemHeight: 20,
+                    itemDirection: "left-to-right",
+                    symbolSize: 12,
+                    symbolShape: "square",
+                    effects: [
+                      {
+                        on: "hover",
+                        style: {
+                          itemOpacity: 1,
+                        },
+                      },
+                    ],
+                  },
+                ]}
+                theme={{
+                  tooltip: {
+                    container: {
+                      fontSize: "12px",
+                    },
+                  },
+                  grid: {
+                    line: {
+                      stroke: "hsl(var(--border))",
+                      strokeWidth: 1,
+                    },
+                  },
+                }}
+                role="application"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <h1 className="text-2xl font-bold">Respostas</h1>
       <BasicDataTable

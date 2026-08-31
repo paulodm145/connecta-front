@@ -2,6 +2,7 @@ import { useCallback } from "react"
 import axios from "axios"
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + "/empresas"
+const URL_EXTERNA = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export const usePdiHook = () => {
   const gerarPdiEnvio = useCallback(async (envioId: number, contextoAdicional?: string) => {
@@ -136,12 +137,68 @@ export const usePdiHook = () => {
     }
   }, [])
 
+  const enviarWhatsappPdiEnvio = useCallback(async (envioId: number) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/envios/${envioId}/pdi/enviar-whatsapp`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao enviar PDI por WhatsApp:", error)
+      throw error
+    }
+  }, [])
+
+  const enviarWhatsappPdiPesquisa = useCallback(async (pesquisaId: number) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/pesquisas/${pesquisaId}/pdi/enviar-whatsapp`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao enviar PDI em massa por WhatsApp:", error)
+      throw error
+    }
+  }, [])
+
+  const buscarPdiPublico = useCallback(async (token: string, identificadorEmpresa: string) => {
+    try {
+      const response = await axios.get(`${URL_EXTERNA}/externo-pdi/${token}`, {
+        headers: {
+          Empresa: identificadorEmpresa,
+        },
+      })
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao buscar PDI público:", error)
+      throw error
+    }
+  }, [])
+
   return {
     gerarPdiEnvio,
     consultarStatusPdi,
     buscarPdiEnvio,
+    buscarPdiPublico,
     enviarEmailPdiEnvio,
     enviarEmailPdiPesquisa,
+    enviarWhatsappPdiEnvio,
+    enviarWhatsappPdiPesquisa,
     gerarLotePdi,
     consultarStatusLotePdi,
   }

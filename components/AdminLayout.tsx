@@ -310,7 +310,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
           { name: "Setores", icon: Clipboard, link: "/cadastros/setores", permissao: permissoesUsuario.acessarSubMenuSetores, },
           { name: "Cargos", icon: UserPlus, link: "/cadastros/cargos", permissao: permissoesUsuario.acessarSubMenuCargos },
           { name: "Pessoas", icon: Users, link: "/cadastros/pessoas", permissao: permissoesUsuario.acessarSubMenuPessoas },
-          { name: "Competências", icon: Clipboard, link: "/cadastros/competencias", permissao: permissoesUsuario.acessarSubMenuCompetencias },
+          { name: "Dicas de Competências do PDI", icon: Clipboard, link: "/cadastros/competencias", permissao: permissoesUsuario.acessarSubMenuCompetencias },
           { name: "Livros do PDI", icon: Clipboard, link: "/cadastros/livros-pdi", permissao: permissoesUsuario.acessarSubMenuLivrosPdi },
           { name: "Vídeos do PDI", icon: Clipboard, link: "/cadastros/videos-pdi", permissao: permissoesUsuario.acessarSubMenuVideosPdi },
         ]
