@@ -367,7 +367,7 @@ const TreeMenuItem: React.FC<{ item: MenuItem; depth: number; sidebarMinimized: 
         </div>
   
         {/* Conteúdo principal*/}
-        <div className={`flex-1 flex flex-col transition-all duration-300 ${sidebarOpen ? (sidebarMinimized ? 'ml-16' : 'ml-72') : 'ml-0'}`}>
+        <div className={`flex-1 min-w-0 flex flex-col transition-all duration-300 ${sidebarOpen ? (sidebarMinimized ? 'ml-16' : 'ml-72') : 'ml-0'}`}>
           <header  style={{ minHeight: '70px' }} className={`${darkMode ? 'bg-gray-800' : 'bg-white'} border-b-gray-300 border-b outline-4 border-solid  shadow-md p-4 flex items-center justify-between`}>
             <div className="flex items-center">
               <Button variant="ghost" size="icon" onClick={toggleSidebar} className={`mr-2 ${darkMode ? 'text-white' : 'text-black'}`}>
