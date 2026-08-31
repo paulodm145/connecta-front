@@ -136,12 +136,52 @@ export const usePdiHook = () => {
     }
   }, [])
 
+  const enviarWhatsappPdiEnvio = useCallback(async (envioId: number) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/envios/${envioId}/pdi/enviar-whatsapp`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao enviar PDI por WhatsApp:", error)
+      throw error
+    }
+  }, [])
+
+  const enviarWhatsappPdiPesquisa = useCallback(async (pesquisaId: number) => {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/pesquisas/${pesquisaId}/pdi/enviar-whatsapp`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      )
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao enviar PDI em massa por WhatsApp:", error)
+      throw error
+    }
+  }, [])
+
   return {
     gerarPdiEnvio,
     consultarStatusPdi,
     buscarPdiEnvio,
     enviarEmailPdiEnvio,
     enviarEmailPdiPesquisa,
+    enviarWhatsappPdiEnvio,
+    enviarWhatsappPdiPesquisa,
     gerarLotePdi,
     consultarStatusLotePdi,
   }
