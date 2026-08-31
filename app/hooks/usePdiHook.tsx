@@ -2,6 +2,7 @@ import { useCallback } from "react"
 import axios from "axios"
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + "/empresas"
+const URL_EXTERNA = process.env.NEXT_PUBLIC_API_BASE_URL
 
 export const usePdiHook = () => {
   const gerarPdiEnvio = useCallback(async (envioId: number, contextoAdicional?: string) => {
@@ -174,10 +175,26 @@ export const usePdiHook = () => {
     }
   }, [])
 
+  const buscarPdiPublico = useCallback(async (token: string, identificadorEmpresa: string) => {
+    try {
+      const response = await axios.get(`${URL_EXTERNA}/externo-pdi/${token}`, {
+        headers: {
+          Empresa: identificadorEmpresa,
+        },
+      })
+
+      return response.data
+    } catch (error) {
+      console.error("Erro ao buscar PDI público:", error)
+      throw error
+    }
+  }, [])
+
   return {
     gerarPdiEnvio,
     consultarStatusPdi,
     buscarPdiEnvio,
+    buscarPdiPublico,
     enviarEmailPdiEnvio,
     enviarEmailPdiPesquisa,
     enviarWhatsappPdiEnvio,
