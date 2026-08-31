@@ -8,7 +8,7 @@ import { usePesquisasHook } from "@/app/hooks/usePesquisasHook"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { ResponsiveBar } from "@/components/chart"
 import { Progress } from "@/components/ui/progress"
-import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye, Mail } from "lucide-react"
+import { UserIcon, Download, MessageSquare, Sparkles, UserCheckIcon, Eye, Mail, Phone } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -55,7 +55,16 @@ export default function Page() {
 
   const { relatorioRespostas, dadosDashBoard, exportarDados, getBySlug } = usePesquisasHook()
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook()
-  const { gerarPdiEnvio, consultarStatusPdi, enviarEmailPdiPesquisa, enviarEmailPdiEnvio, gerarLotePdi, consultarStatusLotePdi } = usePdiHook()
+  const {
+    gerarPdiEnvio,
+    consultarStatusPdi,
+    enviarEmailPdiPesquisa,
+    enviarEmailPdiEnvio,
+    enviarWhatsappPdiPesquisa,
+    enviarWhatsappPdiEnvio,
+    gerarLotePdi,
+    consultarStatusLotePdi,
+  } = usePdiHook()
 
   const [respostas, setRespostas] = useState<any[]>([])
   const [colunas, setColunas] = useState<any[]>([])
@@ -78,6 +87,8 @@ export default function Page() {
   const [gerandoPdiEnvioId, setGerandoPdiEnvioId] = useState<number | null>(null)
   const [enviandoPdiPesquisa, setEnviandoPdiPesquisa] = useState(false)
   const [enviandoPdiEnvioId, setEnviandoPdiEnvioId] = useState<number | null>(null)
+  const [enviandoPdiWhatsappPesquisa, setEnviandoPdiWhatsappPesquisa] = useState(false)
+  const [enviandoPdiWhatsappEnvioId, setEnviandoPdiWhatsappEnvioId] = useState<number | null>(null)
   const [gerandoLotePdi, setGerandoLotePdi] = useState(false)
   const [progressoLotePdi, setProgressoLotePdi] = useState<{ concluidos: number; total: number } | null>(null)
 
@@ -371,6 +382,53 @@ export default function Page() {
     }
   }
 
+  const handleEnviarPdiWhatsappIndividual = async (row: any) => {
+    const envioId = Number(row.envio_id)
+
+    if (!envioId) {
+      toast.error("Envio não encontrado para envio do PDI.")
+      return
+    }
+
+    setEnviandoPdiWhatsappEnvioId(envioId)
+
+    try {
+      const retorno = await enviarWhatsappPdiEnvio(envioId)
+      toast.success(
+        retorno?.message
+          ? `${retorno.message}${retorno.destinatario ? ` (${retorno.destinatario})` : ""}`
+          : "Envio de PDI via WhatsApp enfileirado."
+      )
+    } catch (error) {
+      const mensagem = (error as any)?.response?.data?.message
+      console.error("Erro ao enviar PDI individual por WhatsApp:", error)
+      toast.error(mensagem || "Não foi possível enviar o PDI por WhatsApp.")
+    } finally {
+      setEnviandoPdiWhatsappEnvioId(null)
+    }
+  }
+
+  const handleEnviarPdiWhatsappEmMassa = async () => {
+    if (!pesquisa?.id) {
+      toast.error("Pesquisa não encontrada para envio em massa.")
+      return
+    }
+
+    setEnviandoPdiWhatsappPesquisa(true)
+
+    try {
+      const retorno = await enviarWhatsappPdiPesquisa(pesquisa.id)
+      const resumo = `Total com PDI: ${retorno?.total_com_pdi ?? 0} • Enfileirados: ${retorno?.enfileirados ?? 0} • Sem telefone: ${retorno?.sem_telefone ?? 0} • Sem respondente: ${retorno?.sem_respondente ?? 0}`
+      toast.success(resumo)
+    } catch (error) {
+      const mensagem = (error as any)?.response?.data?.message
+      console.error("Erro ao enviar PDIs em massa por WhatsApp:", error)
+      toast.error(mensagem || "Não foi possível enviar os PDIs em massa por WhatsApp.")
+    } finally {
+      setEnviandoPdiWhatsappPesquisa(false)
+    }
+  }
+
   const salvarAnotacao = async ({ anotacao, rowData }: { anotacao: string; rowData: Record<string, any> }) => {
     setRespostas(respostas.map((item) => (item === rowData ? { ...item, anotacao } : item)))
     setIsModalOpen(false)
@@ -547,6 +605,14 @@ export default function Page() {
       disabled: enviandoPdiPesquisa,
     },
     {
+      label: enviandoPdiWhatsappPesquisa ? "Enviando PDI..." : "Enviar PDI por WhatsApp",
+      icon: Phone,
+      variant: "outline" as const,
+      onClick: handleEnviarPdiWhatsappEmMassa,
+      visible: permissoesUsuario.enviarPdiEmail,
+      disabled: enviandoPdiWhatsappPesquisa,
+    },
+    {
       label: "Avaliação do líder",
       icon: UserCheckIcon,
       variant: "outline" as const,
@@ -596,6 +662,15 @@ export default function Page() {
       className: "text-blue-600 hover:text-blue-700",
       visible: permissoesUsuario.enviarPdiEmail,
       disabled: (row) => enviandoPdiEnvioId === row.envio_id,
+    },
+    {
+      label: "Enviar PDI por WhatsApp",
+      icon: Phone,
+      onClick: handleEnviarPdiWhatsappIndividual,
+      variant: "ghost" as const,
+      className: "text-emerald-600 hover:text-emerald-700",
+      visible: permissoesUsuario.enviarPdiEmail,
+      disabled: (row) => enviandoPdiWhatsappEnvioId === row.envio_id,
     },
     {
       label: "Gerar PDI",
