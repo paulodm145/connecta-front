@@ -618,6 +618,7 @@ export default function PesquisasRespondentes() {
           />
         </div>
 
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -752,6 +753,7 @@ export default function PesquisasRespondentes() {
             ))}
           </TableBody>
         </Table>
+        </div>
 
         <div className="flex justify-center mt-4 space-x-2">
           <Button

@@ -374,6 +374,7 @@ export default function PaginaListagem() {
           />
         </div>
 
+        <div className="overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
@@ -437,6 +438,7 @@ export default function PaginaListagem() {
             ))}
           </TableBody>
         </Table>
+        </div>
 
         {/* Exemplo de paginação, se necessário */}
         {totalPages > 1 && (

@@ -196,6 +196,7 @@ export default function AccessLevelsPage() {
         </Dialog>
 
       </div>
+          <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
@@ -261,6 +262,7 @@ export default function AccessLevelsPage() {
               ))}
             </TableBody>
           </Table>
+          </div>
         </CardContent>
       </Card>
       </ProtecaoPermissao>
