@@ -531,7 +531,7 @@ export default function Page() {
         ? progressoLotePdi
           ? `Gerando... ${progressoLotePdi.concluidos}/${progressoLotePdi.total}`
           : "Iniciando..."
-        : "Gerar todos os PDIs",
+        : "Enviar Link do PDI",
       icon: Sparkles,
       variant: "outline" as const,
       onClick: handleGerarLotePdi,
