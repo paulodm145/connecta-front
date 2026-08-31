@@ -619,129 +619,131 @@ export default function Page() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
-        <Card className="col-span-1 border border-gray-200 bg-gray-50 shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+      <Card className="border border-gray-200 bg-gray-50 shadow-sm">
+        <CardContent className="flex flex-col gap-4 p-4 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
+            <UserIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
             <div>
-              <CardTitle className="text-sm font-medium">Total de Respondentes</CardTitle>
+              <p className="text-sm font-medium text-muted-foreground">Total de Respondentes</p>
+              <p className="text-2xl font-bold leading-none">{totalRespondentes}</p>
             </div>
-            <UserIcon className="h-5 w-5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold mb-4">{totalRespondentes}</div>
-            <Progress value={responseRate} className="h-2" />
-            <p className="mt-2 text-xs text-muted-foreground">
-              Taxa de resposta: <span className="font-medium">{responseRate}%</span>
-            </p>
-            <div className="mt-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Respondidos</Badge>
-                <span className="text-sm font-medium">{numRespondidos}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge variant="destructive">Ainda não responderam</Badge>
-                <span className="text-sm font-medium">{numNaoResponderam}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
 
-        <Card className="col-span-1 md:col-span-3">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-sm font-medium">Top 10 Maiores Pontuações</CardTitle>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
-                  <Download className="h-4 w-4" />
-                  <span>Exportar</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => exportChart(chartRef, "png", "pontuacoes")}>
-                  Exportar como PNG
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportChart(chartRef, "svg", "pontuacoes")}>
-                  Exportar como SVG
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportChart(chartRef, "pdf", "pontuacoes")}>
-                  Exportar como PDF
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </CardHeader>
-          <CardContent className="pb-4">
-            <div className="w-full overflow-x-auto">
-              <div ref={chartRef} id="chart-container" className="relative h-[300px] min-w-[500px]">
-                <ResponsiveBar
-                  data={topScorers}
-                  indexBy="first_name"
-                  keys={["score", "percentual_av_lider"]}
-                  colors={({ id, data }) => {
-                    if (id === "score") return data.color || "#ccc"
-                    return "#3b82f6"
-                  }}
-                  margin={{ top: 40, right: 130, bottom: 60, left: 60 }}
-                  padding={0.3}
-                  groupMode="grouped"
-                  valueScale={{ type: "linear" }}
-                  axisBottom={{
-                    tickSize: 5,
-                    tickPadding: 5,
-                    tickRotation: -45,
-                  }}
-                  axisLeft={{
-                    tickSize: 5,
-                    tickPadding: 5,
-                  }}
-                  enableGridX={false}
-                  enableGridY
-                  labelSkipWidth={12}
-                  labelSkipHeight={12}
-                  label={(d) => `${d.value}`}
-                  legends={[
-                    {
-                      dataFrom: "keys",
-                      anchor: "top-right",
-                      direction: "column",
-                      justify: false,
-                      translateX: 120,
-                      translateY: 0,
-                      itemsSpacing: 2,
-                      itemWidth: 100,
-                      itemHeight: 20,
-                      itemDirection: "left-to-right",
-                      symbolSize: 12,
-                      symbolShape: "square",
-                      effects: [
-                        {
-                          on: "hover",
-                          style: {
-                            itemOpacity: 1,
-                          },
-                        },
-                      ],
-                    },
-                  ]}
-                  theme={{
-                    tooltip: {
-                      container: {
-                        fontSize: "12px",
-                      },
-                    },
-                    grid: {
-                      line: {
-                        stroke: "hsl(var(--border))",
-                        strokeWidth: 1,
-                      },
-                    },
-                  }}
-                  role="application"
-                />
-              </div>
+          <div className="flex min-w-[160px] flex-1 items-center gap-3 sm:max-w-xs">
+            <Progress value={responseRate} className="h-2 flex-1" />
+            <span className="whitespace-nowrap text-xs text-muted-foreground">
+              Taxa de resposta: <span className="font-medium">{responseRate}%</span>
+            </span>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <Badge variant="secondary">Respondidos</Badge>
+              <span className="text-sm font-medium">{numRespondidos}</span>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="destructive">Ainda não responderam</Badge>
+              <span className="text-sm font-medium">{numNaoResponderam}</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="w-full">
+        <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <CardTitle className="text-sm font-medium">Top 10 Maiores Pontuações</CardTitle>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm" className="flex items-center gap-1 bg-transparent">
+                <Download className="h-4 w-4" />
+                <span>Exportar</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => exportChart(chartRef, "png", "pontuacoes")}>
+                Exportar como PNG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportChart(chartRef, "svg", "pontuacoes")}>
+                Exportar como SVG
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => exportChart(chartRef, "pdf", "pontuacoes")}>
+                Exportar como PDF
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </CardHeader>
+        <CardContent className="pb-4">
+          <div className="w-full overflow-x-auto">
+            <div ref={chartRef} id="chart-container" className="relative h-[340px] min-w-[320px] sm:min-w-[500px]">
+              <ResponsiveBar
+                data={topScorers}
+                indexBy="first_name"
+                keys={["score", "percentual_av_lider"]}
+                colors={({ id, data }) => {
+                  if (id === "score") return data.color || "#ccc"
+                  return "#3b82f6"
+                }}
+                margin={{ top: 40, right: 130, bottom: 60, left: 60 }}
+                padding={0.3}
+                groupMode="grouped"
+                valueScale={{ type: "linear" }}
+                axisBottom={{
+                  tickSize: 5,
+                  tickPadding: 5,
+                  tickRotation: -45,
+                }}
+                axisLeft={{
+                  tickSize: 5,
+                  tickPadding: 5,
+                }}
+                enableGridX={false}
+                enableGridY
+                labelSkipWidth={12}
+                labelSkipHeight={12}
+                label={(d) => `${d.value}`}
+                legends={[
+                  {
+                    dataFrom: "keys",
+                    anchor: "top-right",
+                    direction: "column",
+                    justify: false,
+                    translateX: 120,
+                    translateY: 0,
+                    itemsSpacing: 2,
+                    itemWidth: 100,
+                    itemHeight: 20,
+                    itemDirection: "left-to-right",
+                    symbolSize: 12,
+                    symbolShape: "square",
+                    effects: [
+                      {
+                        on: "hover",
+                        style: {
+                          itemOpacity: 1,
+                        },
+                      },
+                    ],
+                  },
+                ]}
+                theme={{
+                  tooltip: {
+                    container: {
+                      fontSize: "12px",
+                    },
+                  },
+                  grid: {
+                    line: {
+                      stroke: "hsl(var(--border))",
+                      strokeWidth: 1,
+                    },
+                  },
+                }}
+                role="application"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <h1 className="text-2xl font-bold">Respostas</h1>
       <BasicDataTable
