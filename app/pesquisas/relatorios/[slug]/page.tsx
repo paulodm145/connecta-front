@@ -187,7 +187,7 @@ export default function Page() {
       return anotacao && anotacao.length > 0 ? anotacao[0].anotacao : ""
     } catch (error) {
       console.error(`Erro ao buscar anotação do tipo ${tipo}:`, error)
-      toast.error(`Erro ao buscar anotação do tipo ${tipo}.`)
+      toast.error(`Erro ao buscar observação do tipo ${tipo}.`)
       return ""
     }
   }
@@ -201,11 +201,11 @@ export default function Page() {
 
     const tipoTexto = {
       [TipoAnotacao.AVALIADO]: "Avaliado",
-      [TipoAnotacao.AVALIADOR_LIDER]: "Avaliador/Líder",
+      [TipoAnotacao.AVALIADOR_LIDER]: "Avaliador",
       [TipoAnotacao.PDI_AVALIADO]: "PDI do Avaliado",
     }
 
-    setModalTitle(`Anotações ${tipoTexto[tipo]}: ${row.respondente || "Usuário"}`)
+    setModalTitle(`Observações ${tipoTexto[tipo]}: ${row.respondente || "Usuário"}`)
     setIsModalOpen(true)
   }
 
@@ -386,16 +386,16 @@ export default function Page() {
       if (response) {
         const tipoTexto = {
           [TipoAnotacao.AVALIADO]: "do Avaliado",
-          [TipoAnotacao.AVALIADOR_LIDER]: "do Avaliador/Líder",
+          [TipoAnotacao.AVALIADOR_LIDER]: "do Avaliador",
           [TipoAnotacao.PDI_AVALIADO]: "do PDI",
         }
-        toast.success(`Anotações ${tipoTexto[currentAnnotationType]} salvas com sucesso!`)
+        toast.success(`Observações ${tipoTexto[currentAnnotationType]} salvas com sucesso!`)
       } else {
-        toast.error("Erro ao salvar anotações.")
+        toast.error("Erro ao salvar observações.")
       }
     } catch (error) {
-      console.error("Erro ao salvar anotações:", error)
-      toast.error("Erro ao salvar anotações.")
+      console.error("Erro ao salvar observações:", error)
+      toast.error("Erro ao salvar observações.")
     }
   }
 
@@ -557,7 +557,7 @@ export default function Page() {
 
   const actionsColumn = [
     {
-      label: "Anotações do Avaliado",
+      label: "Observações do Avaliado",
       icon: MessageSquare,
       onClick: handleOpenNotesAvaliadoModal,
       variant: "ghost" as const,
@@ -565,7 +565,7 @@ export default function Page() {
       visible: permissoesUsuario.anotacoesAvaliado,
     },
     {
-      label: "Anotações do Avaliador/Líder",
+      label: "Observações do Avaliador",
       icon: MessageSquare,
       onClick: handleOpenNotesAvaliadorLiderModal,
       variant: "ghost" as const,
