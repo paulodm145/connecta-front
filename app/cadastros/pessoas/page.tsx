@@ -19,7 +19,8 @@ import { maskBRPhone, maskCPFOrCNPJ } from '@/app/utils/Helpers';
 import ExcelImportModal, { type SpreadsheetTemplate } from '@/components/ExcelImport';
 import DetalharErrosImportacaoExcel, {type ResultadoImportacao} from '@/components/DetalharErrosImportacaoExcel'
 import { Badge } from "@/components/ui/badge"
-import { X, FileText } from "lucide-react"
+import { X, FileText, UserCog } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 
 import { useInformacoesUsuarioHook } from '@/app/hooks/useInformacosUsuarioHook';
@@ -311,7 +312,15 @@ useEffect(() => {
       <CardContent>
 
         <div className="flex justify-between items-center mb-4">
-       
+
+        {permissoesUsuario.podeEditar && (
+          <Link href="/cadastros/pessoas/definir-lider">
+            <Button variant="outline">
+              <UserCog className="h-4 w-4 mr-2" />
+              Definir líder em lote
+            </Button>
+          </Link>
+        )}
 
         {permissaoImportarPessoas && (<ExcelImportModal
             buttonText="Importar"
