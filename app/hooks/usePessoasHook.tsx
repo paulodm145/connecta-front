@@ -101,7 +101,26 @@ export const usePessoasHook = () => {
         }
     }
 
+    const definirLiderEmLote = async (pessoasIds: number[], liderId: number | null) => {
+        try {
+            const response = await axios.post(
+                `${BASE_URL}/pessoas/definir-lider`,
+                { pessoas_ids: pessoasIds, lider_id: liderId },
+                {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem("token")}`,
+                    },
+                }
+            );
+            return response.data;
+        } catch (error) {
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao definir o líder.");
+        }
+    }
+
 return { 
+    definirLiderEmLote,
     getResponsaveis,
     changeStatus,
     pessoasIndex,
