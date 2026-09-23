@@ -80,8 +80,8 @@ export default function PesquisasRespondentes() {
   const BASE_URL = process.env.NEXT_PUBLIC_URL_INICIAL;
 
   const { getBySlug } = usePesquisasHook();
-  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa, enviarEmailResponsavelSetor, enviarEmailTodosResponsaveis, enviarLinkPesquisaRespondenteWhatsapp, enviarLinksPesquisaEmMassaWhatsapp } = useRespondentesHook();
-  const { getPessoasAtivas } = usePessoasHook();
+  const { getRespondentesByPesquisaSlug, store, update, destroy, listarRespondentesCombo, enviarRespondentesMultiplos, enviarLinkPesquisaRespondente, enviarLinksPesquisaEmMassa, enviarEmailLider, enviarEmailTodosLideres, enviarLinkPesquisaRespondenteWhatsapp, enviarLinksPesquisaEmMassaWhatsapp } = useRespondentesHook();
+  const { getPessoasAtivas, getResponsaveis } = usePessoasHook();
   const { copyToClipboard } = useClipboard();
   const { setoresAtivos } = useSetoresHook();
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
@@ -118,9 +118,10 @@ export default function PesquisasRespondentes() {
   const [respondenteEnviandoWhatsappId, setRespondenteEnviandoWhatsappId] = useState<number | null>(null);
   const [enviandoLinksWhatsappEmMassa, setEnviandoLinksWhatsappEmMassa] = useState(false);
   const [setorSelecionadoId, setSetorSelecionadoId] = useState<number | null>(null);
-  const [setorEmailId, setSetorEmailId] = useState<number | null>(null);
-  const [enviandoEmailResponsavelSetorId, setEnviandoEmailResponsavelSetorId] = useState<number | null>(null);
-  const [enviandoEmailTodosResponsaveis, setEnviandoEmailTodosResponsaveis] = useState(false);
+  const [lideres, setLideres] = useState<any[]>([]);
+  const [liderEmailId, setLiderEmailId] = useState<number | null>(null);
+  const [enviandoEmailLiderId, setEnviandoEmailLiderId] = useState<number | null>(null);
+  const [enviandoEmailTodosLideres, setEnviandoEmailTodosLideres] = useState(false);
 
   const itemsPerPage = 10;
 
@@ -133,12 +134,13 @@ export default function PesquisasRespondentes() {
   //Carregando listas iniciais
   useEffect(() => {
     const loadData = async () => {
-    const [respPessoas, respPesquisa, respRespondentes, respCombo, respStores] = await Promise.all([
+    const [respPessoas, respPesquisa, respRespondentes, respCombo, respStores, respLideres] = await Promise.all([
       getPessoasAtivas(),
       getBySlug(slug),
       getRespondentesByPesquisaSlug(slug),
       listarRespondentesCombo(),
       setoresAtivos(),
+      getResponsaveis(),
     ]);
 
     setPesquisa(respPesquisa || []);
@@ -146,6 +148,7 @@ export default function PesquisasRespondentes() {
     setPessoas(respPessoas || []);
     setRespondentesCombo(respCombo || []);
     setSetores(respStores || []);
+    setLideres(respLideres || []);
     };
 
     loadData();
@@ -331,47 +334,41 @@ export default function PesquisasRespondentes() {
     }
   };
 
-  const handleEnviarEmailResponsavelSetor = async () => {
-    if (!pesquisa?.id || !setorEmailId) return;
+  const handleEnviarEmailLider = async () => {
+    if (!pesquisa?.id || !liderEmailId) return;
 
     try {
-      setEnviandoEmailResponsavelSetorId(setorEmailId);
-      const retorno = await enviarEmailResponsavelSetor(pesquisa.id, setorEmailId);
+      setEnviandoEmailLiderId(liderEmailId);
+      const retorno = await enviarEmailLider(pesquisa.id, liderEmailId);
       toast.success(
-        `E-mail enviado para ${retorno.responsavel} com ${retorno.total_avaliados} avaliado(s).`
+        `E-mail enviado para ${retorno.lider} com ${retorno.total_avaliados} avaliado(s).`
       );
     } catch (error) {
-      toast.error((error as Error).message || "Erro ao enviar e-mail para o responsável do setor.");
+      toast.error((error as Error).message || "Erro ao enviar e-mail para o líder.");
     } finally {
-      setEnviandoEmailResponsavelSetorId(null);
+      setEnviandoEmailLiderId(null);
     }
   };
 
-  const handleEnviarEmailTodosResponsaveis = async () => {
+  const handleEnviarEmailTodosLideres = async () => {
     if (!pesquisa?.id) {
-      toast.error("Pesquisa não encontrada para envio aos responsáveis.");
+      toast.error("Pesquisa não encontrada para envio aos líderes.");
       return;
     }
 
     try {
-      setEnviandoEmailTodosResponsaveis(true);
-      const retorno = await enviarEmailTodosResponsaveis(pesquisa.id);
-      if (retorno) {
-        const resumo = [
-          `Enviados: ${retorno.enviados ?? 0}`,
-          `Total de setores: ${retorno.total_setores ?? 0}`,
-          `Sem responsável: ${retorno.sem_responsavel ?? 0}`,
-          `Sem e-mail: ${retorno.sem_email_responsavel ?? 0}`,
-          `Sem respondentes: ${retorno.sem_respondentes ?? 0}`,
-        ].join(" | ");
-        toast.success(`Envio concluído. ${resumo}`);
-        return;
-      }
-      toast.success("E-mails enviados para os responsáveis dos setores.");
+      setEnviandoEmailTodosLideres(true);
+      const retorno = await enviarEmailTodosLideres(pesquisa.id);
+      const resumo = [
+        `Enviados: ${retorno.enviados ?? 0}`,
+        `Total de líderes: ${retorno.total_lideres ?? 0}`,
+        `Sem e-mail: ${retorno.sem_email_lider ?? 0}`,
+      ].join(" | ");
+      toast.success(`Envio concluído. ${resumo}`);
     } catch (error) {
-      toast.error("Erro ao enviar e-mails para os responsáveis dos setores.");
+      toast.error((error as Error).message || "Erro ao enviar e-mails para os líderes.");
     } finally {
-      setEnviandoEmailTodosResponsaveis(false);
+      setEnviandoEmailTodosLideres(false);
     }
   };
 
@@ -568,26 +565,26 @@ export default function PesquisasRespondentes() {
           {permissoesUsuario.podeEnviarLinkSetores && (
             <Button
               variant="outline"
-              onClick={handleEnviarEmailTodosResponsaveis}
-              disabled={enviandoEmailTodosResponsaveis}
+              onClick={handleEnviarEmailTodosLideres}
+              disabled={enviandoEmailTodosLideres}
             >
-              {enviandoEmailTodosResponsaveis ? "Enviando para responsáveis..." : "Enviar links para responsáveis"}
+              {enviandoEmailTodosLideres ? "Enviando para líderes..." : "Enviar links para todos os líderes"}
             </Button>
           )}
 
           {permissoesUsuario.podeEnviarLinkSetores && (
             <div className="flex items-center gap-2">
               <Select
-                onValueChange={(value) => setSetorEmailId(Number(value) || null)}
-                value={setorEmailId ? setorEmailId.toString() : ""}
+                onValueChange={(value) => setLiderEmailId(Number(value) || null)}
+                value={liderEmailId ? liderEmailId.toString() : ""}
               >
-                <SelectTrigger className="w-[220px]">
-                  <SelectValue placeholder="Setor para enviar ao responsável" />
+                <SelectTrigger className="w-[280px]">
+                  <SelectValue placeholder="Líder para enviar os links" />
                 </SelectTrigger>
                 <SelectContent>
-                  {setores.map((setor) => (
-                    <SelectItem key={setor.id} value={setor.id.toString()}>
-                      {setor.descricao}
+                  {lideres.map((lider) => (
+                    <SelectItem key={lider.id} value={lider.id.toString()}>
+                      {lider.nome} — {lider.setor_descricao || "Sem setor"}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -595,12 +592,12 @@ export default function PesquisasRespondentes() {
 
               <Button
                 variant="outline"
-                onClick={handleEnviarEmailResponsavelSetor}
-                disabled={!setorEmailId || enviandoEmailResponsavelSetorId === setorEmailId}
+                onClick={handleEnviarEmailLider}
+                disabled={!liderEmailId || enviandoEmailLiderId === liderEmailId}
               >
-                {enviandoEmailResponsavelSetorId === setorEmailId
-                  ? "Enviando para responsável..."
-                  : "Enviar links ao responsável do setor"}
+                {enviandoEmailLiderId === liderEmailId
+                  ? "Enviando para líder..."
+                  : "Enviar links ao líder"}
               </Button>
             </div>
           )}

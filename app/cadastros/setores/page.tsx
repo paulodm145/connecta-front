@@ -74,7 +74,7 @@ export default function Setores() {
     { name: 'descricao', label: 'Descrição', type: 'text', required: true },
     {
       name: 'pessoa_id',
-      label: 'Responsável',
+      label: 'Responsável (informativo — o líder de cada pessoa é definido no cadastro de pessoas)',
       type: 'select',
       lookup: true,
       fetchOptions: async () => pessoasOptions,
