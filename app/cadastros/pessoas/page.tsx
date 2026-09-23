@@ -39,6 +39,7 @@ export default function Pessoas() {
   const { get, post, put, del } = useCrud("", {});
   const [data, setData] = useState<any[]>([]);
   const [cargos, setCargos] = useState<any[]>([]);
+  const [lideres, setLideres] = useState<any[]>([]);
   const [lastImportedFile, setLastImportedFile] = useState<File | null>(null)
   const [showImportMessage, setShowImportMessage] = useState(true)
   const [messageSuccessImport, setMessageSuccessImport] = useState<string>("Sucesso na importação.")
@@ -47,7 +48,7 @@ export default function Pessoas() {
   const [resultadoImportacao, setResultadoImportacao] = useState<ResultadoImportacao | null>(null)
   const [errosModalAberto, setErrosModalAberto] = useState(false)
 
-  const { changeStatus, importar } = usePessoasHook();
+  const { changeStatus, importar, getResponsaveis } = usePessoasHook();
   const { index } = useCargosHook();
 
   const { isSuperAdmin, permissoes, temPermissao } = useInformacoesUsuarioHook();
@@ -100,9 +101,24 @@ const carregarCargos = async () => {
 };
 
 
+// Função para carregar a lista de líderes (pessoas marcadas como responsável).
+// O setor aparece ao lado do nome para diferenciar pessoas com nomes parecidos.
+const carregarLideres = async () => {
+  const response = await getResponsaveis();
+  if (response) {
+    const opcoes = response.map((lider: { id: number; nome: string; setor_descricao: string | null }) => ({
+      value: lider.id.toString(),
+      label: `${lider.nome} — ${lider.setor_descricao || 'Sem setor'}`,
+    }));
+    setLideres([{ value: '0', label: 'Sem líder' }, ...opcoes]);
+  }
+};
+
+
 useEffect(() => {
   carregarPessoas();
   carregarCargos();
+  carregarLideres();
 }, []);
 
   const fields = [
@@ -134,8 +150,15 @@ useEffect(() => {
       fetchOptions: async () => cargos
     },
     {
+      name: 'lider_id',
+      label: 'Líder',
+      type: 'select',
+      lookup: true,
+      fetchOptions: async () => lideres
+    },
+    {
       name: 'responsavel',
-      label: 'Responsável',
+      label: 'É líder (pode ser escolhido como líder de outras pessoas)',
       type: 'toggle',
       value: true,
     },
@@ -159,7 +182,11 @@ useEffect(() => {
       label: 'Cargo',
       render: (_, item) => item.cargos?.descricao || 'Não informado'
     },
-    { label: "Responsável", dataField: "responsavel", render: (val: boolean) => val ? 'Sim' : 'Não' },
+    { dataField: 'lider.nome',
+      label: 'Líder',
+      render: (_: unknown, item: any) => item.lider?.nome || '—'
+    },
+    { label: "É líder", dataField: "responsavel", render: (val: boolean) => val ? 'Sim' : 'Não' },
   ];
 
   // Agora fetchData apenas retorna o estado local, não chama a API
@@ -185,12 +212,16 @@ useEffect(() => {
       return { success: false };
     }
     formData.data_admissao = formData.data_admissao.split('/').reverse().join('-');
+
+    // "Sem líder" (0) ou vazio vira null
+    formData.lider_id = Number(formData.lider_id) > 0 ? Number(formData.lider_id) : null;
     
     if (id) {
       // Atualiza registro existente
       const response = await put(`pessoas/${id}`, formData);
       if (response) {
         await carregarPessoas(); // Recarrega a lista após salvar
+        await carregarLideres(); // "É líder" pode ter mudado
         
         return { success: true, id: response.id };
       }
@@ -201,13 +232,14 @@ useEffect(() => {
       const response = await post("pessoas", formData);
       if (response) {
         await carregarPessoas(); // Recarrega a lista após criar
+        await carregarLideres(); // "É líder" pode ter mudado
         return { success: true, id: response.id };
       } else {
         toast.error("Erro ao salvar pessoa.");
       }
     }
     return { success: false };
-  }, [post, put, carregarPessoas]);
+  }, [post, put, carregarPessoas, carregarLideres]);
 
   const deleteData = useCallback(async (id: number) => {
     await del(`pessoas/${id}`);

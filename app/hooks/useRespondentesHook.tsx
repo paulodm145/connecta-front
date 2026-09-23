@@ -201,10 +201,10 @@ export const useRespondentesHook = () => {
         }
     }
 
-    const enviarEmailResponsavelSetor = async (pesquisaId: number, setorId: number) => {
+    const enviarEmailLider = async (pesquisaId: number, liderId: number) => {
         try {
             const response = await axios.post(
-                `${BASE_URL}/pesquisas/${pesquisaId}/setores/${setorId}/responsavel/enviar-email`,
+                `${BASE_URL}/pesquisas/${pesquisaId}/lideres/${liderId}/enviar-email`,
                 {},
                 {
                     headers: {
@@ -215,14 +215,14 @@ export const useRespondentesHook = () => {
             return response.data;
         } catch (error) {
             const mensagem = (error as any).response?.data?.message;
-            throw new Error(mensagem || "Erro ao enviar e-mail para o responsável do setor.");
+            throw new Error(mensagem || "Erro ao enviar e-mail para o líder.");
         }
     }
 
-    const enviarEmailTodosResponsaveis = async (pesquisaId: number) => {
+    const enviarEmailTodosLideres = async (pesquisaId: number) => {
         try {
             const response = await axios.post(
-                `${BASE_URL}/pesquisas/${pesquisaId}/setores/responsaveis/enviar-email`,
+                `${BASE_URL}/pesquisas/${pesquisaId}/lideres/enviar-email`,
                 {},
                 {
                     headers: {
@@ -232,8 +232,8 @@ export const useRespondentesHook = () => {
             );
             return response.data;
         } catch (error) {
-            console.error("Erro ao enviar e-mails para responsáveis de setores:", error);
-            return null;
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao enviar e-mails para os líderes.");
         }
     }
 
@@ -251,8 +251,8 @@ return {
     enviarLinksPesquisaEmMassa,
     enviarLinkPesquisaRespondenteWhatsapp,
     enviarLinksPesquisaEmMassaWhatsapp,
-    enviarEmailResponsavelSetor,
-    enviarEmailTodosResponsaveis,
+    enviarEmailLider,
+    enviarEmailTodosLideres,
     };
 };
 
