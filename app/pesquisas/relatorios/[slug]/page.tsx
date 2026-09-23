@@ -36,6 +36,7 @@ interface ScoreItem {
   first_name: string
   score: number
   percentual_av_lider?: number
+  nome_lider?: string
   color: string
   [key: string]: string | number | undefined
 }
@@ -148,6 +149,7 @@ export default function Page() {
         first_name: item.first_name,
         score: Number.parseFloat(item.score.toString()),
         percentual_av_lider: item.percentual_av_lider ? Number.parseFloat(item.percentual_av_lider.toString()) : 0,
+        nome_lider: item.nome_lider || undefined,
         color: item.color || "#ccc",
       }))
 
@@ -776,6 +778,26 @@ export default function Page() {
                 labelSkipWidth={12}
                 labelSkipHeight={12}
                 label={(d) => `${d.value}`}
+                tooltip={({ id, value, data }) => (
+                  <div
+                    style={{
+                      padding: "8px 12px",
+                      background: "hsl(var(--popover))",
+                      color: "hsl(var(--popover-foreground))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: 6,
+                      fontSize: 12,
+                    }}
+                  >
+                    <strong>{data.first_name}</strong>
+                    <div>
+                      {id === "score" ? "Pontuação" : "Avaliação do Líder"}: {value}
+                    </div>
+                    {id === "percentual_av_lider" && data.nome_lider && (
+                      <div>Líder: {data.nome_lider}</div>
+                    )}
+                  </div>
+                )}
                 legends={[
                   {
                     dataFrom: "keys",
