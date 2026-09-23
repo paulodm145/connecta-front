@@ -118,6 +118,7 @@ export default function PesquisasRespondentes() {
   const [respondenteEnviandoWhatsappId, setRespondenteEnviandoWhatsappId] = useState<number | null>(null);
   const [enviandoLinksWhatsappEmMassa, setEnviandoLinksWhatsappEmMassa] = useState(false);
   const [setorSelecionadoId, setSetorSelecionadoId] = useState<number | null>(null);
+  const [setorEmailId, setSetorEmailId] = useState<number | null>(null);
   const [enviandoEmailResponsavelSetorId, setEnviandoEmailResponsavelSetorId] = useState<number | null>(null);
   const [enviandoEmailTodosResponsaveis, setEnviandoEmailTodosResponsaveis] = useState(false);
 
@@ -331,11 +332,11 @@ export default function PesquisasRespondentes() {
   };
 
   const handleEnviarEmailResponsavelSetor = async () => {
-    if (!pesquisa?.id || !setorSelecionadoId) return;
+    if (!pesquisa?.id || !setorEmailId) return;
 
     try {
-      setEnviandoEmailResponsavelSetorId(setorSelecionadoId);
-      const retorno = await enviarEmailResponsavelSetor(pesquisa.id, setorSelecionadoId);
+      setEnviandoEmailResponsavelSetorId(setorEmailId);
+      const retorno = await enviarEmailResponsavelSetor(pesquisa.id, setorEmailId);
       toast.success(
         `E-mail enviado para ${retorno.responsavel} com ${retorno.total_avaliados} avaliado(s).`
       );
@@ -574,16 +575,34 @@ export default function PesquisasRespondentes() {
             </Button>
           )}
 
-          {permissoesUsuario.podeEnviarLinkSetores && setorSelecionadoId && (
-            <Button
-              variant="outline"
-              onClick={handleEnviarEmailResponsavelSetor}
-              disabled={enviandoEmailResponsavelSetorId === setorSelecionadoId}
-            >
-              {enviandoEmailResponsavelSetorId === setorSelecionadoId
-                ? "Enviando para responsável..."
-                : "Enviar links ao responsável do setor"}
-            </Button>
+          {permissoesUsuario.podeEnviarLinkSetores && (
+            <div className="flex items-center gap-2">
+              <Select
+                onValueChange={(value) => setSetorEmailId(Number(value) || null)}
+                value={setorEmailId ? setorEmailId.toString() : ""}
+              >
+                <SelectTrigger className="w-[220px]">
+                  <SelectValue placeholder="Setor para enviar ao responsável" />
+                </SelectTrigger>
+                <SelectContent>
+                  {setores.map((setor) => (
+                    <SelectItem key={setor.id} value={setor.id.toString()}>
+                      {setor.descricao}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Button
+                variant="outline"
+                onClick={handleEnviarEmailResponsavelSetor}
+                disabled={!setorEmailId || enviandoEmailResponsavelSetorId === setorEmailId}
+              >
+                {enviandoEmailResponsavelSetorId === setorEmailId
+                  ? "Enviando para responsável..."
+                  : "Enviar links ao responsável do setor"}
+              </Button>
+            </div>
           )}
 
           {permissoesUsuario.podeCadastrarEmLote && (<MultiSelectDropdown
