@@ -216,7 +216,7 @@ export default function PesquisasRespondentes() {
         toast.success("Status atualizado com sucesso");
       } catch (error) {
         console.error("Erro ao atualizar status:", error);
-        toast.error("Erro ao atualizar status");
+        toast.error((error as Error).message || "Erro ao atualizar status");
       }
     }
   };
@@ -253,7 +253,7 @@ export default function PesquisasRespondentes() {
       setRespondentes(updatedRespondentes || []);
     } catch (error) {
       console.error("Erro ao salvar respondente:", error);
-      toast.error("Erro ao salvar respondente");
+      toast.error((error as Error).message || "Erro ao salvar respondente");
     }
   };
 
@@ -268,7 +268,7 @@ export default function PesquisasRespondentes() {
         toast.success("Respondente excluído com sucesso");
       } catch (error) {
         console.error("Erro ao excluir respondente:", error);
-        toast.error("Erro ao excluir respondente");
+        toast.error((error as Error).message || "Erro ao excluir respondente");
       }
     }
   };
@@ -299,7 +299,7 @@ export default function PesquisasRespondentes() {
       toast.success("Respondentes enviados com sucesso");
     } catch (error) {
       console.error("Erro ao enviar respondentes:", error);
-      toast.error("Erro ao enviar respondentes");
+      toast.error((error as Error).message || "Erro ao enviar respondentes");
     }
   }
 

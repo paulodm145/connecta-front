@@ -1,5 +1,4 @@
 import axios from "axios";
-import { toast } from "react-toastify";
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL + '/empresas';
 
@@ -41,8 +40,8 @@ export const useRespondentesHook = () => {
             });
             return response.data;
         } catch (error) {
-            console.error("Erro ao salvar cargo:", error);
-            return null;
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao salvar respondente.");
         }
      }
 
@@ -55,8 +54,8 @@ export const useRespondentesHook = () => {
             });
             return response.data;
         } catch (error) {
-            console.error("Erro ao atualizar cargo:", error);
-            return null;
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao atualizar respondente.");
         }
      }
 
@@ -69,9 +68,8 @@ export const useRespondentesHook = () => {
             });
             return response.data;
         } catch (error) {
-            toast.error("Erro ao excluir cargo.:" + (error as any).response?.data?.error);
-            console.error("Erro ao excluir cargo:", error);
-            return null;
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao excluir respondente.");
         }
     }
     
@@ -126,8 +124,8 @@ export const useRespondentesHook = () => {
             });
             return response.data;
         } catch (error) {
-            console.error("Erro ao enviar respondentes:", error);
-            return null;
+            const mensagem = (error as any).response?.data?.message;
+            throw new Error(mensagem || "Erro ao adicionar respondentes.");
         }
     }
 
